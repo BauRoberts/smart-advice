@@ -1,10 +1,11 @@
+// app/api/companies/route.ts
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { session_id, ...companyData } = body;
+    const { session_id, cnae_code, ...companyData } = body;
     
     if (!session_id) {
       return NextResponse.json(
@@ -17,6 +18,7 @@ export async function POST(request: Request) {
       .from('companies')
       .insert({
         session_id,
+        cnae_code, // Agregamos el código CNAE
         ...companyData
       })
       .select()

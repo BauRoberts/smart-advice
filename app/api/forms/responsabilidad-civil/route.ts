@@ -7,11 +7,9 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { 
       session_id, 
+      empresa_tipo, // 'manufactura' o 'servicios'
       company, // This is already saved, so we don't need it
-      actividad_manufactura,
-      producto_consumo_humano,
-      distribucion,
-      tiene_empleados_tecnicos,
+      actividad,
       ambito_territorial,
       coberturas_solicitadas,
     } = body;
@@ -35,15 +33,31 @@ export async function POST(request: Request) {
     
     if (formError) throw formError;
     
+    // Prepare specific activity data based on company type
+    const activityData = {
+      ...((empresa_tipo === 'manufactura') ? {
+        producto_consumo_humano: actividad.manufactura.producto_consumo_humano,
+        tiene_empleados_tecnicos: actividad.manufactura.tiene_empleados_tecnicos,
+        producto_final_o_intermedio: actividad.manufactura.producto_final_o_intermedio,
+        distribucion: actividad.manufactura.distribucion,
+        matriz_en_espana: actividad.manufactura.matriz_en_espana,
+        filiales: actividad.manufactura.filiales,
+        empresa_tipo: 'manufactura'
+      } : {
+        trabajos_fuera_instalaciones: actividad.servicios.trabajos_fuera_instalaciones,
+        corte_soldadura: actividad.servicios.corte_soldadura,
+        trabajo_equipos_electronicos: actividad.servicios.trabajo_equipos_electronicos,
+        empleados_tecnicos: actividad.servicios.empleados_tecnicos,
+        empresa_tipo: 'servicios'
+      })
+    };
+    
     // Then, create the specific form data
     const { data: rcFormData, error: rcFormError } = await supabase
       .from('form_responsabilidad_civil')
       .insert({
         form_id: formData.id,
-        actividad_manufactura,
-        producto_consumo_humano,
-        distribucion,
-        tiene_empleados_tecnicos,
+        actividad: activityData,
         ambito_territorial,
         coberturas_solicitadas
       })

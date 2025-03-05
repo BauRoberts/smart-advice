@@ -1,29 +1,56 @@
+// lib/schemas.ts (actualización parcial - sólo la parte de Responsabilidad Civil)
 import { z } from 'zod';
 
-// Company information schema
+// Company information schema actualizado
 export const companySchema = z.object({
   name: z.string().min(1, "El nombre de la empresa es obligatorio"),
   cif: z.string().optional(),
+  cnae_code: z.string().optional(),
   activity: z.string().optional(),
   employees_number: z.number().int().positive().optional(),
   billing: z.number().positive().optional(),
-  online_invoice: z.boolean().optional(),
+  online_invoice: z.boolean().default(false),
+  online_invoice_percentage: z.number().min(0).max(100).default(0),
   installations_type: z.string().optional(),
   m2_installations: z.number().positive().optional(),
-  almacena_bienes_terceros: z.boolean().optional(),
-  vehiculos_terceros_aparcados: z.boolean().optional(),
+  almacena_bienes_terceros: z.boolean().default(false),
+  vehiculos_terceros_aparcados: z.boolean().default(false),
 });
 
-// Responsabilidad Civil form schema
+// Esquemas de actividad específicos
+const actividadManufacturaSchema = z.object({
+  producto_consumo_humano: z.boolean().default(false),
+  tiene_empleados_tecnicos: z.boolean().default(false),
+  producto_final_o_intermedio: z.string().optional(),
+  distribucion: z.array(z.string()).default([]),
+  matriz_en_espana: z.boolean().default(true),
+  filiales: z.array(z.string()).default([]),
+});
+
+const actividadServiciosSchema = z.object({
+  trabajos_fuera_instalaciones: z.boolean().default(false),
+  corte_soldadura: z.boolean().default(false),
+  trabajo_equipos_electronicos: z.boolean().default(false),
+  empleados_tecnicos: z.boolean().default(false),
+});
+
+// Responsabilidad Civil form schema actualizado
 export const responsabilidadCivilSchema = z.object({
   // Company info
   company: companySchema,
   
-  // Form specific fields
-  actividad_manufactura: z.boolean().default(false),
+  // Campos para mantener compatibilidad con la versión anterior
   producto_consumo_humano: z.boolean().default(false),
   distribucion: z.array(z.string()).default([]),
   tiene_empleados_tecnicos: z.boolean().default(false),
+  
+  // Datos específicos por tipo de empresa
+  actividad: z.object({
+    manufactura: actividadManufacturaSchema,
+    servicios: actividadServiciosSchema
+  }),
+  
+  // Ámbito territorial y coberturas
   ambito_territorial: z.string().min(1, "El ámbito territorial es obligatorio"),
   coberturas_solicitadas: z.object({
     exploitation: z.boolean().default(false),
@@ -32,6 +59,7 @@ export const responsabilidadCivilSchema = z.object({
     trabajos: z.boolean().default(false),
     profesional: z.boolean().default(false),
   }),
+  actividad_manufactura: z.boolean(),
 });
 
 export type ResponsabilidadCivilFormData = z.infer<typeof responsabilidadCivilSchema>;

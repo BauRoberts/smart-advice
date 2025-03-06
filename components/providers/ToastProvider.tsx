@@ -1,56 +1,66 @@
-"use client"
+"use client";
 
-import { createContext, useState, useContext, ReactNode } from 'react'
-import { Toast, ToastAction, ToastClose, ToastDescription, ToastProvider as RadixToastProvider, ToastTitle, ToastViewport } from '@/components/ui/Toast'
+import { createContext, useState, useContext, ReactNode } from "react";
+import {
+  Toast,
+  ToastAction,
+  ToastClose,
+  ToastDescription,
+  ToastProvider as RadixToastProvider,
+  ToastTitle,
+  ToastViewport,
+} from "@/components/ui/Toast";
 
 type ToastType = {
-  id: string
-  title?: string
-  description?: string
-  action?: React.ReactNode
-  variant?: 'default' | 'destructive'
-}
+  id: string;
+  title?: string;
+  description?: string;
+  action?: React.ReactNode;
+  variant?: "default" | "destructive";
+};
 
 interface ToastContextProps {
-  toasts: ToastType[]
-  addToast: (toast: Omit<ToastType, 'id'>) => void
-  removeToast: (id: string) => void
-  removeAllToasts: () => void
+  toasts: ToastType[];
+  addToast: (toast: Omit<ToastType, "id">) => void;
+  removeToast: (id: string) => void;
+  removeAllToasts: () => void;
 }
 
-const ToastContext = createContext<ToastContextProps | undefined>(undefined)
+const ToastContext = createContext<ToastContextProps | undefined>(undefined);
 
 export const useToastContext = () => {
-  const context = useContext(ToastContext)
+  const context = useContext(ToastContext);
   if (!context) {
-    throw new Error('useToastContext must be used within a ToastProvider')
+    throw new Error("useToastContext must be used within a ToastProvider");
   }
-  return context
-}
+  return context;
+};
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [toasts, setToasts] = useState<ToastType[]>([])
+  const [toasts, setToasts] = useState<ToastType[]>([]);
 
-  const addToast = (toast: Omit<ToastType, 'id'>) => {
-    const id = crypto.randomUUID()
-    setToasts((prev) => [...prev, { id, ...toast }])
-    
+  const addToast = (toast: Omit<ToastType, "id">) => {
+    const id = crypto.randomUUID();
+    setToasts((prev) => [...prev, { id, ...toast }]);
+
     // Auto-remove toast after 5 seconds
     setTimeout(() => {
-      removeToast(id)
-    }, 5000)
-  }
+      removeToast(id);
+    }, 5000);
+  };
 
   const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id))
-  }
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
 
   const removeAllToasts = () => {
-    setToasts([])
-  }
+    setToasts([]);
+  };
 
   return (
-    <ToastContext.Provider value={{ toasts, addToast, removeToast, removeAllToasts }}>
+    <ToastContext.Provider
+      value={{ toasts, addToast, removeToast, removeAllToasts }}
+    >
       <RadixToastProvider>
         {children}
         {toasts.map(({ id, title, description, action, variant }) => (
@@ -64,27 +74,27 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         <ToastViewport />
       </RadixToastProvider>
     </ToastContext.Provider>
-  )
+  );
 }
 
 // Función auxiliar para usar directamente
 export function toast({
   title,
   description,
-  variant = 'default',
+  variant = "default",
   duration = 5000,
   action,
 }: {
-  title?: string
-  description?: string
-  variant?: 'default' | 'destructive'
-  duration?: number
-  action?: React.ReactNode
+  title?: string;
+  description?: string;
+  variant?: "default" | "destructive";
+  duration?: number;
+  action?: React.ReactNode;
 }) {
   // Esta es una implementación simple para ejemplos, en la práctica
   // usa el hook useToastContext
-  const id = crypto.randomUUID()
-  console.log(`Toast: ${title} - ${description}`)
-  
-  return { id, dismiss: () => {} }
+  const id = crypto.randomUUID();
+  console.log(`Toast: ${title} - ${description}`);
+
+  return { id, dismiss: () => {} };
 }

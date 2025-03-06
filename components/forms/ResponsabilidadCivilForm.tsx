@@ -16,7 +16,7 @@ import ServiciosFormStep from "@/components/forms/steps/ServiciosFormStep";
 import CoberturasFormStep from "@/components/forms/steps/CoberturasFormStep";
 import FormSummaryStep from "@/components/forms/steps/FormSummaryStep";
 import LoadingScreen from "@/components/ui/LoadingScreen";
-import { toast } from "@/components/ui/Toast"; // Asumiendo que tienes un componente de toast
+import { toast } from "@/components/ui/toast"; // Asumiendo que tienes un componente de toast
 
 function ResponsabilidadCivilFormContent() {
   const router = useRouter();

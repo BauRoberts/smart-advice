@@ -9,7 +9,7 @@ import {
   ToastProvider as RadixToastProvider,
   ToastTitle,
   ToastViewport,
-} from "@/components/ui/Toast";
+} from "@/components/ui/toast";
 
 type ToastType = {
   id: string;

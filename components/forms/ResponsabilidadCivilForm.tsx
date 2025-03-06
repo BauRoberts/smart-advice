@@ -1,880 +1,329 @@
 // components/forms/ResponsabilidadCivilForm.tsx
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ResponsabilidadCivilFormData, responsabilidadCivilSchema } from '@/lib/schemas';
-import MultiStepForm from './MultiStepForm';
-import { 
-  Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { 
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
-} from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { getOrCreateSession } from '@/lib/session';
-import CnaeSearch from '@/components/CnaeSearch';
-import type { CnaeOption } from '@/lib/services/cnaeService';
-import { determineEmpresaTipo } from '@/lib/services/cnaeService';
+import { FormProvider, useFormContext } from '@/contexts/FormContext';
+import ContactFormStep, { ContactFormData } from '@/components/forms/steps/ContactFormStep';
+import CompanyFormStep, { CompanyFormData, EmpresaTipo } from '@/components/forms/steps/CompanyFormStep';
+import ManufacturaFormStep from '@/components/forms/steps/ManufacturaFormStep';
+import ServiciosFormStep from '@/components/forms/steps/ServiciosFormStep';
+import CoberturasFormStep from '@/components/forms/steps/CoberturasFormStep';
+import FormSummaryStep from '@/components/forms/steps/FormSummaryStep';
+import LoadingScreen from '@/components/ui/LoadingScreen';
+import { toast } from '@/components/ui/Toast'; // Asumiendo que tienes un componente de toast
+import { startNewSession } from '@/lib/session';
 
-// Add this type for empresaTipo
-type EmpresaTipo = 'manufactura' | 'servicios' | null;
-
-// Main form component
-export default function ResponsabilidadCivilForm() {
+function ResponsabilidadCivilFormContent() {
   const router = useRouter();
+  const { formData, dispatch, goToStep, submitForm } = useFormContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedCnaeActivity, setSelectedCnaeActivity] = useState<CnaeOption | null>(null);
-  const [empresaTipo, setEmpresaTipo] = useState<EmpresaTipo>(null);
-  
-  const form = useForm<ResponsabilidadCivilFormData>({
-    resolver: zodResolver(responsabilidadCivilSchema),
-    defaultValues: {
-      company: {
-        name: '',
-        cif: '',
-        cnae_code: '',
-        activity: '',
-        employees_number: undefined,
-        billing: undefined,
-        online_invoice: false,
-        online_invoice_percentage: 0,
-        installations_type: '',
-        m2_installations: undefined,
-        almacena_bienes_terceros: false,
-        vehiculos_terceros_aparcados: false,
-      },
-      actividad_manufactura: false,
-      producto_consumo_humano: false,
-      distribucion: [],
-      tiene_empleados_tecnicos: false,
-      ambito_territorial: '',
-      coberturas_solicitadas: {
-        exploitation: false,
-        patronal: false,
-        productos: false,
-        trabajos: false,
-        profesional: false,
-      },
-      // Para almacenar datos específicos de manufactura/servicios
-      actividad: {
-        manufactura: {
-          producto_consumo_humano: false,
-          tiene_empleados_tecnicos: false,
-          producto_final_o_intermedio: '',
-          distribucion: [],
-          matriz_en_espana: true,
-          filiales: [],
-        },
-        servicios: {
-          trabajos_fuera_instalaciones: false,
-          corte_soldadura: false,
-          trabajo_equipos_electronicos: false,
-          empleados_tecnicos: false,
-        }
-      }
-    },
-  });
+  const [loading, setLoading] = useState(true);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
-  // Determinar si es una empresa de manufactura o servicios según el CNAE
   useEffect(() => {
-    if (selectedCnaeActivity) {
-      const tipo = determineEmpresaTipo(selectedCnaeActivity.code);
-      setEmpresaTipo(tipo);
-      form.setValue('actividad_manufactura', tipo === 'manufactura');
+    // Establecer el tipo de formulario
+    dispatch({
+      type: 'SET_FORM_TYPE',
+      payload: 'responsabilidad_civil'
+    });
+
+    // Recuperar sessionId del localStorage si existe
+    const storedSessionId = localStorage.getItem('session_id');
+    if (storedSessionId) {
+      setSessionId(storedSessionId);
     }
-  }, [selectedCnaeActivity, form]);
+    
+    // Simular tiempo de carga
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [dispatch]);
 
-  // Step 1: Datos de la Empresa
-  function DatosEmpresaStep({ form }: { form: any }) {
-    const onlineInvoice = form.watch('company.online_invoice');
-
-    return (
-      <div className="space-y-6">
-        <FormField
-          control={form.control}
-          name="company.name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nombre de la Empresa *</FormLabel>
-              <FormControl>
-                <Input placeholder="Nombre de la empresa" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        {/* Campo para CNAE */}
-        <FormItem>
-          <FormLabel>Actividad (CNAE) *</FormLabel>
-          <FormControl>
-            <CnaeSearch 
-              onSelect={(option) => {
-                setSelectedCnaeActivity(option);
-                form.setValue('company.activity', option.description);
-                form.setValue('company.cnae_code', option.code);
-              }}
-              defaultValue={form.watch('company.cnae_code')}
-            />
-          </FormControl>
-          <FormDescription>
-            Selecciona el código CNAE que mejor represente la actividad de tu empresa
-          </FormDescription>
-          <FormMessage />
-        </FormItem>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="company.cif"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>CIF</FormLabel>
-                <FormControl>
-                  <Input placeholder="CIF de la empresa" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="company.activity"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Actividad</FormLabel>
-                <FormControl>
-                  <Input placeholder="Actividad de la empresa" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="company.employees_number"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nº de Empleados *</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    placeholder="Número de empleados" 
-                    value={field.value || ''}
-                    onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : '')}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                    ref={field.ref}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="company.billing"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Facturación Anual (€) *</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    placeholder="Facturación anual" 
-                    value={field.value || ''}
-                    onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : '')}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                    ref={field.ref}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Incluir solo la facturación a terceros excluyendo la facturación a otras empresas del grupo
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="company.online_invoice"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>Facturación online</FormLabel>
-              </div>
-            </FormItem>
-          )}
-        />
-
-        {onlineInvoice && (
-          <FormField
-            control={form.control}
-            name="company.online_invoice_percentage"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Porcentaje de facturación online</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input 
-                      type="number" 
-                      placeholder="Porcentaje de facturación online" 
-                      value={field.value || ''}
-                      onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : 0)}
-                      min={0}
-                      max={100}
-                      onBlur={field.onBlur}
-                      name={field.name}
-                      ref={field.ref}
-                    />
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2">%</span>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="company.installations_type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Instalaciones *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar tipo" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Propietario">Actúo como Propietario</SelectItem>
-                    <SelectItem value="Inquilino">Soy Inquilino</SelectItem>
-                    <SelectItem value="Otros">Otros</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="company.m2_installations"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Metros Cuadrados *</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input 
-                      type="number" 
-                      placeholder="m² de instalaciones" 
-                      value={field.value || ''}
-                      onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : '')}
-                      onBlur={field.onBlur}
-                      name={field.name}
-                      ref={field.ref}
-                    />
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2">m²</span>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-4">
-          <FormField
-            control={form.control}
-            name="company.almacena_bienes_terceros"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>¿Almacenas o tienes depositados bienes de terceros, tanto maquinaria como existencias?</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="company.vehiculos_terceros_aparcados"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>¿Hay vehículos de terceros aparcados en mis instalaciones?</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        {/* Si no se detectó automáticamente, el usuario puede seleccionar manualmente */}
-        {!empresaTipo && (
-          <FormField
-            control={form.control}
-            name="actividad_manufactura"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo de Actividad</FormLabel>
-                <Select 
-                  onValueChange={(value) => {
-                    const tipo = value === 'true' ? 'manufactura' : 'servicios';
-                    setEmpresaTipo(tipo);
-                    field.onChange(value === 'true');
-                  }} 
-                  defaultValue={field.value ? 'true' : 'false'}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar tipo de actividad" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="true">Empresa de Manufactura</SelectItem>
-                    <SelectItem value="false">Empresa de Servicios</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-      </div>
-    );
+  // Si está cargando, mostrar pantalla de carga
+  if (loading) {
+    return <LoadingScreen message="Cargando formulario..." />;
   }
 
-  // Step 2: Actividad según tipo de empresa
-  function ActividadStep({ form }: { form: any }) {
-    if (empresaTipo === 'manufactura') {
-      return (
-        <div className="space-y-6">
-          <h3 className="text-lg font-medium">Empresa de Manufactura</h3>
-          
-          <FormField
-            control={form.control}
-            name="actividad.manufactura.producto_consumo_humano"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={(checked) => {
-                      field.onChange(checked);
-                      // También actualizar el campo tradicional para compatibilidad
-                      form.setValue('producto_consumo_humano', !!checked);
-                    }}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>¿El producto está destinado al consumo/uso humano?</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="actividad.manufactura.tiene_empleados_tecnicos"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={(checked) => {
-                      field.onChange(checked);
-                      // También actualizar el campo tradicional para compatibilidad
-                      form.setValue('tiene_empleados_tecnicos', !!checked);
-                    }}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Diseño (¿Hay empleados técnicos en plantilla?)</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="actividad.manufactura.producto_final_o_intermedio"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Fabricación</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar tipo de producto" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="final">Producto Final</SelectItem>
-                    <SelectItem value="intermedio">Producto Intermedio</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="actividad.manufactura.distribucion"
-            render={() => (
-              <FormItem>
-                <FormLabel>Comercialización/Distribución - Indica dónde se distribuyen los productos</FormLabel>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {[
-                    { id: 'espana', label: 'España + Andorra' },
-                    { id: 'ue', label: 'Unión Europea' },
-                    { id: 'mundial-sin-usa', label: 'Todo el mundo excepto USA y Canadá' },
-                    { id: 'mundial-con-usa', label: 'Todo el mundo incluido USA y Canadá' }
-                  ].map((region) => (
-                    <FormField
-                      key={region.id}
-                      control={form.control}
-                      name="actividad.manufactura.distribucion"
-                      render={({ field }) => {
-                        return (
-                          <FormItem
-                            key={region.id}
-                            className="flex flex-row items-start space-x-3 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(region.id)}
-                                onCheckedChange={(checked) => {
-                                  const newValue = checked
-                                    ? [...field.value || [], region.id]
-                                    : field.value?.filter((value: string) => value !== region.id) || [];
-                                  
-                                  field.onChange(newValue);
-                                  
-                                  // También actualizar el campo tradicional para compatibilidad
-                                  if (checked) {
-                                    const currentDistribucion = form.getValues('distribucion') || [];
-                                    form.setValue('distribucion', [...currentDistribucion, region.id]);
-                                  } else {
-                                    const currentDistribucion = form.getValues('distribucion') || [];
-                                    form.setValue('distribucion', 
-                                      currentDistribucion.filter((item: string) => item !== region.id)
-                                    );
-                                  }
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              {region.label}
-                            </FormLabel>
-                          </FormItem>
-                        )
-                      }}
-                    />
-                  ))}
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="actividad.manufactura.matriz_en_espana"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>¿La empresa matriz está en España?</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="actividad.manufactura.filiales"
-            render={() => (
-              <FormItem>
-                <FormLabel>¿Tienes filiales en?</FormLabel>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {[
-                    { id: 'ue', label: 'Unión Europea' },
-                    { id: 'resto-mundo', label: 'Resto del mundo' },
-                    { id: 'usa-canada', label: 'USA y Canadá' }
-                  ].map((region) => (
-                    <FormField
-                      key={region.id}
-                      control={form.control}
-                      name="actividad.manufactura.filiales"
-                      render={({ field }) => {
-                        return (
-                          <FormItem
-                            key={region.id}
-                            className="flex flex-row items-start space-x-3 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(region.id)}
-                                onCheckedChange={(checked) => {
-                                  const newValue = checked
-                                    ? [...field.value || [], region.id]
-                                    : field.value?.filter((value: string) => value !== region.id) || [];
-                                  
-                                  field.onChange(newValue);
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              {region.label}
-                            </FormLabel>
-                          </FormItem>
-                        )
-                      }}
-                    />
-                  ))}
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-      );
-    } else if (empresaTipo === 'servicios') {
-      return (
-        <div className="space-y-6">
-          <h3 className="text-lg font-medium">Empresa de Servicios</h3>
-          
-          <FormField
-            control={form.control}
-            name="actividad.servicios.trabajos_fuera_instalaciones"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>¿Realiza trabajos fuera de las instalaciones o en casa de terceros o clientes?</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="actividad.servicios.corte_soldadura"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>¿Hace trabajos de corte y soldadura?</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="actividad.servicios.trabajo_equipos_electronicos"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>¿Trabaja sobre aparatos o equipos electrónicos?</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="actividad.servicios.empleados_tecnicos"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={(checked) => {
-                      field.onChange(checked);
-                      // También actualizar el campo tradicional para compatibilidad
-                      form.setValue('tiene_empleados_tecnicos', !!checked);
-                    }}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>¿Tiene empleados técnicos/profesionales en plantilla?</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-        </div>
-      );
-    } else {
-      return (
-        <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
-          <p className="text-yellow-800">
-            Por favor, selecciona primero un código CNAE en el paso anterior para determinar el tipo de actividad de tu empresa.
-          </p>
-        </div>
-      );
-    }
-  }
-
-  // Step 3: Coberturas y Ámbito Territorial
-  function CoberturasStep({ form }: { form: any }) {
-    return (
-      <div className="space-y-6">
-        <FormField
-          control={form.control}
-          name="ambito_territorial"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Ámbito Territorial *</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  className="flex flex-col space-y-1"
-                >
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="España" />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      España
-                    </FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="Unión Europea" />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      Unión Europea
-                    </FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="Mundial" />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      Mundial
-                    </FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="coberturas_solicitadas"
-          render={() => (
-            <FormItem>
-              <FormLabel>Coberturas Solicitadas</FormLabel>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {[
-                  { id: 'exploitation', label: 'RC Explotación' },
-                  { id: 'patronal', label: 'RC Patronal' },
-                  { id: 'productos', label: 'RC Productos' },
-                  { id: 'trabajos', label: 'RC Trabajos' },
-                  { id: 'profesional', label: 'RC Profesional' },
-                ].map((coverage) => (
-                  <div key={coverage.id} className="flex items-center space-x-3">
-                    <Checkbox 
-                      id={`coverage-${coverage.id}`} 
-                      checked={form.watch(`coberturas_solicitadas.${coverage.id}`)}
-                      onCheckedChange={(checked) => {
-                        form.setValue(
-                          `coberturas_solicitadas.${coverage.id}` as any, 
-                          checked === true, 
-                          { shouldValidate: true }
-                        );
-                      }}
-                    />
-                    <label 
-                      htmlFor={`coverage-${coverage.id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      {coverage.label}
-                    </label>
-                  </div>
-                ))}
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-    );
-  }
-
-  async function onSubmit() {
-    setIsSubmitting(true);
+  // Paso 1: Datos de contacto - con guardado incremental
+  const handleContactNext = async (data: ContactFormData) => {
     try {
-      const values = form.getValues();
-      console.log("Valores del formulario:", values);
+      // Guardar en el contexto local
+      dispatch({ type: 'SET_CONTACT', payload: data });
       
-      // Get or create session
-      const sessionId = await getOrCreateSession();
-      console.log("Session ID:", sessionId);
+      // Mostrar indicador de carga
+      const savingToast = toast({
+        title: "Guardando datos...",
+        description: "Estamos guardando tu información de contacto",
+        duration: 2000,
+      });
       
-      // Submit company data
-      console.log("Enviando datos de empresa...");
+      // Guardar en la API
+      const contactResponse = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!contactResponse.ok) {
+        throw new Error('Error al guardar datos de contacto');
+      }
+
+      const contactData = await contactResponse.json();
+      
+      // Guardar el session_id
+      if (contactData.session_id) {
+        localStorage.setItem('session_id', contactData.session_id);
+        setSessionId(contactData.session_id);
+      }
+      
+      // Mostrar mensaje de éxito
+      toast({
+        title: "Información guardada",
+        description: "Tus datos de contacto han sido guardados",
+        duration: 2000,
+      });
+      
+      // Avanzar al siguiente paso
+      goToStep(2);
+    } catch (error) {
+      console.error('Error al guardar datos de contacto:', error);
+      
+      // Mostrar mensaje de error
+      toast({
+        title: "Error",
+        description: "No pudimos guardar tus datos de contacto, pero puedes continuar",
+        variant: "destructive",
+        duration: 3000,
+      });
+      
+      // Aún así, avanzar al siguiente paso
+      goToStep(2);
+    }
+  };
+  
+  // Paso 2: Datos de empresa - con guardado incremental
+  const handleCompanyNext = async (data: CompanyFormData, empresaTipo: EmpresaTipo) => {
+    try {
+      // Guardar en el contexto local
+      dispatch({ 
+        type: 'SET_COMPANY', 
+        payload: data,
+        empresaTipo
+      });
+      
+      // Mostrar indicador de carga
+      toast({
+        title: "Guardando datos...",
+        description: "Estamos guardando la información de tu empresa",
+        duration: 2000,
+      });
+      
+      // Si no hay session_id, significa que hubo un problema en el paso anterior
+      if (!sessionId && !localStorage.getItem('session_id')) {
+        throw new Error('No se encontró ID de sesión para guardar los datos de empresa');
+      }
+      
+      // Usar el sessionId del estado o del localStorage
+      const currentSessionId = sessionId || localStorage.getItem('session_id');
+      
+      // Guardar en la API
       const companyResponse = await fetch('/api/companies', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          session_id: sessionId,
-          ...values.company,
+          session_id: currentSessionId,
+          ...data,
           tipo_empresa: empresaTipo,
         }),
       });
-      
-      const companyData = await companyResponse.json();
-      console.log("Respuesta de empresa:", companyData);
-      
+
       if (!companyResponse.ok) {
-        throw new Error(`Error al guardar los datos de la empresa: ${JSON.stringify(companyData)}`);
+        throw new Error('Error al guardar datos de empresa');
       }
       
-      // Submit form data with empresa type-specific values
-      console.log("Enviando datos del formulario...");
-      
-      // Preparar datos específicos de la actividad
-      const actividadData = empresaTipo === 'manufactura' 
-        ? values.actividad.manufactura 
-        : values.actividad.servicios;
-      
-      const formResponse = await fetch('/api/forms/responsabilidad-civil', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          session_id: sessionId,
-          actividad_manufactura: empresaTipo === 'manufactura',
-          producto_consumo_humano: values.actividad.manufactura.producto_consumo_humano,
-          distribucion: values.actividad.manufactura.distribucion,
-          tiene_empleados_tecnicos: empresaTipo === 'manufactura' 
-            ? values.actividad.manufactura.tiene_empleados_tecnicos 
-            : values.actividad.servicios.empleados_tecnicos,
-          ambito_territorial: values.ambito_territorial,
-          coberturas_solicitadas: values.coberturas_solicitadas,
-          empresa_tipo: empresaTipo,
-          actividad: {
-            [empresaTipo as string]: actividadData
-          },
-          company_id: companyData.id,
-        }),
+      // Mostrar mensaje de éxito
+      toast({
+        title: "Información guardada",
+        description: "Los datos de tu empresa han sido guardados",
+        duration: 2000,
       });
       
-      const formData = await formResponse.json();
-      console.log("Respuesta del formulario:", formData);
-      
-      if (!formResponse.ok) {
-        throw new Error(`Error al guardar el formulario: ${JSON.stringify(formData)}`);
-      }
-      
-      // Mostrar mensaje de éxito antes de redireccionar
-      alert("¡Formulario enviado correctamente! Redirigiendo a tus recomendaciones personalizadas...");
-      
-      // Pequeña pausa para que el usuario vea el mensaje
-      setTimeout(() => {
-        // Redirect to recommendations
-        router.push('/recomendaciones');
-      }, 1500);
-      
+      // Avanzar al siguiente paso
+      goToStep(3);
     } catch (error) {
-      console.error('Error detallado al enviar formulario:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-      alert(`Hubo un error al procesar tu solicitud: ${errorMessage}`);
-    } finally {
+      console.error('Error al guardar datos de empresa:', error);
+      
+      // Mostrar mensaje de error
+      toast({
+        title: "Error",
+        description: "No pudimos guardar los datos de tu empresa, pero puedes continuar",
+        variant: "destructive",
+        duration: 3000,
+      });
+      
+      // Aún así, avanzar al siguiente paso
+      goToStep(3);
+    }
+  };
+  
+  // Paso 3: Actividad específica según tipo de empresa
+  const handleActividadNext = () => {
+    goToStep(4);
+  };
+  
+  const handleActividadBack = () => {
+    goToStep(2);
+  };
+  
+  // Paso 4: Coberturas y ámbito territorial
+  const handleCoberturasNext = () => {
+    goToStep(5);
+  };
+  
+  const handleCoberturasBack = () => {
+    goToStep(3);
+  };
+  
+  // Paso 5: Resumen y confirmación
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      await submitForm();
+      
+      // Clear ALL data after successful submission
+      localStorage.removeItem('session_data');
+      localStorage.removeItem('session_id');
+      localStorage.removeItem('formData');
+      
+      toast({
+        title: "Formulario enviado",
+        description: "Redirigiendo a tus recomendaciones personalizadas...",
+        duration: 2000,
+      });
+      
+      setTimeout(() => {
+        router.push('/recomendaciones');
+      }, 2000);
+    } catch (error) {
+      console.error('Error al enviar formulario:', error);
+      
+      toast({
+        title: "Error",
+        description: "Ha ocurrido un error al procesar tu solicitud. Por favor, inténtalo de nuevo.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      
       setIsSubmitting(false);
     }
-  }
+  };
+  
+  const handleSummaryBack = () => {
+    goToStep(4);
+  };
 
-  // Define the steps for the multi-step form
-  const steps = [
-    {
-      id: 1,
-      title: "Datos de la empresa",
-      content: <Form {...form}><DatosEmpresaStep form={form} /></Form>
-    },
-    {
-      id: 2,
-      title: "Actividad y operaciones",
-      content: <Form {...form}><ActividadStep form={form} /></Form>
-    },
-    {
-      id: 3,
-      title: "Coberturas solicitadas",
-      content: <Form {...form}><CoberturasStep form={form} /></Form>
+  const handleCompanyBack = () => {
+    goToStep(1);  // Go back to contact step
+  };
+
+  const startNewForm = () => {
+    // Clear ALL localStorage data
+    localStorage.removeItem('session_data');
+    localStorage.removeItem('session_id');
+    localStorage.removeItem('formData');
+    
+    // Reset form context
+    dispatch({ type: 'RESET_FORM' });
+    
+    // Reset session state
+    setSessionId(null);
+    
+    // Force reload the page to ensure clean state
+    window.location.href = '/responsabilidad-civil';
+  };
+
+  // Renderizar el paso actual del formulario
+  const renderStep = () => {
+    switch (formData.step) {
+      case 1:
+        return (
+          <ContactFormStep 
+            onNext={handleContactNext}
+            defaultValues={formData.contact}
+          />
+        );
+      case 2:
+        return (
+          <CompanyFormStep 
+            onNext={handleCompanyNext}
+            onBack={handleCompanyBack}
+            defaultValues={formData.company}
+          />
+        );
+      case 3:
+        return formData.empresaTipo === 'manufactura' ? (
+          <ManufacturaFormStep 
+            onNext={handleActividadNext}
+            onBack={handleActividadBack}
+            defaultValues={formData.actividad.manufactura}
+          />
+        ) : (
+          <ServiciosFormStep 
+            onNext={handleActividadNext}
+            onBack={handleActividadBack}
+            defaultValues={formData.actividad.servicios}
+          />
+        );
+      case 4:
+        return (
+          <CoberturasFormStep 
+            onNext={handleCoberturasNext}
+            onBack={handleCoberturasBack}
+            defaultValues={{
+              ambito_territorial: formData.ambito_territorial,
+              coberturas_solicitadas: formData.coberturas_solicitadas
+            }}
+          />
+        );
+      case 5:
+        return (
+          <FormSummaryStep 
+            onSubmit={handleSubmit}
+            onBack={handleSummaryBack}
+            formData={formData}
+            isSubmitting={isSubmitting}
+          />
+        );
+      default:
+        return <div>Paso no válido</div>;
     }
-  ];
+  };
 
   return (
-    <div className="w-full">
-      <MultiStepForm 
-  steps={steps} 
-  onSubmit={() => {
-    form.handleSubmit(onSubmit)();
-  }}
-  isSubmitting={isSubmitting} // Añadir esta prop
-/>
+    <div className="min-h-screen">
+      {renderStep()}
+      <button 
+        onClick={startNewForm}
+        className="text-sm text-blue-600 hover:underline"
+      >
+        Comenzar nuevo formulario
+      </button>
     </div>
+  );
+}
+
+// Componente principal que envuelve con el contexto
+export default function ResponsabilidadCivilForm() {
+  return (
+    <FormProvider>
+      <ResponsabilidadCivilFormContent />
+    </FormProvider>
   );
 }

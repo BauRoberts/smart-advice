@@ -7,11 +7,8 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { 
       session_id, 
-      empresa_tipo, // 'manufactura' o 'servicios'
-      company, // This is already saved, so we don't need it
-      actividad,
-      ambito_territorial,
-      coberturas_solicitadas,
+      actividad_manufactura,
+      form_data
     } = body;
     
     if (!session_id) {
@@ -21,61 +18,48 @@ export async function POST(request: Request) {
       );
     }
     
-    // First, create a form entry
+    // Primero, crear un registro en la tabla forms
     const { data: formData, error: formError } = await supabase
       .from('forms')
       .insert({
         session_id,
-        type: 'responsabilidad_civil'
+        type: 'responsabilidad_civil',
+        form_data,
+        is_completed: true,
+        step: 5
       })
       .select()
       .single();
     
     if (formError) throw formError;
     
-    // Prepare specific activity data based on company type
-    const activityData = {
-      ...((empresa_tipo === 'manufactura') ? {
-        producto_consumo_humano: actividad.manufactura.producto_consumo_humano,
-        tiene_empleados_tecnicos: actividad.manufactura.tiene_empleados_tecnicos,
-        producto_final_o_intermedio: actividad.manufactura.producto_final_o_intermedio,
-        distribucion: actividad.manufactura.distribucion,
-        matriz_en_espana: actividad.manufactura.matriz_en_espana,
-        filiales: actividad.manufactura.filiales,
-        empresa_tipo: 'manufactura'
-      } : {
-        trabajos_fuera_instalaciones: actividad.servicios.trabajos_fuera_instalaciones,
-        corte_soldadura: actividad.servicios.corte_soldadura,
-        trabajo_equipos_electronicos: actividad.servicios.trabajo_equipos_electronicos,
-        empleados_tecnicos: actividad.servicios.empleados_tecnicos,
-        empresa_tipo: 'servicios'
-      })
-    };
-    
-    // Then, create the specific form data
+    // Para mantener compatibilidad con el sistema actual, también insertamos en form_responsabilidad_civil
     const { data: rcFormData, error: rcFormError } = await supabase
       .from('form_responsabilidad_civil')
       .insert({
         form_id: formData.id,
-        actividad: activityData,
-        ambito_territorial,
-        coberturas_solicitadas
+        actividad_manufactura,
+        actividad: form_data.actividad,
+        ambito_territorial: form_data.ambito_territorial,
+        coberturas_solicitadas: form_data.coberturas_solicitadas,
+        empresa_tipo: actividad_manufactura ? 'manufactura' : 'servicios',
+        distribucion: form_data.actividad.manufactura?.distribucion || []
       })
       .select()
       .single();
     
     if (rcFormError) throw rcFormError;
     
-    // Now generate recommendations based on form data
+    // Generar recomendaciones
     const { data: insurancesData, error: insurancesError } = await supabase
       .from('insurances')
       .select('*')
       .eq('tipo', 'responsabilidad_civil')
-      .contains('ambito_territorial', [ambito_territorial]);
+      .contains('ambito_territorial', [form_data.ambito_territorial]);
     
     if (insurancesError) throw insurancesError;
     
-    // Create recommendations
+    // Crear recomendaciones
     const recommendations = [];
     for (const insurance of insurancesData) {
       const { data: recData, error: recError } = await supabase

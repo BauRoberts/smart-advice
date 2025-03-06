@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { ChevronDown } from "lucide-react";
 import { 
   CnaeOption, 
   searchCnaeCodes, 
@@ -75,13 +76,14 @@ export default function CnaeSearch({ onSelect, defaultValue, className }: CnaeSe
     <div className={`relative ${className}`} ref={dropdownRef}>
       {/* Botón que muestra la selección actual */}
       <Button
-        type="button"
         variant="outline"
-        className="w-full justify-between text-left font-normal"
+        role="combobox"
+        aria-expanded={isOpen}
+        className="w-full justify-between"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className="truncate">{displayText}</span>
-        <span className="ml-2">▼</span>
+        {selectedCode ? selectedCode : "Seleccionar actividad CNAE"}
+        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
       </Button>
 
       {/* Panel de búsqueda desplegable */}

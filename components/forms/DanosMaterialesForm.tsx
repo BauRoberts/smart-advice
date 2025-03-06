@@ -16,6 +16,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '@/components/ui/select';
 import { getOrCreateSession } from '@/lib/session';
+import CnaeSearch from '@/components/CnaeSearch';
+import type { CnaeOption } from '@/lib/services/cnaeService';
 
 // Step 1: Datos de la Empresa
 function DatosEmpresaStep({ form }: { form: any }) {
@@ -26,10 +28,19 @@ function DatosEmpresaStep({ form }: { form: any }) {
         name="empresa.actividad"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Actividad (CNAE)</FormLabel>
+            <FormLabel>Actividad (CNAE) *</FormLabel>
             <FormControl>
-              <Input placeholder="Actividad de la empresa" {...field} />
+              <CnaeSearch 
+                onSelect={(option: CnaeOption) => {
+                  form.setValue('empresa.actividad', option.description);
+                  form.setValue('empresa.cnae_code', option.code);
+                }}
+                defaultValue={form.watch('empresa.cnae_code')}
+              />
             </FormControl>
+            <FormDescription>
+              Selecciona el código CNAE que mejor represente la actividad de tu empresa
+            </FormDescription>
             <FormMessage />
           </FormItem>
         )}
@@ -951,67 +962,75 @@ export default function DanosMaterialesForm() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            session_id: sessionId,
-            ...values,
-          }),
-        });
-        
-        if (!formResponse.ok) {
-          throw new Error('Error al guardar el formulario');
-        }
-        
-        // Redirect to recommendations
+          session_id: sessionId,
+          ...values,
+        }),
+      });
+      
+      if (!formResponse.ok) {
+        throw new Error('Error al guardar el formulario');
+      }
+      
+      // Show success message before redirecting
+      alert("¡Formulario enviado correctamente! Redirigiendo a tus recomendaciones personalizadas...");
+      
+      // Small delay to show the message
+      setTimeout(() => {
         router.push('/recomendaciones');
-      } catch (error) {
-        console.error('Error submitting form:', error);
-        alert('Hubo un error al procesar tu solicitud. Por favor, inténtalo de nuevo.');
-      } finally {
-        setIsSubmitting(false);
-      }
+      }, 1500);
+      
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      alert(`Hubo un error al procesar tu solicitud: ${errorMessage}`);
+    } finally {
+      setIsSubmitting(false);
     }
-  
-    // Define the steps for the multi-step form
-    const steps = [
-      {
-        id: 1,
-        title: "Datos relativos a tu empresa",
-        content: <Form {...form}><DatosEmpresaStep form={form} /></Form>
-      },
-      {
-        id: 2,
-        title: "Capital asegurado",
-        content: <Form {...form}><CapitalAseguradoStep form={form} /></Form>
-      },
-      {
-        id: 3,
-        title: "Características constructivas del riesgo",
-        content: <Form {...form}><CaracteristicasConstructivasStep form={form} /></Form>
-      },
-      {
-        id: 4,
-        title: "Protección contra incendios",
-        content: <Form {...form}><ProteccionIncendiosStep form={form} /></Form>
-      },
-      {
-        id: 5,
-        title: "Protección contra robo",
-        content: <Form {...form}><ProteccionRoboStep form={form} /></Form>
-      },
-      {
-        id: 6,
-        title: "Siniestralidad",
-        content: <Form {...form}><SiniestralidadStep form={form} /></Form>
-      }
-    ];
-  
-    return (
-      <div className="w-full">
-        <MultiStepForm 
-          steps={steps} 
-          onSubmit={() => {
-            form.handleSubmit(onSubmit)();
-          }} 
-        />
-      </div>
-    );
   }
+
+  // Define the steps for the multi-step form
+  const steps = [
+    {
+      id: 1,
+      title: "Datos relativos a tu empresa",
+      content: <Form {...form}><DatosEmpresaStep form={form} /></Form>
+    },
+    {
+      id: 2,
+      title: "Capital asegurado",
+      content: <Form {...form}><CapitalAseguradoStep form={form} /></Form>
+    },
+    {
+      id: 3,
+      title: "Características constructivas del riesgo",
+      content: <Form {...form}><CaracteristicasConstructivasStep form={form} /></Form>
+    },
+    {
+      id: 4,
+      title: "Protección contra incendios",
+      content: <Form {...form}><ProteccionIncendiosStep form={form} /></Form>
+    },
+    {
+      id: 5,
+      title: "Protección contra robo",
+      content: <Form {...form}><ProteccionRoboStep form={form} /></Form>
+    },
+    {
+      id: 6,
+      title: "Siniestralidad",
+      content: <Form {...form}><SiniestralidadStep form={form} /></Form>
+    }
+  ];
+
+  return (
+    <div className="w-full">
+      <MultiStepForm 
+        steps={steps} 
+        onSubmit={() => {
+          form.handleSubmit(onSubmit)();
+        }}
+        isSubmitting={isSubmitting}
+      />
+    </div>
+  );
+}

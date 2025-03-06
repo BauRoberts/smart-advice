@@ -4,6 +4,12 @@ const isBrowser = typeof window !== 'undefined';
 // Session token key in localStorage
 const SESSION_TOKEN_KEY = 'smart_advice_session_id';
 
+// Add expiration time to session storage
+interface SessionData {
+  id: string;
+  timestamp: number;
+}
+
 // Get session ID from localStorage
 export function getSessionId(): string | null {
   if (!isBrowser) return null;
@@ -41,12 +47,38 @@ export async function createSession(): Promise<string> {
 }
 
 // Get or create session
-export async function getOrCreateSession(): Promise<string> {
-  const existingSessionId = getSessionId();
+export function getOrCreateSession(): string {
+  // Check for existing session
+  const storedSession = localStorage.getItem('session_data');
   
-  if (existingSessionId) {
-    return existingSessionId;
+  if (storedSession) {
+    const sessionData: SessionData = JSON.parse(storedSession);
+    const now = Date.now();
+    const thirtyMinutes = 30 * 60 * 1000; // 30 minutes in milliseconds
+    
+    // Check if session is less than 30 minutes old
+    if (now - sessionData.timestamp < thirtyMinutes) {
+      return sessionData.id;
+    }
   }
   
-  return await createSession();
+  // Create new session if none exists or is expired
+  const newSession: SessionData = {
+    id: crypto.randomUUID(),
+    timestamp: Date.now()
+  };
+  
+  localStorage.setItem('session_data', JSON.stringify(newSession));
+  return newSession.id;
+}
+
+// Add this function to explicitly start a new session
+export function startNewSession(): string {
+  const newSession: SessionData = {
+    id: crypto.randomUUID(),
+    timestamp: Date.now()
+  };
+  
+  localStorage.setItem('session_data', JSON.stringify(newSession));
+  return newSession.id;
 }

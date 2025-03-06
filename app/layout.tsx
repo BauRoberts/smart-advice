@@ -1,23 +1,26 @@
+import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import './globals.css'
+import { ToastProvider } from '@/components/providers/ToastProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Smart-Advice - Seguros para PYMES',
-  description: 'Encuentra el seguro perfecto para tu PYME en minutos',
+  title: 'Smart-Advice | Seguros para tu empresa',
+  description: 'Encuentra el seguro perfecto para tu PYME o startup',
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
     <html lang="es">
       <body className={inter.className}>
-        {children}
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   )

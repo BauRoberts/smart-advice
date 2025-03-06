@@ -233,4 +233,69 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora? 
 
-Seguir refinando el formulario de responsabilidad civil! Hay varias cosas para mejorar. Ya armamos las actividades de CNAE y el slecetor! Ahora debemos seguir refinando el formulario de responsabilidad civil! 
+Vamos a hacer gradnes cambios! Vamos a empezar con el formulario de responsabilidad civil! Pero para eso creo que vamos tener que restructurar la base de datos, APIs y demas. Entonces la cuestion es esta, los formularios son largos y debemos seccionarlos en partes. No solo a nivel experiencia sino que tambien a nivel de codigo. Por otro lado las bases de datos deberian ser mas faciles de manejar. 
+Entonces me imagino algo como: 
+Datos de Contacto / Usuarios
+-Session ID
+-Nombre
+-Email
+-Telefono
+
+Empresas
+-Session ID
+-Nombre
+-CNAE
+-Actividad
+
+Formularios
+-Session ID
+-Tipo de formulario
+-Fecha de envio
+-TODAS LAS PREGUNTAS DEL FORMULARIO
+
+Ahora esto lo hariamos para sea mas facil de manejar y mas facil de entender. Peroooo vamos a tener que hacer cambios tambien en los formularios y como lo vemos. La idea seria que sean pantallas que se vayan pasando como tenemos en el multi step form. La primera en los formularios de responsabilidad civil seria: 
+Datos de contacto
+-Nombre (A datos de contacto)
+-Email (A datos de contacto)
+-Telefono (A datos de contacto)
+
+Segunda pantalla: 
+-Nombre de la empresa (A datos de empresa)
+-ACTIVIDAD: (Nº CENAE) (A datos de empresa)
+-FACTURACIÓN: *Incluir solo la facturación a terceros excluyendo la facturación a otras empresas del grupo (Importe en Euros) (A datos de empresa)
+-Nº DE EMPLEADOS: (INDICAR) (A datos de empresa)
+-FACTURA ON-LINE: SI/NO: % DE FACTURACION
+-INSTALACIONES:ACTUO COMO PROPIETARIO/SOY INQUILINO (U OTROS)
+-M2 DE LAS INSTALACIONES:
+-ALMACENAS O TIENES DEPOSITADOS BIENES DE TERCEROS (SEA MAQUINARIA O EXISTENCIAS): SI/NO
+-HAY VEHÍCULOS DE TERCEROS APARCADOS EN MIS INSTALACIONES: SI/NO
+
+Tercera pantalla si es Servicios:
+- [ ]  REALIZA TRABAJOS FUERA DE LAS INSTALACIONES O EN CASA DE TERCEROS O CLIENTES?
+- [ ]  HAGO TRABAJOS DE CORTE Y SOLDADURA
+- [ ]  TRABAJO SOBRE APARATOS O EQUIPOS ELECTRONICOS.
+- [ ]  TENGO EMPLEADOS TÉCNICOS/PROFESIONALES EN PLANTILLA:
+
+Tercera pantalla si es Manufactura:
+- [ ]  EL PRODUCTO ESTÁ DESTINADO AL CONSUMO/USO HUMANO: SI/NO
+- [ ]  DISEÑO
+(HAY EMPLEADOS TÉCNICOS EN PLANTILLA)
+- [ ]  FABRICACIÓN
+(ES UN PRODUCTO FINAL O INTERMEDIO)
+- [ ]  COMERCIALIZACION/DISTRIBUCIÓN
+INDICA DÓNDE SE DISTRIBUYEN LOS PRODUCTOS
+(ESPAÑA+ ANDORRA) / UE / TODO EL MUNDO EXCEPTO USA Y CANADÁ + TODO EL MUNDO INCLUIDO USA Y CANADÁ
+- [ ]  LA EMPRESA MATRIZ ESTÁ EN ESPAÑA?
+TIENES FILIALES EN: UE/RESTO DEL MUNDO/USA Y CANADÁ
+
+4 Pantalla: 
+
+Resumen de todo lo cargado. 
+
+5 Pantalla: 
+
+Recomendaciones de seguros. 
+
+Ahora como decis que deberiamos hacer esto? 
+
+X otro lado! El tema de la interfaz de usuario, voy a trata de armar algo para que te guies! 

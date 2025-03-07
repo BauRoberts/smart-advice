@@ -394,7 +394,7 @@ export default function DanosResumenStep({
 
         <div className="pt-4 bg-blue-50 p-4 rounded-md">
           <p className="text-sm text-blue-800">
-            Al hacer clic en "Enviar", recibirás tus recomendaciones
+            Al hacer clic en &quot;Enviar&quot;, recibirás tus recomendaciones
             personalizadas de seguros basadas en la información proporcionada.
           </p>
         </div>

@@ -130,12 +130,11 @@ export default function Home() {
             </span>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
-              Encuentra el seguro para &quot;abogados&quot; y &quot;despachos
-              jurídicos&quot;
+              Encuentra el seguro
             </h1>
 
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 italic mb-4">
-              para tu despacho jurídico.
+              para tu empresa.
             </h2>
 
             <div className="brand-accent"></div>
@@ -143,7 +142,7 @@ export default function Home() {
             <p className="text-lg text-gray-700 mb-10 leading-relaxed">
               Simplificamos la elección de seguros para proteger tu práctica
               legal y responsabilidad profesional. Coberturas diseñadas
-              específicamente para el sector legal.
+              específicamente para el sector empresarial.
             </p>
 
             {/* <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto mb-10">
@@ -228,8 +227,8 @@ export default function Home() {
             </div>
 
             <p className="text-sm text-gray-500 italic">
-              "El seguro perfecto para tu despacho jurídico, con la tranquilidad
-              que tú y tus clientes merecen"
+              El seguro perfecto para tu despacho jurídico, con la tranquilidad
+              que tú y tus clientes merecen
             </p>
           </div>
         </div>

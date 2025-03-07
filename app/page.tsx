@@ -1,50 +1,212 @@
-// app/page.tsx
+// app/page.tsx (Hero Section Part)
+"use client";
+
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { CheckCircle, Shield, Clock, Award } from "lucide-react";
+import {
+  CheckCircle,
+  Shield,
+  Clock,
+  Award,
+  Scale,
+  Gavel,
+  FileText,
+  BookOpen,
+} from "lucide-react";
+import Image from "next/image";
+
+// Smart Advice branded hero section
+const heroStyles = `
+  .hero-background {
+    background-color: #FFFFFF;
+    position: relative;
+  }
+  
+  .hero-background::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('/images/pattern.png');
+    background-size: 200px;
+    background-repeat: repeat;
+    opacity: 0.05;
+    z-index: 0;
+  }
+  
+  .brand-accent {
+    height: 4px;
+    width: 120px;
+    background-color: #FB2E25;
+    margin: 0 auto 2rem auto;
+  }
+  
+  .legal-tag {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: rgba(6, 42, 90, 0.05);
+    color: #062A5A;
+    border-radius: 4px;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+  }
+  
+  .legal-icon {
+    color: #FB2E25;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+  }
+  
+  .feature-card {
+    border-left: 3px solid #FB2E25;
+    transition: all 0.2s ease;
+  }
+  
+  .feature-card:nth-child(2) {
+    border-left-color: #FC7A37;
+  }
+  
+  .feature-card:nth-child(3) {
+    border-left-color: #062A5A;
+  }
+  
+  .feature-card:nth-child(4) {
+    border-left-color: #FB2E25;
+  }
+  
+  .feature-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  
+  .primary-btn {
+    background-color: #062A5A;
+    border: none;
+    transition: all 0.2s ease;
+  }
+  
+  .primary-btn:hover {
+    background-color: #051d3e; 
+  }
+  
+  .secondary-btn {
+    color: #062A5A;
+    border-color: #062A5A;
+  }
+  
+  .secondary-btn:hover {
+    background-color: rgba(6, 42, 90, 0.05);
+  }
+`;
 
 export default function Home() {
   return (
     <main className="min-h-screen">
+      <style jsx>{heroStyles}</style>
+
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="py-16 md:py-24 overflow-hidden bg-white">
-        <div className="container mx-auto px-6">
+      {/* Smart Advice branded hero section */}
+      <section className="hero-background py-20 md:py-28 relative">
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/images/smart-advice-logo.png"
+              alt="Smart Advice"
+              width={120}
+              height={120}
+              className="mb-8"
+            />
+          </div>
+
           <div className="max-w-3xl mx-auto text-center">
+            <span className="legal-tag">
+              <Scale className="legal-icon inline-block w-4 h-4" />
+              Asesoramiento especializado
+            </span>
+
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
               Encuentra el seguro
             </h1>
 
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 italic mb-8">
-              para tu PYME.
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 italic mb-4">
+              para tu despacho jurídico.
             </h2>
 
-            <p className="text-lg text-gray-600 mb-10 max-w-2xl mx-auto">
-              Simplificamos la elección de seguros para proteger los bienes y
-              responsabilidades de tu negocio.
+            <div className="brand-accent"></div>
+
+            <p className="text-lg text-gray-700 mb-10 leading-relaxed">
+              Simplificamos la elección de seguros para proteger tu práctica
+              legal y responsabilidad profesional. Coberturas diseñadas
+              específicamente para el sector legal.
             </p>
 
-            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
-              <Button
-                asChild
-                size="lg"
-                className="bg-black text-white hover:bg-gray-800 rounded-md px-8"
-              >
-                <Link href="/seguros">Comenzar ahora</Link>
+            {/* <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto mb-10">
+              <div className="feature-card flex items-start p-4 bg-white rounded-lg shadow-sm">
+                <Gavel className="text-[#FB2E25] w-6 h-6 mt-1 shrink-0" />
+                <div className="ml-4 text-left">
+                  <h3 className="font-medium text-gray-900">
+                    Responsabilidad Civil Profesional
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Protección para tu ejercicio profesional
+                  </p>
+                </div>
+              </div>
+
+              <div className="feature-card flex items-start p-4 bg-white rounded-lg shadow-sm">
+                <FileText className="text-[#FC7A37] w-6 h-6 mt-1 shrink-0" />
+                <div className="ml-4 text-left">
+                  <h3 className="font-medium text-gray-900">
+                    Protección de Datos
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Cobertura para información confidencial
+                  </p>
+                </div>
+              </div>
+
+              <div className="feature-card flex items-start p-4 bg-white rounded-lg shadow-sm">
+                <Shield className="text-[#062A5A] w-6 h-6 mt-1 shrink-0" />
+                <div className="ml-4 text-left">
+                  <h3 className="font-medium text-gray-900">Ciberriesgos</h3>
+                  <p className="text-sm text-gray-600">
+                    Defensa ante amenazas digitales
+                  </p>
+                </div>
+              </div>
+
+              <div className="feature-card flex items-start p-4 bg-white rounded-lg shadow-sm">
+                <BookOpen className="text-[#FB2E25] w-6 h-6 mt-1 shrink-0" />
+                <div className="ml-4 text-left">
+                  <h3 className="font-medium text-gray-900">
+                    Continuidad de Negocio
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Garantizando la estabilidad de tu despacho
+                  </p>
+                </div>
+              </div>
+            </div> */}
+
+            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
+              <Button asChild size="lg" className="primary-btn rounded-md px-8">
+                <Link href="/seguros">Solicitar asesoramiento</Link>
               </Button>
 
               <Button
                 asChild
                 variant="outline"
                 size="lg"
-                className="text-black border-gray-300 hover:bg-gray-100 rounded-md px-8"
+                className="secondary-btn rounded-md px-8"
               >
                 <Link href="#como-funciona">
                   <span className="flex items-center">
-                    Cómo funciona
+                    Ver coberturas
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="ml-2 h-4 w-4"
@@ -63,52 +225,13 @@ export default function Home() {
                 </Link>
               </Button>
             </div>
+
+            <p className="text-sm text-gray-500 italic">
+              "El seguro perfecto para tu despacho jurídico, con la tranquilidad
+              que tú y tus clientes merecen"
+            </p>
           </div>
         </div>
-
-        {/* Service showcase section
-        <div className="mt-16 max-w-6xl mx-auto px-6">
-          <div className="grid grid-cols-4 gap-4">
-            <div className="col-span-4 md:col-span-2 rounded-lg overflow-hidden shadow-md">
-              <div className="bg-blue-50 h-72 w-full flex items-center justify-center">
-                <div className="text-center p-6">
-                  <h3 className="text-xl font-bold mb-2">
-                    Responsabilidad Civil
-                  </h3>
-                  <p className="text-gray-600">
-                    Protege tu negocio frente a reclamaciones por daños a
-                    terceros
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="col-span-2 md:col-span-1 rounded-lg overflow-hidden shadow-md">
-              <div className="bg-blue-50 h-72 w-full flex items-center justify-center">
-                <div className="text-center p-4">
-                  <h3 className="text-lg font-bold mb-2">Daños Materiales</h3>
-                  <p className="text-gray-600 text-sm">
-                    Protege tus instalaciones y bienes
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="col-span-2 md:col-span-1 rounded-lg overflow-hidden shadow-md">
-              <div className="bg-blue-50 h-72 w-full flex items-center justify-center">
-                <div className="text-center p-4">
-                  <h3 className="text-lg font-bold mb-2">
-                    Riesgos Adicionales
-                  </h3>
-                  <p className="text-gray-600 text-sm">
-                    Coberturas especiales para necesidades específicas
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="flex justify-end mt-2">
-            <span className="text-xs text-gray-400">Smart-Advice 2023</span>
-          </div>
-        </div>*/}
       </section>
 
       {/* Benefits Section */}
@@ -133,7 +256,7 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Benefit 2 */}
+            {/* Other benefits... */}
             <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-center mb-4">
                 <CheckCircle className="h-10 w-10 text-blue-600" />
@@ -146,7 +269,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Benefit 3 */}
             <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-center mb-4">
                 <Shield className="h-10 w-10 text-blue-600" />
@@ -160,7 +282,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Benefit 4 */}
             <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-center mb-4">
                 <Award className="h-10 w-10 text-blue-600" />

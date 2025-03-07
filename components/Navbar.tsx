@@ -5,6 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Search } from "lucide-react";
+import Image from "next/image";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -14,11 +15,22 @@ export default function Navbar() {
   };
 
   return (
-    <header className="py-4 px-6 bg-white sticky top-0 z-50">
+    <header className="py-3 px-6 bg-white sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center">
           <Link href="/" className="flex items-center">
-            <span className="text-xl font-bold text-black">Smart-Advice</span>
+            <div className="relative h-10 w-10 mr-2">
+              <Image
+                src="/images/smart-advice-logo.png"
+                alt="Smart Advice Logo"
+                width={40}
+                height={40}
+                className="object-contain"
+              />
+            </div>
+            <span className="text-xl font-bold text-[#00000]">
+              Smart-Advice
+            </span>
           </Link>
         </div>
 
@@ -26,25 +38,25 @@ export default function Navbar() {
         <nav className="hidden md:flex items-center space-x-6">
           <Link
             href="/"
-            className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
+            className="text-sm text-gray-700 hover:text-[#FB2E25] transition-colors"
           >
             Inicio
           </Link>
           <Link
             href="#como-funciona"
-            className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
+            className="text-sm text-gray-700 hover:text-[#FB2E25] transition-colors"
           >
             Cómo funciona
           </Link>
           <Link
             href="#preguntas-frecuentes"
-            className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
+            className="text-sm text-gray-700 hover:text-[#FB2E25] transition-colors"
           >
             Preguntas frecuentes
           </Link>
 
           <div className="relative group">
-            <button className="flex items-center text-sm text-gray-700 hover:text-gray-900 transition-colors">
+            <button className="flex items-center text-sm text-gray-700 hover:text-[#FB2E25] transition-colors">
               <span>Seguros</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -67,13 +79,16 @@ export default function Navbar() {
         {/* Search and CTA */}
         <div className="hidden md:flex items-center space-x-4">
           <button
-            className="text-gray-700 hover:text-gray-900"
+            className="text-gray-700 hover:text-[#FB2E25]"
             aria-label="Buscar"
           >
             <Search size={20} />
           </button>
 
-          <Button asChild className="bg-black text-white hover:bg-gray-800">
+          <Button
+            asChild
+            className="bg-[#062A5A] text-white hover:bg-[#051d3e]"
+          >
             <Link href="/seguros">Encuentra tu seguro</Link>
           </Button>
         </div>
@@ -82,7 +97,7 @@ export default function Navbar() {
         <div className="md:hidden">
           <button
             onClick={toggleMobileMenu}
-            className="text-gray-700 focus:outline-none"
+            className="text-gray-700 hover:text-[#FB2E25] focus:outline-none"
             aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -96,35 +111,35 @@ export default function Navbar() {
           <div className="container mx-auto px-6 py-4 space-y-4">
             <Link
               href="/"
-              className="block py-2 text-base text-gray-700 hover:text-gray-900"
+              className="block py-2 text-base text-gray-700 hover:text-[#FB2E25]"
               onClick={() => setMobileMenuOpen(false)}
             >
               Inicio
             </Link>
             <Link
               href="#como-funciona"
-              className="block py-2 text-base text-gray-700 hover:text-gray-900"
+              className="block py-2 text-base text-gray-700 hover:text-[#FB2E25]"
               onClick={() => setMobileMenuOpen(false)}
             >
               Cómo funciona
             </Link>
             <Link
               href="#preguntas-frecuentes"
-              className="block py-2 text-base text-gray-700 hover:text-gray-900"
+              className="block py-2 text-base text-gray-700 hover:text-[#FB2E25]"
               onClick={() => setMobileMenuOpen(false)}
             >
               Preguntas frecuentes
             </Link>
             <Link
               href="/seguros"
-              className="block py-2 text-base text-gray-700 hover:text-gray-900"
+              className="block py-2 text-base text-gray-700 hover:text-[#FB2E25]"
               onClick={() => setMobileMenuOpen(false)}
             >
               Seguros
             </Link>
             <Button
               asChild
-              className="w-full mt-4 bg-black text-white hover:bg-gray-800"
+              className="w-full mt-4 bg-[#062A5A] text-white hover:bg-[#051d3e]"
             >
               <Link href="/seguros" onClick={() => setMobileMenuOpen(false)}>
                 Encuentra tu seguro

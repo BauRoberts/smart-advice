@@ -15,7 +15,13 @@ export const metadata: Metadata = {
   title: "Smart-Advice | Seguros para tu empresa",
   description: "Encuentra el seguro perfecto para tu PYME o startup",
   icons: {
-    icon: "/favicons/favicon.png",
+    icon: [
+      {
+        rel: "icon",
+        url: "/favicon.png",
+        type: "image/png",
+      },
+    ],
   },
 };
 
@@ -26,6 +32,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={dmSans.variable}>
+      <head>
+        <link rel="icon" href="/favicon.png" type="image/png" />
+      </head>
       <body className="font-dm-sans">
         <ToastProvider>{children}</ToastProvider>
       </body>

@@ -235,4 +235,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-Vamos a cambiar algunas cosas de la landing page inicial!
+Vamos a darle el estilo de la landing page al footer y tambien a la pagina de danos!

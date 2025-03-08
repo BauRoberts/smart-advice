@@ -114,13 +114,15 @@ export default function Home() {
       <section className="hero-background py-20 md:py-28 relative">
         <div className="container mx-auto px-6 relative z-10">
           <div className="flex justify-center mb-6">
-            <Image
-              src="/images/smart-advice-logo.png"
-              alt="Smart Advice"
-              width={120}
-              height={120}
-              className="mb-8"
-            />
+            <div className="transition-all duration-300 hover:-translate-y-2 rounded-full p-2 cursor-pointer">
+              <Image
+                src="/images/smart-advice-logo.png"
+                alt="Smart Advice"
+                width={120}
+                height={120}
+                className="mb-4"
+              />
+            </div>
           </div>
 
           <div className="max-w-3xl mx-auto text-center">
@@ -144,54 +146,6 @@ export default function Home() {
               legal y responsabilidad profesional. Coberturas diseñadas
               específicamente para el sector empresarial.
             </p>
-
-            {/* <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto mb-10">
-              <div className="feature-card flex items-start p-4 bg-white rounded-lg shadow-sm">
-                <Gavel className="text-[#FB2E25] w-6 h-6 mt-1 shrink-0" />
-                <div className="ml-4 text-left">
-                  <h3 className="font-medium text-gray-900">
-                    Responsabilidad Civil Profesional
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Protección para tu ejercicio profesional
-                  </p>
-                </div>
-              </div>
-
-              <div className="feature-card flex items-start p-4 bg-white rounded-lg shadow-sm">
-                <FileText className="text-[#FC7A37] w-6 h-6 mt-1 shrink-0" />
-                <div className="ml-4 text-left">
-                  <h3 className="font-medium text-gray-900">
-                    Protección de Datos
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Cobertura para información confidencial
-                  </p>
-                </div>
-              </div>
-
-              <div className="feature-card flex items-start p-4 bg-white rounded-lg shadow-sm">
-                <Shield className="text-[#062A5A] w-6 h-6 mt-1 shrink-0" />
-                <div className="ml-4 text-left">
-                  <h3 className="font-medium text-gray-900">Ciberriesgos</h3>
-                  <p className="text-sm text-gray-600">
-                    Defensa ante amenazas digitales
-                  </p>
-                </div>
-              </div>
-
-              <div className="feature-card flex items-start p-4 bg-white rounded-lg shadow-sm">
-                <BookOpen className="text-[#FB2E25] w-6 h-6 mt-1 shrink-0" />
-                <div className="ml-4 text-left">
-                  <h3 className="font-medium text-gray-900">
-                    Continuidad de Negocio
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Garantizando la estabilidad de tu despacho
-                  </p>
-                </div>
-              </div>
-            </div> */}
 
             <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
               <Button asChild size="lg" className="primary-btn rounded-md px-8">
@@ -227,8 +181,8 @@ export default function Home() {
             </div>
 
             <p className="text-sm text-gray-500 italic">
-              El seguro perfecto para tu despacho jurídico, con la tranquilidad
-              que tú y tus clientes merecen
+              El seguro perfecto para tu epmresa, con la tranquilidad que tú y
+              tus clientes merecen
             </p>
           </div>
         </div>

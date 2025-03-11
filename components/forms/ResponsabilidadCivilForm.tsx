@@ -208,10 +208,10 @@ function ResponsabilidadCivilFormContent() {
     try {
       await submitForm();
 
-      // Clear ALL data after successful submission
-      localStorage.removeItem("session_data");
-      localStorage.removeItem("session_id");
-      localStorage.removeItem("formData");
+      // Clear ALL data after successful submission if needed
+      // localStorage.removeItem("session_data");
+      // localStorage.removeItem("session_id");
+      // localStorage.removeItem("formData");
 
       toast({
         title: "Formulario enviado",
@@ -219,8 +219,10 @@ function ResponsabilidadCivilFormContent() {
         duration: 2000,
       });
 
+      // Modificar redirección para incluir el parámetro tipo basado en el formulario actual
       setTimeout(() => {
-        router.push("/recomendaciones");
+        const formType = formData.form_type; // O un valor fijo según el formulario
+        router.push(`/recomendaciones?tipo=responsabilidad_civil`);
       }, 2000);
     } catch (error) {
       console.error("Error al enviar formulario:", error);

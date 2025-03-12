@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -22,14 +22,15 @@ interface InsuranceRecommendation {
   ambitoTerritorial?: string;
 }
 
-export default function RecomendacionesPage() {
+// Componente que usará useSearchParams dentro de un Suspense
+function RecommendationsContent() {
   const [loading, setLoading] = useState(true);
   const [recommendations, setRecommendations] = useState<
     InsuranceRecommendation[]
   >([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Obtenemos el tipo de formulario de los parámetros de URL
+  // Ahora esto está dentro de un componente envuelto en Suspense
   const searchParams = useSearchParams();
   const formType = searchParams.get("tipo") || null;
 
@@ -81,6 +82,114 @@ export default function RecomendacionesPage() {
     fetchRecommendations();
   }, [formType]); // Ejecutar cuando cambie el tipo de formulario
 
+  if (loading) {
+    return (
+      <div className="text-center py-12 bg-white rounded-lg shadow-sm">
+        <div className="animate-spin w-12 h-12 border-4 border-[#FB2E25] border-t-transparent rounded-full mx-auto mb-4"></div>
+        <p className="text-lg text-gray-700">Analizando tus respuestas...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white p-8 rounded-lg shadow-md text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 text-red-600 mb-6">
+          <HelpCircle className="h-8 w-8" />
+        </div>
+        <h2 className="text-xl font-semibold mb-4">Ocurrió un error</h2>
+        <p className="mb-6 text-gray-600">{error}</p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button asChild className="bg-[#062A5A] hover:bg-[#051d3e]">
+            <Link href="/seguros">Volver a intentar</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (recommendations.length === 0) {
+    return (
+      <div className="bg-white p-8 rounded-lg shadow-md text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-6">
+          <HelpCircle className="h-8 w-8" />
+        </div>
+        <h2 className="text-xl font-semibold mb-4">
+          No se encontraron recomendaciones
+        </h2>
+        <p className="mb-6 text-gray-600">
+          {formType === "responsabilidad_civil"
+            ? "No hemos encontrado información de formularios de Responsabilidad Civil completados."
+            : formType === "danos_materiales"
+            ? "No hemos encontrado información de formularios de Daños Materiales completados."
+            : "No hemos encontrado información de formularios completados."}
+          Por favor, completa el formulario para recibir recomendaciones
+          personalizadas.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button asChild className="bg-[#062A5A] hover:bg-[#051d3e]">
+            <Link
+              href={
+                formType === "responsabilidad_civil"
+                  ? "/responsabilidad-civil"
+                  : formType === "danos_materiales"
+                  ? "/danos-materiales"
+                  : "/seguros"
+              }
+            >
+              Completar formulario
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="border-[#062A5A] text-[#062A5A] hover:bg-[#F5F2FB]"
+          >
+            <Link href="/contacto">Contactar con un asesor</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <CombinedCoverageRecommendations recommendations={recommendations} />
+
+      {/* CTA Section */}
+      <section className="py-12 px-6 bg-white border-t mt-8">
+        <div className="container mx-auto max-w-3xl text-center">
+          <h2 className="text-2xl font-bold mb-4">
+            ¿Qué hacer con estas recomendaciones?
+          </h2>
+          <p className="mb-6 text-gray-600">
+            Con esta información, puedes ahora solicitar presupuestos a
+            diferentes aseguradoras o contactar con un asesor para encontrar la
+            mejor opción para tu empresa.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild className="bg-[#062A5A] hover:bg-[#051d3e]">
+              <Link href="/contacto">Contactar con un asesor</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+// Componente de carga para el Suspense
+function LoadingFallback() {
+  return (
+    <div className="text-center py-12 bg-white rounded-lg shadow-sm">
+      <div className="animate-spin w-12 h-12 border-4 border-[#FB2E25] border-t-transparent rounded-full mx-auto mb-4"></div>
+      <p className="text-lg text-gray-700">Cargando recomendaciones...</p>
+    </div>
+  );
+}
+
+// Componente principal que usa Suspense
+export default function RecomendacionesPage() {
   return (
     <main className="min-h-screen">
       <Navbar />
@@ -105,93 +214,12 @@ export default function RecomendacionesPage() {
             específicas que debes incluir en tu póliza de seguro
           </p>
 
-          {loading ? (
-            <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-              <div className="animate-spin w-12 h-12 border-4 border-[#FB2E25] border-t-transparent rounded-full mx-auto mb-4"></div>
-              <p className="text-lg text-gray-700">
-                Analizando tus respuestas...
-              </p>
-            </div>
-          ) : error ? (
-            <div className="bg-white p-8 rounded-lg shadow-md text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 text-red-600 mb-6">
-                <HelpCircle className="h-8 w-8" />
-              </div>
-              <h2 className="text-xl font-semibold mb-4">Ocurrió un error</h2>
-              <p className="mb-6 text-gray-600">{error}</p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button asChild className="bg-[#062A5A] hover:bg-[#051d3e]">
-                  <Link href="/seguros">Volver a intentar</Link>
-                </Button>
-              </div>
-            </div>
-          ) : recommendations.length > 0 ? (
-            <CombinedCoverageRecommendations
-              recommendations={recommendations}
-            />
-          ) : (
-            <div className="bg-white p-8 rounded-lg shadow-md text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-6">
-                <HelpCircle className="h-8 w-8" />
-              </div>
-              <h2 className="text-xl font-semibold mb-4">
-                No se encontraron recomendaciones
-              </h2>
-              <p className="mb-6 text-gray-600">
-                {formType === "responsabilidad_civil"
-                  ? "No hemos encontrado información de formularios de Responsabilidad Civil completados."
-                  : formType === "danos_materiales"
-                  ? "No hemos encontrado información de formularios de Daños Materiales completados."
-                  : "No hemos encontrado información de formularios completados."}
-                Por favor, completa el formulario para recibir recomendaciones
-                personalizadas.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button asChild className="bg-[#062A5A] hover:bg-[#051d3e]">
-                  <Link
-                    href={
-                      formType === "responsabilidad_civil"
-                        ? "/responsabilidad-civil"
-                        : formType === "danos_materiales"
-                        ? "/danos-materiales"
-                        : "/seguros"
-                    }
-                  >
-                    Completar formulario
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="border-[#062A5A] text-[#062A5A] hover:bg-[#F5F2FB]"
-                >
-                  <Link href="/contacto">Contactar con un asesor</Link>
-                </Button>
-              </div>
-            </div>
-          )}
+          {/* Suspense boundary para useSearchParams */}
+          <Suspense fallback={<LoadingFallback />}>
+            <RecommendationsContent />
+          </Suspense>
         </div>
       </section>
-
-      {recommendations.length > 0 && (
-        <section className="py-12 px-6 bg-white border-t">
-          <div className="container mx-auto max-w-3xl text-center">
-            <h2 className="text-2xl font-bold mb-4">
-              ¿Qué hacer con estas recomendaciones?
-            </h2>
-            <p className="mb-6 text-gray-600">
-              Con esta información, puedes ahora solicitar presupuestos a
-              diferentes aseguradoras o contactar con un asesor para encontrar
-              la mejor opción para tu empresa.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild className="bg-[#062A5A] hover:bg-[#051d3e]">
-                <Link href="/contacto">Contactar con un asesor</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
-      )}
 
       <Footer />
     </main>

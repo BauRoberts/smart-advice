@@ -1,5 +1,5 @@
 // app/api/recomendaciones/coberturas/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
 interface Coverage {
@@ -14,11 +14,15 @@ interface InsuranceRecommendation {
   ambitoTerritorial?: string;
 }
 
-export async function GET(request: Request) {
+// Indicar a Next.js que esta es una ruta dinámica
+export const dynamic = "force-dynamic";
+
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    // Usamos NextRequest para obtener los searchParams
+    const searchParams = request.nextUrl.searchParams;
     const session_id = searchParams.get("session_id");
-    const form_type = searchParams.get("form_type"); // Opcional: específico para un tipo de seguro
+    const form_type = searchParams.get("form_type");
 
     if (!session_id) {
       return NextResponse.json(

@@ -12,12 +12,11 @@ export default function Footer() {
           <div>
             <h3 className="text-xl font-bold mb-4 flex items-center">
               <span className="text-[#FB2E25] mr-2">•</span>
-              Smart-Advice
+              SmartAdvice
             </h3>
             <div className="h-1 w-20 bg-[#FB2E25] mb-4"></div>
             <p className="mb-4 text-gray-300">
-              Simplificamos la elección de seguros para PYMEs y startups con
-              soluciones personalizadas.
+              Gestiona tu empresa de manera autónoma y sencilla
             </p>
           </div>
 

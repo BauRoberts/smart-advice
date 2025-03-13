@@ -1,4 +1,4 @@
-// app/page.tsx (Hero Section Part)
+// app/page.tsx
 "use client";
 
 import Navbar from "@/components/Navbar";
@@ -128,23 +128,21 @@ export default function Home() {
           <div className="max-w-3xl mx-auto text-center">
             <span className="legal-tag">
               <Scale className="legal-icon inline-block w-4 h-4" />
-              Asesoramiento especializado
+              Asesoramiento para Pymes y Startups
             </span>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
-              Encuentra el seguro
+              Brindamos asesoramiento
             </h1>
 
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 italic mb-4">
-              para tu empresa.
+              complejo de forma sencilla.
             </h2>
 
             <div className="brand-accent"></div>
 
-            <p className="text-lg text-gray-700 mb-10 leading-relaxed">
-              Simplificamos la elección de seguros para proteger tu práctica
-              legal y responsabilidad profesional. Coberturas diseñadas
-              específicamente para el sector empresarial.
+            <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+              ¿Qué asesoramiento necesitas?
             </p>
 
             <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
@@ -181,8 +179,8 @@ export default function Home() {
             </div>
 
             <p className="text-sm text-gray-500 italic">
-              El seguro perfecto para tu epmresa, con la tranquilidad que tú y
-              tus clientes merecen
+              El asesoramiento perfecto para tu empresa, con la tranquilidad que
+              tú y tus clientes merecen
             </p>
           </div>
         </div>
@@ -202,40 +200,42 @@ export default function Home() {
                 <Clock className="h-10 w-10 text-blue-600" />
               </div>
               <h3 className="text-xl font-semibold mb-3 text-center">
-                Rápido y sencillo
+                Sencillez
               </h3>
               <p className="text-gray-600 text-center">
-                Completa el formulario en minutos y recibe recomendaciones
-                personalizadas.
+                Obtén asesoramiento para tu empresa que te haga más competente.
               </p>
             </div>
 
-            {/* Other benefits... */}
+            {/* Benefit 2 */}
             <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-center mb-4">
                 <CheckCircle className="h-10 w-10 text-blue-600" />
               </div>
               <h3 className="text-xl font-semibold mb-3 text-center">
-                Personalizado
+                Independencia
               </h3>
               <p className="text-gray-600 text-center">
-                Seguros adaptados a las necesidades específicas de tu negocio.
+                Reduce costos operativos y burocráticos teniendo que recurrir a
+                múltiples profesionales para gestionar tu empresa.
               </p>
             </div>
 
+            {/* Benefit 3 */}
             <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-center mb-4">
                 <Shield className="h-10 w-10 text-blue-600" />
               </div>
               <h3 className="text-xl font-semibold mb-3 text-center">
-                Sin compromiso
+                Integral
               </h3>
               <p className="text-gray-600 text-center">
-                No necesitas registrarte para recibir recomendaciones de
-                seguros.
+                Obtén asesoramiento particularizado para tu empresa con un
+                equipo de profesionales que te pueden asistir.
               </p>
             </div>
 
+            {/* Benefit 4 */}
             <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-center mb-4">
                 <Award className="h-10 w-10 text-blue-600" />
@@ -257,11 +257,11 @@ export default function Home() {
         <div className="container mx-auto px-6">
           <h2 className="text-3xl font-bold text-center mb-4">Cómo funciona</h2>
           <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-            Obten recomendaciones de seguros en tres sencillos pasos, sin
+            Obtén asesoramiento sobre tu negocio en 4 pasos sencillos, sin
             necesidad de registro
           </p>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-8 max-w-5xl mx-auto">
             {/* Step 1 */}
             <div className="relative bg-white p-6 rounded-lg shadow-sm">
               <div className="absolute -top-4 -left-4 w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
@@ -271,8 +271,7 @@ export default function Home() {
                 Completa el formulario
               </h3>
               <p className="text-gray-600">
-                Responde a unas sencillas preguntas sobre tu empresa y sus
-                necesidades específicas.
+                Responde a unas sencillas preguntas sobre tu empresa.
               </p>
             </div>
 
@@ -282,7 +281,7 @@ export default function Home() {
                 2
               </div>
               <h3 className="text-xl font-semibold mb-3 mt-2">
-                Recibe recomendaciones
+                Recibe asesoramiento
               </h3>
               <p className="text-gray-600">
                 Nuestro sistema analiza tus respuestas y te muestra las mejores
@@ -295,12 +294,25 @@ export default function Home() {
               <div className="absolute -top-4 -left-4 w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
                 3
               </div>
+              <h3 className="text-xl font-semibold mb-3 mt-2">Contacta</h3>
+              <p className="text-gray-600">
+                Si necesitas asesoramiento particularizado contacta con un grupo
+                de expertos de cada materia para que te asesore de forma
+                específica.
+              </p>
+            </div>
+
+            {/* Step 4 */}
+            <div className="relative bg-white p-6 rounded-lg shadow-sm">
+              <div className="absolute -top-4 -left-4 w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                4
+              </div>
               <h3 className="text-xl font-semibold mb-3 mt-2">
-                Compara y elige
+                Contrata productos o servicios
               </h3>
               <p className="text-gray-600">
-                Revisa las coberturas y precios para seleccionar la opción que
-                mejor se adapte a tus necesidades.
+                En caso que desees, puedes contratar seguros o servicios
+                profesionales.
               </p>
             </div>
           </div>
@@ -328,20 +340,19 @@ export default function Home() {
               </h3>
               <p className="text-gray-600">
                 No, nuestra plataforma no requiere registro. Simplemente
-                completa el formulario y recibe recomendaciones personalizadas
-                al instante.
+                completa el formulario y recibe asesoramiento personalizado al
+                instante.
               </p>
             </div>
 
             {/* FAQ Item 2 */}
             <div className="bg-gray-50 p-6 rounded-lg">
               <h3 className="text-xl font-semibold mb-2">
-                ¿Cómo se generan las recomendaciones?
+                ¿Cómo se genera el asesoramiento?
               </h3>
               <p className="text-gray-600">
-                Analizamos tus respuestas y las comparamos con nuestra base de
-                datos de seguros para encontrar las mejores opciones que se
-                adapten a tus necesidades específicas.
+                Analizamos tus respuestas y te proporcionamos un asesoramiento
+                para que lo puedas implementar de manera sencilla en tu empresa.
               </p>
             </div>
 
@@ -351,8 +362,8 @@ export default function Home() {
                 ¿Puedo contratar directamente?
               </h3>
               <p className="text-gray-600">
-                Te ponemos en contacto con los proveedores de seguros para que
-                puedas finalizar la contratación directamente con ellos.
+                Te ponemos en contacto con un equipo de expertos y profesionales
+                para que puedas contratar servicios y seguros de manera directa.
               </p>
             </div>
 
@@ -363,8 +374,15 @@ export default function Home() {
               </h3>
               <p className="text-gray-600">
                 Absolutamente. Toda la información que proporcionas está
-                protegida y solo se utiliza para generar recomendaciones
-                personalizadas.
+                protegida y solo se utiliza para generar asesoramiento
+                personalizado. Puedes consultar nuestras{" "}
+                <Link
+                  href="/politica-privacidad"
+                  className="text-blue-600 hover:underline"
+                >
+                  políticas de privacidad aquí
+                </Link>
+                .
               </p>
             </div>
           </div>
@@ -378,7 +396,7 @@ export default function Home() {
             ¿Listo para proteger tu negocio?
           </h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Obtén recomendaciones de seguros personalizadas para tu PYME en
+            Obtén asesoramiento empresarial personalizado para tu Pyme en
             minutos.
           </p>
 

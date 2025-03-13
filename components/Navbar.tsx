@@ -4,7 +4,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Search } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import Image from "next/image";
 
 export default function Navbar() {
@@ -29,7 +29,7 @@ export default function Navbar() {
               />
             </div>
             <span className="text-xl font-bold text-[#00000]">
-              Smart-Advice
+              Smart Advice
             </span>
           </Link>
         </div>
@@ -54,42 +54,21 @@ export default function Navbar() {
           >
             Preguntas frecuentes
           </Link>
-
-          <div className="relative group">
-            <button className="flex items-center text-sm text-gray-700 hover:text-[#FB2E25] transition-colors">
-              <span>Seguros</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="ml-1 h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
-          </div>
+          <Link
+            href="/seguros"
+            className="text-sm text-gray-700 hover:text-[#FB2E25] transition-colors"
+          >
+            Seguros
+          </Link>
         </nav>
 
-        {/* Search and CTA */}
-        <div className="hidden md:flex items-center space-x-4">
-          <button
-            className="text-gray-700 hover:text-[#FB2E25]"
-            aria-label="Buscar"
-          >
-            <Search size={20} />
-          </button>
-
+        {/* CTA */}
+        <div className="hidden md:flex items-center">
           <Button
             asChild
             className="bg-[#062A5A] text-white hover:bg-[#051d3e]"
           >
-            <Link href="/seguros">Encuentra tu seguro</Link>
+            <Link href="/seguros">Comenzar ahora</Link>
           </Button>
         </div>
 
@@ -142,7 +121,7 @@ export default function Navbar() {
               className="w-full mt-4 bg-[#062A5A] text-white hover:bg-[#051d3e]"
             >
               <Link href="/seguros" onClick={() => setMobileMenuOpen(false)}>
-                Encuentra tu seguro
+                Comenzar ahora
               </Link>
             </Button>
           </div>

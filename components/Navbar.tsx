@@ -68,7 +68,7 @@ export default function Navbar() {
             asChild
             className="bg-[#062A5A] text-white hover:bg-[#051d3e]"
           >
-            <Link href="/seguros">Comenzar ahora</Link>
+            <Link href="/servicios">Comenzar ahora</Link>
           </Button>
         </div>
 

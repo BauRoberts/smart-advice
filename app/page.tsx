@@ -147,7 +147,7 @@ export default function Home() {
 
             <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
               <Button asChild size="lg" className="primary-btn rounded-md px-8">
-                <Link href="/seguros">Solicitar asesoramiento</Link>
+                <Link href="/servicios">Solicitar asesoramiento</Link>
               </Button>
 
               <Button
@@ -319,7 +319,7 @@ export default function Home() {
 
           <div className="text-center mt-12">
             <Button asChild size="lg">
-              <Link href="/seguros">Comenzar ahora</Link>
+              <Link href="/servicios">Comenzar ahora</Link>
             </Button>
           </div>
         </div>
@@ -406,7 +406,7 @@ export default function Home() {
             variant="outline"
             className="bg-white hover:bg-gray-100 text-blue-600 border-white"
           >
-            <Link href="/seguros">Comenzar ahora</Link>
+            <Link href="/servicios">Comenzar ahora</Link>
           </Button>
         </div>
       </section>

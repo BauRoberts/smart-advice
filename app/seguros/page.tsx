@@ -3,7 +3,16 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Shield, FileText, AlertTriangle } from "lucide-react";
+import {
+  Shield,
+  FileText,
+  AlertTriangle,
+  User,
+  Truck,
+  Leaf,
+  Cloud,
+  Briefcase,
+} from "lucide-react";
 
 export default function SegurosPage() {
   return (
@@ -34,7 +43,7 @@ export default function SegurosPage() {
       {/* Insurance options section */}
       <section className="py-16 px-6 bg-white">
         <div className="container mx-auto">
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-16">
             {/* Responsabilidad Civil */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-[#FB2E25] transition-all hover:shadow-lg hover:-translate-y-1">
               <div className="p-6">
@@ -71,8 +80,8 @@ export default function SegurosPage() {
                   Daños Materiales
                 </h2>
                 <p className="text-gray-600 mb-6 text-center">
-                  Protege las instalaciones, equipamiento y bienes de tu empresa
-                  frente a diversos riesgos.
+                  Protege tu inversión, instalaciones y bienes de tu empresa
+                  frente a hechos accidentales.
                 </p>
                 <Button
                   asChild
@@ -104,6 +113,102 @@ export default function SegurosPage() {
                 >
                   <Link href="/riesgos-adicionales">Seleccionar</Link>
                 </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Próximamente section */}
+          <div className="mt-16">
+            <h2 className="text-2xl font-bold text-center mb-4">
+              Próximamente disponibles
+            </h2>
+            <div className="h-1 w-24 bg-[#FB2E25] mx-auto mb-12"></div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {/* Responsabilidad Civil Profesional */}
+              <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-gray-300 transition-all hover:shadow-lg">
+                <div className="p-6 relative">
+                  <div className="flex justify-center mb-4">
+                    <div className="bg-gray-100 p-3 rounded-full">
+                      <User className="w-8 h-8 text-gray-500" />
+                    </div>
+                  </div>
+                  <h2 className="text-lg font-bold mb-2 text-center">
+                    Seguro de Responsabilidad Civil Profesional
+                  </h2>
+                  <div className="absolute top-0 right-0 bg-gray-100 text-gray-600 text-xs font-medium py-1 px-2 rounded-bl-lg">
+                    próximamente
+                  </div>
+                </div>
+              </div>
+
+              {/* Seguro Medioambiental */}
+              <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-gray-300 transition-all hover:shadow-lg">
+                <div className="p-6 relative">
+                  <div className="flex justify-center mb-4">
+                    <div className="bg-gray-100 p-3 rounded-full">
+                      <Leaf className="w-8 h-8 text-gray-500" />
+                    </div>
+                  </div>
+                  <h2 className="text-lg font-bold mb-2 text-center">
+                    Seguro Medioambiental
+                  </h2>
+                  <div className="absolute top-0 right-0 bg-gray-100 text-gray-600 text-xs font-medium py-1 px-2 rounded-bl-lg">
+                    próximamente
+                  </div>
+                </div>
+              </div>
+
+              {/* Seguro de Transportes de Mercancías */}
+              <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-gray-300 transition-all hover:shadow-lg">
+                <div className="p-6 relative">
+                  <div className="flex justify-center mb-4">
+                    <div className="bg-gray-100 p-3 rounded-full">
+                      <Truck className="w-8 h-8 text-gray-500" />
+                    </div>
+                  </div>
+                  <h2 className="text-lg font-bold mb-2 text-center">
+                    Seguro de Transportes de Mercancías
+                  </h2>
+                  <div className="absolute top-0 right-0 bg-gray-100 text-gray-600 text-xs font-medium py-1 px-2 rounded-bl-lg">
+                    próximamente
+                  </div>
+                </div>
+              </div>
+
+              {/* Seguro Ciber */}
+              <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-gray-300 transition-all hover:shadow-lg">
+                <div className="p-6 relative">
+                  <div className="flex justify-center mb-4">
+                    <div className="bg-gray-100 p-3 rounded-full">
+                      <Cloud className="w-8 h-8 text-gray-500" />
+                    </div>
+                  </div>
+                  <h2 className="text-lg font-bold mb-2 text-center">
+                    Seguro Ciber
+                  </h2>
+                  <div className="absolute top-0 right-0 bg-gray-100 text-gray-600 text-xs font-medium py-1 px-2 rounded-bl-lg">
+                    próximamente
+                  </div>
+                </div>
+              </div>
+
+              {/* Seguro D&O */}
+              <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-gray-300 transition-all hover:shadow-lg">
+                <div className="p-6 relative">
+                  <div className="flex justify-center mb-4">
+                    <div className="bg-gray-100 p-3 rounded-full">
+                      <Briefcase className="w-8 h-8 text-gray-500" />
+                    </div>
+                  </div>
+                  <h2 className="text-lg font-bold mb-2 text-center">
+                    Seguro de Responsabilidad Civil de Administradores y
+                    Directivos
+                  </h2>
+                  <div className="absolute top-0 right-0 bg-gray-100 text-gray-600 text-xs font-medium py-1 px-2 rounded-bl-lg">
+                    próximamente
+                  </div>
+                </div>
               </div>
             </div>
           </div>

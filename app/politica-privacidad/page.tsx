@@ -153,7 +153,7 @@ export default function PoliticaPrivacidad() {
             <p className="mt-4">
               Para ejercer estos derechos, el usuario puede enviar una solicitud
               por correo electrónico a info@smart-advice.com con el asunto
-              "Protección de Datos".
+              &quot;Protección de Datos&quot;.
             </p>
           </section>
 

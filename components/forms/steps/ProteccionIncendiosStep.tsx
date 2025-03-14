@@ -175,7 +175,7 @@ export default function ProteccionIncendiosStep({
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>Bocas de incendio equipadas (BIE's)</FormLabel>
+                    <FormLabel>Bocas de incendio equipadas (BIE)</FormLabel>
                   </div>
                 </FormItem>
               )}
@@ -214,7 +214,7 @@ export default function ProteccionIncendiosStep({
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel>
-                          ¿Cuentan con depósito propio y grupo de presión?
+                          ¿Cuentas con depósito propio y grupo de bombeo?
                         </FormLabel>
                       </div>
                     </FormItem>

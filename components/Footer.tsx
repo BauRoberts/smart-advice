@@ -57,15 +57,6 @@ export default function Footer() {
                   privacidad
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/terminos-condiciones"
-                  className="text-gray-300 hover:text-white transition-colors flex items-center"
-                >
-                  <span className="text-[#FC7A37] mr-2">›</span>Términos y
-                  condiciones
-                </Link>
-              </li>
             </ul>
           </div>
 

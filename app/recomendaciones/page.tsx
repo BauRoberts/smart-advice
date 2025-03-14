@@ -54,25 +54,21 @@ function RecommendationsContent() {
         const response = await fetch(url);
 
         if (!response.ok) {
-          throw new Error(
-            `Error al obtener recomendaciones: ${response.status}`
-          );
+          throw new Error(`Error al obtener asesoramiento: ${response.status}`);
         }
 
         const data = await response.json();
 
         if (data.success) {
-          console.log("Recomendaciones recibidas:", data.recommendations);
+          console.log("Asesoramiento recibido:", data.recommendations);
           setRecommendations(data.recommendations);
         } else {
-          setError(
-            data.error || "Error desconocido al obtener recomendaciones"
-          );
+          setError(data.error || "Error desconocido al obtener asesoramiento");
         }
       } catch (error) {
         console.error("Error fetching recommendations:", error);
         setError(
-          "No pudimos cargar tus recomendaciones. Por favor, intenta nuevamente."
+          "No pudimos cargar tu asesoramiento. Por favor, intenta nuevamente."
         );
       } finally {
         setLoading(false);
@@ -115,7 +111,7 @@ function RecommendationsContent() {
           <HelpCircle className="h-8 w-8" />
         </div>
         <h2 className="text-xl font-semibold mb-4">
-          No se encontraron recomendaciones
+          No se encontró asesoramiento
         </h2>
         <p className="mb-6 text-gray-600">
           {formType === "responsabilidad_civil"
@@ -123,8 +119,8 @@ function RecommendationsContent() {
             : formType === "danos_materiales"
             ? "No hemos encontrado información de formularios de Daños Materiales completados."
             : "No hemos encontrado información de formularios completados."}
-          Por favor, completa el formulario para recibir recomendaciones
-          personalizadas.
+          Por favor, completa el formulario para recibir asesoramiento
+          personalizado.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button asChild className="bg-[#062A5A] hover:bg-[#051d3e]">
@@ -154,13 +150,15 @@ function RecommendationsContent() {
 
   return (
     <>
+      {/* Título del resultado */}
+
       <CombinedCoverageRecommendations recommendations={recommendations} />
 
       {/* CTA Section */}
       <section className="py-12 px-6 bg-white border-t mt-8">
         <div className="container mx-auto max-w-3xl text-center">
           <h2 className="text-2xl font-bold mb-4">
-            ¿Qué hacer con estas recomendaciones?
+            ¿Qué hacer con este asesoramiento?
           </h2>
           <p className="mb-6 text-gray-600">
             Con esta información, puedes ahora solicitar presupuestos a
@@ -183,7 +181,7 @@ function LoadingFallback() {
   return (
     <div className="text-center py-12 bg-white rounded-lg shadow-sm">
       <div className="animate-spin w-12 h-12 border-4 border-[#FB2E25] border-t-transparent rounded-full mx-auto mb-4"></div>
-      <p className="text-lg text-gray-700">Cargando recomendaciones...</p>
+      <p className="text-lg text-gray-700">Cargando asesoramiento...</p>
     </div>
   );
 }
@@ -199,7 +197,7 @@ export default function RecomendacionesPage() {
           <div className="flex justify-center mb-6">
             <span className="inline-block px-4 py-2 bg-[rgba(6,42,90,0.05)] text-[#062A5A] rounded-full font-medium text-sm">
               <Shield className="inline-block mr-2 h-4 w-4 text-[#FB2E25]" />
-              Coberturas necesarias
+              Asesoramiento personalizado
             </span>
           </div>
 
@@ -210,8 +208,8 @@ export default function RecomendacionesPage() {
           <div className="h-1 w-32 bg-[#FB2E25] mx-auto mb-6"></div>
 
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-            Hemos analizado tus respuestas y determinado las coberturas
-            específicas que debes incluir en tu póliza de seguro
+            DE ACUERDO CON LA INFORMACIÓN PROPORCIONADA NECESITAS UN SEGURO QUE
+            CUMPLA CON ESTAS CARACTERÍSTICAS
           </p>
 
           {/* Suspense boundary para useSearchParams */}

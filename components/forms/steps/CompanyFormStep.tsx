@@ -31,7 +31,7 @@ import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { useFormContext } from "@/contexts/FormContext";
 import { Textarea } from "@/components/ui/textarea";
 
-// Schema para validar los datos de la empresa
+// Updated schema for CompanyFormStep.tsx
 const companySchema = z.object({
   name: z.string().min(2, {
     message: "El nombre de la empresa debe tener al menos 2 caracteres",
@@ -42,14 +42,9 @@ const companySchema = z.object({
   activity: z.string().min(1, {
     message: "La actividad es obligatoria",
   }),
-  activity_description: z
-    .string()
-    .max(200, {
-      message: "La descripción no puede exceder los 200 caracteres",
-    })
-    .optional(),
+  activity_description: z.string().optional(),
   employees_number: z.number().int().positive({
-    message: "Solo se cubren empleados en nómina",
+    message: "El número de empleados debe ser un número positivo",
   }),
   billing: z.number().positive({
     message: "La facturación debe ser un número positivo",
@@ -62,9 +57,21 @@ const companySchema = z.object({
   m2_installations: z.number().positive({
     message: "Los metros cuadrados deben ser un número positivo",
   }),
+  // RC specific fields
+  manufactures: z.boolean().default(false),
+  markets: z.boolean().default(false),
+  provides_services: z.boolean().default(false),
+  product_service_types: z.string().optional(),
+  industry_types: z.string().optional(),
+  // Required fields for all forms
+  almacena_bienes_terceros: z.boolean().default(false),
+  vehiculos_terceros_aparcados: z.boolean().default(false),
+  // Optional fields for DanosMateriales form
+  existencias_intemperie: z.boolean().default(false).optional(),
+  bienes_empleados: z.boolean().default(false).optional(),
   dinero_caja_fuerte: z.number().optional(),
   dinero_fuera_caja: z.number().optional(),
-  clausula_todo_riesgo: z.boolean().default(false),
+  clausula_todo_riesgo: z.boolean().default(false).optional(),
 });
 
 // Tipo para los datos de la empresa
@@ -89,6 +96,8 @@ export default function CompanyFormStep({
 
   // Verificar si estamos en el formulario de Daños Materiales
   const isDanosMateriales = formData.form_type === "danos_materiales";
+  const isResponsabilidadCivil =
+    formData.form_type === "responsabilidad_civil" || !isDanosMateriales;
 
   // Inicializar el formulario con React Hook Form
   const form = useForm<CompanyFormData>({
@@ -104,6 +113,11 @@ export default function CompanyFormStep({
       online_invoice_percentage: 0,
       installations_type: "",
       m2_installations: undefined,
+      manufactures: false,
+      markets: false,
+      provides_services: false,
+      product_service_types: "",
+      industry_types: "",
       dinero_caja_fuerte: 0,
       dinero_fuera_caja: 0,
       clausula_todo_riesgo: false,
@@ -113,6 +127,11 @@ export default function CompanyFormStep({
 
   // Observar si factura online para mostrar/ocultar el porcentaje
   const onlineInvoice = form.watch("online_invoice");
+
+  // Observar selecciones de actividad para validación
+  const manufactures = form.watch("manufactures");
+  const markets = form.watch("markets");
+  const providesServices = form.watch("provides_services");
 
   // Determinar tipo de empresa basado en CNAE
   useEffect(() => {
@@ -126,12 +145,26 @@ export default function CompanyFormStep({
     // Establecer el tipo de formulario
     dispatch({
       type: "SET_FORM_TYPE",
-      payload: "danos_materiales",
+      payload: isDanosMateriales ? "danos_materiales" : "responsabilidad_civil",
     });
-  }, [dispatch]);
+  }, [dispatch, isDanosMateriales]);
 
   // Manejar el envío del formulario
   function onSubmit(data: CompanyFormData) {
+    // Validación adicional para RC - al menos una de las tres opciones debe estar seleccionada
+    if (
+      isResponsabilidadCivil &&
+      !data.manufactures &&
+      !data.markets &&
+      !data.provides_services
+    ) {
+      form.setError("manufactures", {
+        type: "manual",
+        message: "Debes seleccionar al menos una de las tres opciones",
+      });
+      return;
+    }
+
     onNext(data, empresaTipo);
   }
 
@@ -209,6 +242,147 @@ export default function CompanyFormStep({
               )}
             />
           </div>
+
+          {/* Nuevas preguntas para Responsabilidad Civil */}
+          {isResponsabilidadCivil && (
+            <div className="mb-6 border p-4 rounded-md">
+              <h3 className="font-medium text-gray-800 mb-3">
+                Detalles de actividad
+              </h3>
+
+              <div className="mb-4">
+                <FormLabel className="block mb-2">
+                  Tu empresa (selecciona todas las que apliquen):
+                </FormLabel>
+                <div className="space-y-2">
+                  <FormField
+                    control={form.control}
+                    name="manufactures"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Fabrica productos</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="markets"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Comercializa productos</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="provides_services"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Presta servicios</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormMessage />
+                {!manufactures &&
+                  !markets &&
+                  !providesServices &&
+                  form.formState.errors.manufactures && (
+                    <p className="text-red-500 text-sm mt-2">
+                      {form.formState.errors.manufactures.message}
+                    </p>
+                  )}
+              </div>
+
+              {(manufactures || markets) && (
+                <FormField
+                  control={form.control}
+                  name="product_service_types"
+                  render={({ field }) => (
+                    <FormItem className="mb-4">
+                      <FormLabel>
+                        ¿Qué tipo de productos {manufactures ? "fabrica" : ""}
+                        {manufactures && markets ? " y/o " : ""}
+                        {markets ? "comercializa" : ""}?
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Ej: maquinaria industrial, alimentos, productos químicos, etc."
+                          className="resize-none"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {providesServices && (
+                <FormField
+                  control={form.control}
+                  name="product_service_types"
+                  render={({ field }) => (
+                    <FormItem className="mb-4">
+                      <FormLabel>¿Qué tipo de servicios presta?</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Ej: consultoría, instalación, mantenimiento, etc."
+                          className="resize-none"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              <FormField
+                control={form.control}
+                name="industry_types"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>¿Para qué tipo de industria o sector?</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Ej: automoción, alimentación, construcción, etc."
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
 
           {/* Sección: Datos comerciales */}
           <div className="mb-6">

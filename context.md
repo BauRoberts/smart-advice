@@ -69,8 +69,7 @@ FOR SELECT USING (true);
 Estructura del Proyecto
 
 autistaroberts@Bautistas-MacBook-Air smart-advice % tree -I "node_modules|.next|.git|package-lock.json|yarn.lock"
-.
-├── README.md
+── README.md
 ├── app
 │ ├── api
 │ │ ├── companies
@@ -96,6 +95,8 @@ autistaroberts@Bautistas-MacBook-Air smart-advice % tree -I "node_modules|.next|
 │ ├── globals.css
 │ ├── layout.tsx
 │ ├── page.tsx
+│ ├── politica-privacidad
+│ │ └── page.tsx
 │ ├── recomendaciones
 │ │ └── page.tsx
 │ ├── responsabilidad-civil
@@ -283,4 +284,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-We are making this changes on the forms! Take into account that we are using different steps for every Step on the form! We are starting with the Danos form.
+We are making changes to the contact step for adding privacy policy!

@@ -15,6 +15,7 @@ export interface FormData {
     name: string;
     email: string;
     phone: string;
+    privacyPolicy: boolean; // Added privacy policy field
   };
   company: {
     name: string;
@@ -105,6 +106,7 @@ const initialFormData: FormData = {
     name: "",
     email: "",
     phone: "",
+    privacyPolicy: false, // Added privacy policy field with default false
   },
   company: {
     name: "",

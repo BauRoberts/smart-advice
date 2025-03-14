@@ -7,12 +7,15 @@ import { z } from "zod";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -25,18 +28,32 @@ import { useFormContext } from "@/contexts/FormContext";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState } from "react";
 
-// Schema para validar los datos de protección contra incendios
+// Schema actualizado para validar los datos de protección contra incendios
 const proteccionIncendiosSchema = z.object({
+  // Extintores
   extintores: z.boolean().default(false),
+
+  // Bocas de incendio
   bocas_incendio: z.boolean().default(false),
-  deposito_bombeo: z.boolean().default(false),
-  cobertura_total: z.boolean().default(false),
+  bocas_cobertura_total: z.boolean().optional(),
+  bocas_deposito_propio: z.boolean().optional(),
+
+  // Columnas hidrantes
   columnas_hidrantes: z.boolean().default(false),
+  columnas_hidrantes_numero: z.number().optional(),
   columnas_hidrantes_tipo: z.enum(["publico", "privado"]).optional(),
+
+  // Detección automática
   deteccion_automatica: z.boolean().default(false),
-  deteccion_zona: z.array(z.string()).optional(),
+  deteccion_cobertura: z.enum(["total", "parcial"]).optional(),
+  deteccion_areas: z.string().optional(),
+
+  // Rociadores
   rociadores: z.boolean().default(false),
-  rociadores_zona: z.array(z.string()).optional(),
+  rociadores_cobertura: z.enum(["total", "parcial"]).optional(),
+  rociadores_areas: z.string().optional(),
+
+  // Suministro de agua
   suministro_agua: z.string().optional(),
 });
 
@@ -58,33 +75,12 @@ export default function ProteccionIncendiosStep({
 }: ProteccionIncendiosStepProps) {
   const { dispatch } = useFormContext();
 
-  // Estados locales para manejar zonas de detección y rociadores
-  const [deteccionZonas, setDeteccionZonas] = useState<Record<string, boolean>>(
-    {
-      oficinas: false,
-      tecnicas: false,
-      almacen: false,
-      totalidad: false,
-    }
-  );
-
-  const [rociadoresZonas, setRociadoresZonas] = useState<
-    Record<string, boolean>
-  >({
-    oficinas: false,
-    tecnicas: false,
-    almacen: false,
-    totalidad: false,
-  });
-
   // Inicializar el formulario con React Hook Form
   const form = useForm<ProteccionIncendiosFormData>({
     resolver: zodResolver(proteccionIncendiosSchema),
     defaultValues: {
       extintores: false,
       bocas_incendio: false,
-      deposito_bombeo: false,
-      cobertura_total: false,
       columnas_hidrantes: false,
       deteccion_automatica: false,
       rociadores: false,
@@ -94,38 +90,43 @@ export default function ProteccionIncendiosStep({
   });
 
   // Observar campos para lógica condicional
+  const bocasIncendio = form.watch("bocas_incendio");
   const columnasHidrantes = form.watch("columnas_hidrantes");
   const deteccionAutomatica = form.watch("deteccion_automatica");
+  const deteccionCobertura = form.watch("deteccion_cobertura");
   const rociadores = form.watch("rociadores");
-
-  // Actualizar arrays de zonas en el formulario
-  const updateDeteccionZonas = (zona: string, value: boolean) => {
-    const newZonas = { ...deteccionZonas, [zona]: value };
-    setDeteccionZonas(newZonas);
-
-    const zonasSeleccionadas = Object.entries(newZonas)
-      .filter(([_, isSelected]) => isSelected)
-      .map(([key]) => key);
-
-    form.setValue("deteccion_zona", zonasSeleccionadas);
-  };
-
-  const updateRociadoresZonas = (zona: string, value: boolean) => {
-    const newZonas = { ...rociadoresZonas, [zona]: value };
-    setRociadoresZonas(newZonas);
-
-    const zonasSeleccionadas = Object.entries(newZonas)
-      .filter(([_, isSelected]) => isSelected)
-      .map(([key]) => key);
-
-    form.setValue("rociadores_zona", zonasSeleccionadas);
-  };
+  const rociadoresCobertura = form.watch("rociadores_cobertura");
 
   // Manejar el envío del formulario
   function onSubmit(data: ProteccionIncendiosFormData) {
+    // Mapear los datos nuevos al formato esperado por el contexto
+    const formattedData = {
+      extintores: data.extintores,
+      bocas_incendio: data.bocas_incendio,
+      deposito_bombeo: data.bocas_deposito_propio || false,
+      cobertura_total: data.bocas_cobertura_total || false,
+      columnas_hidrantes: data.columnas_hidrantes,
+      columnas_hidrantes_tipo: data.columnas_hidrantes_tipo,
+      deteccion_automatica: data.deteccion_automatica,
+      deteccion_zona:
+        data.deteccion_cobertura === "parcial"
+          ? [data.deteccion_areas || ""]
+          : data.deteccion_cobertura === "total"
+          ? ["totalidad"]
+          : [],
+      rociadores: data.rociadores,
+      rociadores_zona:
+        data.rociadores_cobertura === "parcial"
+          ? [data.rociadores_areas || ""]
+          : data.rociadores_cobertura === "total"
+          ? ["totalidad"]
+          : [],
+      suministro_agua: data.suministro_agua || "",
+    };
+
     dispatch({
       type: "SET_PROTECCION_INCENDIOS",
-      payload: { ...data, suministro_agua: data.suministro_agua || "" },
+      payload: formattedData,
     });
     onNext(data);
   }
@@ -133,7 +134,7 @@ export default function ProteccionIncendiosStep({
   return (
     <FormLayout
       title="Protección contra incendios"
-      subtitle="Información sobre los sistemas de protección contra incendios"
+      subtitle="Indica las protecciones contra incendio que dispongas"
       currentStep={5}
       totalSteps={7}
       onNext={form.handleSubmit(onSubmit)}
@@ -141,6 +142,7 @@ export default function ProteccionIncendiosStep({
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Extintores */}
           <FormField
             control={form.control}
             name="extintores"
@@ -153,225 +155,321 @@ export default function ProteccionIncendiosStep({
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
-                  <FormLabel>¿Tienes extintores?</FormLabel>
+                  <FormLabel>Extintores</FormLabel>
                 </div>
               </FormItem>
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="bocas_incendio"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>¿Tienes bocas de incendio equipadas?</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="deposito_bombeo"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>
-                    ¿Cuentas con depósito propio y grupo de bombeo?
-                  </FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="cobertura_total"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>¿Cubren la totalidad del riesgo?</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="columnas_hidrantes"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>¿Tienes columnas hidrantes exteriores?</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-
-          {columnasHidrantes && (
+          {/* Bocas de incendio (BIE's) */}
+          <div className="space-y-3 border-b pb-4">
             <FormField
               control={form.control}
-              name="columnas_hidrantes_tipo"
+              name="bocas_incendio"
               render={({ field }) => (
-                <FormItem className="ml-7">
-                  <FormLabel>Tipo de sistema</FormLabel>
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="publico" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Público</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="privado" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Privado</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Bocas de incendio equipadas (BIE's)</FormLabel>
+                  </div>
                 </FormItem>
               )}
             />
-          )}
 
-          <FormField
-            control={form.control}
-            name="deteccion_automatica"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>
-                    ¿Tienes detección automática de incendios?
-                  </FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
+            {bocasIncendio && (
+              <div className="ml-7 space-y-3">
+                <FormField
+                  control={form.control}
+                  name="bocas_cobertura_total"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>¿Cubren la totalidad del riesgo?</FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
 
-          {deteccionAutomatica && (
-            <FormItem className="ml-7">
-              <FormLabel>Zonas con detección automática</FormLabel>
-              <div className="space-y-2 mt-1">
-                {[
-                  { id: "oficinas", label: "Solo en zona de oficinas" },
-                  { id: "tecnicas", label: "Solo en salas técnicas" },
-                  { id: "almacen", label: "Solo en almacén" },
-                  {
-                    id: "totalidad",
-                    label: "En la totalidad de la instalación",
-                  },
-                ].map((zona) => (
-                  <div key={zona.id} className="flex items-center">
-                    <Checkbox
-                      id={`deteccion-${zona.id}`}
-                      checked={deteccionZonas[zona.id]}
-                      onCheckedChange={(checked) =>
-                        updateDeteccionZonas(zona.id, checked === true)
-                      }
-                      className="mr-2"
-                    />
-                    <label
-                      htmlFor={`deteccion-${zona.id}`}
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      {zona.label}
-                    </label>
-                  </div>
-                ))}
+                <FormField
+                  control={form.control}
+                  name="bocas_deposito_propio"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          ¿Cuentan con depósito propio y grupo de presión?
+                        </FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
               </div>
-            </FormItem>
-          )}
-
-          <FormField
-            control={form.control}
-            name="rociadores"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>¿Tienes rociadores?</FormLabel>
-                </div>
-              </FormItem>
             )}
-          />
+          </div>
 
-          {rociadores && (
-            <FormItem className="ml-7">
-              <FormLabel>Zonas con rociadores</FormLabel>
-              <div className="space-y-2 mt-1">
-                {[
-                  { id: "oficinas", label: "Solo en zona de oficinas" },
-                  { id: "tecnicas", label: "Solo en salas técnicas" },
-                  { id: "almacen", label: "Solo en zonas de almacén" },
-                  {
-                    id: "totalidad",
-                    label: "En la totalidad de la instalación",
-                  },
-                ].map((zona) => (
-                  <div key={zona.id} className="flex items-center">
+          {/* Columnas hidrantes exteriores */}
+          <div className="space-y-3 border-b pb-4">
+            <FormField
+              control={form.control}
+              name="columnas_hidrantes"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
                     <Checkbox
-                      id={`rociadores-${zona.id}`}
-                      checked={rociadoresZonas[zona.id]}
-                      onCheckedChange={(checked) =>
-                        updateRociadoresZonas(zona.id, checked === true)
-                      }
-                      className="mr-2"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
                     />
-                    <label
-                      htmlFor={`rociadores-${zona.id}`}
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      {zona.label}
-                    </label>
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Columnas hidrantes exteriores</FormLabel>
                   </div>
-                ))}
-              </div>
-            </FormItem>
-          )}
+                </FormItem>
+              )}
+            />
 
+            {columnasHidrantes && (
+              <div className="ml-7 space-y-3">
+                <FormField
+                  control={form.control}
+                  name="columnas_hidrantes_numero"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Número de columnas hidrantes</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Ej: 2"
+                          value={field.value || ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value
+                                ? parseInt(e.target.value)
+                                : undefined
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="columnas_hidrantes_tipo"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de sistema</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="publico" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Público
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="privado" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Privado
+                            </FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Detección automática de incendios */}
+          <div className="space-y-3 border-b pb-4">
+            <FormField
+              control={form.control}
+              name="deteccion_automatica"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Detección automática de incendios</FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            {deteccionAutomatica && (
+              <div className="ml-7 space-y-3">
+                <FormField
+                  control={form.control}
+                  name="deteccion_cobertura"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cobertura</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="total" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Totalidad del riesgo
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="parcial" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Cobertura parcial
+                            </FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {deteccionCobertura === "parcial" && (
+                  <FormField
+                    control={form.control}
+                    name="deteccion_areas"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Especificar áreas cubiertas</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Ej: zona de almacén, oficinas, etc."
+                            className="resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Rociadores */}
+          <div className="space-y-3 border-b pb-4">
+            <FormField
+              control={form.control}
+              name="rociadores"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Rociadores automáticos</FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            {rociadores && (
+              <div className="ml-7 space-y-3">
+                <FormField
+                  control={form.control}
+                  name="rociadores_cobertura"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cobertura</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="total" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Totalidad del riesgo
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="parcial" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Cobertura parcial
+                            </FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {rociadoresCobertura === "parcial" && (
+                  <FormField
+                    control={form.control}
+                    name="rociadores_areas"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Especificar áreas cubiertas</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Ej: zona de almacén, oficinas, etc."
+                            className="resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Suministro de agua */}
           <FormField
             control={form.control}
             name="suministro_agua"

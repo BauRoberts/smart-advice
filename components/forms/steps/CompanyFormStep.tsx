@@ -29,6 +29,7 @@ import { CnaeOption } from "@/lib/services/cnaeService";
 import { determineEmpresaTipo } from "@/lib/services/cnaeService";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { useFormContext } from "@/contexts/FormContext";
+import { Textarea } from "@/components/ui/textarea";
 
 // Schema para validar los datos de la empresa
 const companySchema = z.object({
@@ -41,8 +42,14 @@ const companySchema = z.object({
   activity: z.string().min(1, {
     message: "La actividad es obligatoria",
   }),
+  activity_description: z
+    .string()
+    .max(200, {
+      message: "La descripción no puede exceder los 200 caracteres",
+    })
+    .optional(),
   employees_number: z.number().int().positive({
-    message: "El número de empleados debe ser un número positivo",
+    message: "Solo se cubren empleados en nómina",
   }),
   billing: z.number().positive({
     message: "La facturación debe ser un número positivo",
@@ -55,10 +62,6 @@ const companySchema = z.object({
   m2_installations: z.number().positive({
     message: "Los metros cuadrados deben ser un número positivo",
   }),
-  almacena_bienes_terceros: z.boolean().default(false),
-  existencias_intemperie: z.boolean().default(false),
-  vehiculos_terceros_aparcados: z.boolean().default(false),
-  bienes_empleados: z.boolean().default(false),
   dinero_caja_fuerte: z.number().optional(),
   dinero_fuera_caja: z.number().optional(),
   clausula_todo_riesgo: z.boolean().default(false),
@@ -86,8 +89,6 @@ export default function CompanyFormStep({
 
   // Verificar si estamos en el formulario de Daños Materiales
   const isDanosMateriales = formData.form_type === "danos_materiales";
-  console.log("Form Type:", formData.form_type);
-  console.log("isDanosMateriales:", isDanosMateriales);
 
   // Inicializar el formulario con React Hook Form
   const form = useForm<CompanyFormData>({
@@ -96,16 +97,13 @@ export default function CompanyFormStep({
       name: "",
       cnae_code: "",
       activity: "",
+      activity_description: "",
       employees_number: undefined,
       billing: undefined,
       online_invoice: false,
       online_invoice_percentage: 0,
       installations_type: "",
       m2_installations: undefined,
-      almacena_bienes_terceros: false,
-      existencias_intemperie: false,
-      vehiculos_terceros_aparcados: false,
-      bienes_empleados: false,
       dinero_caja_fuerte: 0,
       dinero_fuera_caja: 0,
       clausula_todo_riesgo: false,
@@ -130,7 +128,6 @@ export default function CompanyFormStep({
       type: "SET_FORM_TYPE",
       payload: "danos_materiales",
     });
-    // ...
   }, [dispatch]);
 
   // Manejar el envío del formulario
@@ -152,287 +149,142 @@ export default function CompanyFormStep({
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nombre de la empresa</FormLabel>
-                <FormControl>
-                  <Input placeholder="Nombre de la empresa" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Sección: Información básica de la empresa */}
+          <div className="mb-6">
+            <h3 className="font-medium text-gray-800 mb-3">
+              Información básica
+            </h3>
 
-          <FormItem>
-            <div className="flex items-center">
-              <FormLabel>Actividad (CNAE)</FormLabel>
-              <InfoTooltip text="Selecciona el código CNAE que mejor represente la actividad de tu empresa" />
-            </div>
-            <FormControl>
-              <CnaeSearch
-                onSelect={(option) => {
-                  setSelectedCnaeActivity(option);
-                  form.setValue("activity", option.description);
-                  form.setValue("cnae_code", option.code);
-                }}
-                defaultValue={form.watch("cnae_code")}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-
-          <FormField
-            control={form.control}
-            name="employees_number"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Numero de Empleados</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Número de empleados"
-                    value={field.value || ""}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value ? parseInt(e.target.value) : ""
-                      )
-                    }
-                    onBlur={field.onBlur}
-                    name={field.name}
-                    ref={field.ref}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="billing"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center">
-                  <FormLabel>Facturación Anual (€)</FormLabel>
-                  <InfoTooltip text="Incluir solo la facturación a terceros excluyendo la facturación a otras empresas del grupo" />
-                </div>
-                <FormControl>
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      placeholder="Facturación anual"
-                      value={field.value?.toString() || ""}
-                      onChange={(e) =>
-                        field.onChange(
-                          e.target.value ? parseFloat(e.target.value) : ""
-                        )
-                      }
-                      onBlur={field.onBlur}
-                      name={field.name}
-                      ref={field.ref}
-                    />
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      €
-                    </span>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="flex items-center justify-between space-x-4">
             <FormField
               control={form.control}
-              name="online_invoice"
+              name="name"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                <FormItem className="mb-4">
+                  <FormLabel>Nombre de la empresa</FormLabel>
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Input placeholder="Nombre de la empresa" {...field} />
                   </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Facturación online</FormLabel>
-                  </div>
+                  <FormMessage />
                 </FormItem>
               )}
             />
 
-            {onlineInvoice && (
-              <FormField
-                control={form.control}
-                name="online_invoice_percentage"
-                render={({ field }) => (
-                  <FormItem className="flex-shrink-0 w-[200px]">
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          placeholder="Porcentaje"
-                          value={field.value?.toString() || ""}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value);
-                            if (isNaN(value)) {
-                              field.onChange(0);
-                            } else if (value > 100) {
-                              field.onChange(100);
-                            } else if (value < 0) {
-                              field.onChange(0);
-                            } else {
-                              field.onChange(value);
-                            }
-                          }}
-                          min={0}
-                          max={100}
-                        />
-                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                          %
-                        </span>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            <FormItem className="mb-4">
+              <div className="flex items-center">
+                <FormLabel>Actividad (CNAE)</FormLabel>
+                <InfoTooltip text="Selecciona el código CNAE que mejor represente la actividad de tu empresa" />
+              </div>
+              <FormControl>
+                <CnaeSearch
+                  onSelect={(option) => {
+                    setSelectedCnaeActivity(option);
+                    form.setValue("activity", option.description);
+                    form.setValue("cnae_code", option.code);
+                  }}
+                  defaultValue={form.watch("cnae_code")}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+
+            <FormField
+              control={form.control}
+              name="activity_description"
+              render={({ field }) => (
+                <FormItem className="mb-4">
+                  <FormLabel>Describe tu actividad (opcional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe brevemente la actividad principal de tu empresa..."
+                      className="resize-none"
+                      {...field}
+                      maxLength={200}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Máximo 200 caracteres. {field.value?.length || 0}/200
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
-          <FormField
-            control={form.control}
-            name="installations_type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Instalaciones</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar tipo" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Propietario">
-                      Actúo como Propietario
-                    </SelectItem>
-                    <SelectItem value="Inquilino">Soy Inquilino</SelectItem>
-                    <SelectItem value="Otros">Otros</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Sección: Datos comerciales */}
+          <div className="mb-6">
+            <h3 className="font-medium text-gray-800 mb-3">
+              Datos comerciales
+            </h3>
 
-          <FormField
-            control={form.control}
-            name="m2_installations"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Metros Cuadrados</FormLabel>
-                <FormControl>
-                  <div className="relative">
+            <FormField
+              control={form.control}
+              name="employees_number"
+              render={({ field }) => (
+                <FormItem className="mb-4">
+                  <FormLabel>Número de Empleados</FormLabel>
+                  <FormControl>
                     <Input
                       type="number"
-                      placeholder="m² de instalaciones"
+                      placeholder="Número de empleados"
                       value={field.value || ""}
                       onChange={(e) =>
                         field.onChange(
-                          e.target.value ? parseFloat(e.target.value) : ""
+                          e.target.value ? parseInt(e.target.value) : ""
                         )
                       }
                       onBlur={field.onBlur}
                       name={field.name}
                       ref={field.ref}
                     />
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      m²
-                    </span>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="almacena_bienes_terceros"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>
-                    ¿Almacenas o tienes depositados bienes de terceros, tanto
-                    maquinaria como existencias?
-                  </FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-
-          {isDanosMateriales && (
-            <FormField
-              control={form.control}
-              name="existencias_intemperie"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
                   </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      ¿Almacenas o tienes depositados existencias o maquinaria a
-                      la intemperie?
-                    </FormLabel>
-                  </div>
+                  <FormDescription>
+                    Solo se consideran empleados en nómina
+                  </FormDescription>
+                  <FormMessage />
                 </FormItem>
               )}
             />
-          )}
 
-          <FormField
-            control={form.control}
-            name="vehiculos_terceros_aparcados"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>
-                    ¿Hay vehículos de terceros aparcados en mis instalaciones?
-                  </FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="billing"
+              render={({ field }) => (
+                <FormItem className="mb-4">
+                  <div className="flex items-center">
+                    <FormLabel>Facturación Anual (€)</FormLabel>
+                    <InfoTooltip text="Incluir solo la facturación a terceros excluyendo la facturación a otras empresas del grupo" />
+                  </div>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        placeholder="Facturación anual"
+                        value={field.value?.toString() || ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value ? parseFloat(e.target.value) : ""
+                          )
+                        }
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                      <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        €
+                      </span>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {/* Campos específicos para Daños Materiales */}
-          {isDanosMateriales && (
-            <>
+            <div className="flex items-center justify-between space-x-4 mb-4">
               <FormField
                 control={form.control}
-                name="bienes_empleados"
+                name="online_invoice"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                     <FormControl>
                       <Checkbox
                         checked={field.value}
@@ -440,23 +292,128 @@ export default function CompanyFormStep({
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>
-                        ¿Quieres cubrir los daños a bienes de empleados?
-                      </FormLabel>
-                      <FormDescription>
-                        Por ejemplo: objetos personales, equipos electrónicos,
-                        etc.
-                      </FormDescription>
+                      <FormLabel>Facturación online</FormLabel>
                     </div>
                   </FormItem>
                 )}
               />
 
+              {onlineInvoice && (
+                <FormField
+                  control={form.control}
+                  name="online_invoice_percentage"
+                  render={({ field }) => (
+                    <FormItem className="flex-shrink-0 w-[200px]">
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            placeholder="Porcentaje"
+                            value={field.value?.toString() || ""}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value);
+                              if (isNaN(value)) {
+                                field.onChange(0);
+                              } else if (value > 100) {
+                                field.onChange(100);
+                              } else if (value < 0) {
+                                field.onChange(0);
+                              } else {
+                                field.onChange(value);
+                              }
+                            }}
+                            min={0}
+                            max={100}
+                          />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            %
+                          </span>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Sección: Instalaciones */}
+          <div className="mb-6">
+            <h3 className="font-medium text-gray-800 mb-3">Instalaciones</h3>
+
+            <FormField
+              control={form.control}
+              name="installations_type"
+              render={({ field }) => (
+                <FormItem className="mb-4">
+                  <FormLabel>Tipo de instalaciones</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar tipo" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Propietario">
+                        Actúo como Propietario
+                      </SelectItem>
+                      <SelectItem value="Inquilino">Soy Inquilino</SelectItem>
+                      <SelectItem value="Otros">Otros</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="m2_installations"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Metros Cuadrados</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        placeholder="m² de instalaciones"
+                        value={field.value || ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value ? parseFloat(e.target.value) : ""
+                          )
+                        }
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                      <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        m²
+                      </span>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Campos específicos para Daños Materiales */}
+          {isDanosMateriales && (
+            <div className="mb-6">
+              <h3 className="font-medium text-gray-800 mb-3">
+                Dinero en efectivo
+              </h3>
+
               <FormField
                 control={form.control}
                 name="dinero_caja_fuerte"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="mb-4">
                     <FormLabel>
                       Indica la cantidad de dinero depositado en caja fuerte
                     </FormLabel>
@@ -489,7 +446,7 @@ export default function CompanyFormStep({
                 control={form.control}
                 name="dinero_fuera_caja"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="mb-4">
                     <FormLabel>
                       Indica la cantidad de dinero guardado fuera de caja fuerte
                       pero dentro del inmueble
@@ -543,7 +500,7 @@ export default function CompanyFormStep({
                   </FormItem>
                 )}
               />
-            </>
+            </div>
           )}
 
           {empresaTipo && !isDanosMateriales && (

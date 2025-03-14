@@ -68,18 +68,31 @@ FOR SELECT USING (true);
 
 Estructura del Proyecto
 
-smart-advice
+autistaroberts@Bautistas-MacBook-Air smart-advice % tree -I "node_modules|.next|.git|package-lock.json|yarn.lock"
+.
 ├── README.md
 ├── app
 │ ├── api
 │ │ ├── companies
+│ │ │ └── route.ts
+│ │ ├── contact
+│ │ │ └── route.ts
 │ │ ├── forms
+│ │ │ ├── danos-materiales
+│ │ │ │ └── route.ts
+│ │ │ └── responsabilidad_civil
+│ │ │ └── route.ts
 │ │ ├── recomendaciones
+│ │ │ ├── coberturas
+│ │ │ │ └── route.ts
+│ │ │ └── route.ts
 │ │ ├── session
+│ │ │ └── route.ts
 │ │ └── test-data
+│ │ └── route.ts
 │ ├── danos-materiales
 │ │ └── page.tsx
-│ ├── favicon.ico
+│ ├── favicon.png
 │ ├── globals.css
 │ ├── layout.tsx
 │ ├── page.tsx
@@ -89,38 +102,86 @@ smart-advice
 │ │ └── page.tsx
 │ ├── riesgos-adicionales
 │ │ └── page.tsx
-│ └── seguros
+│ ├── seguros
+│ │ └── page.tsx
+│ └── servicios
 │ └── page.tsx
 ├── components
+│ ├── CnaeSearch.tsx
+│ ├── CombinedCoverageRecommendations.tsx
 │ ├── Footer.tsx
 │ ├── Navbar.tsx
 │ ├── forms
 │ │ ├── DanosMaterialesForm.tsx
 │ │ ├── MultiStepForm.tsx
-│ │ └── ResponsabilidadCivilForm.tsx
+│ │ ├── ResponsabilidadCivilForm.tsx
+│ │ └── steps
+│ │ ├── CapitalesStep.tsx
+│ │ ├── CoberturasFormStep.tsx
+│ │ ├── CompanyFormStep.tsx
+│ │ ├── ConstruccionStep.tsx
+│ │ ├── ContactFormStep.tsx
+│ │ ├── DanosResumenStep.tsx
+│ │ ├── FormSummaryStep.tsx
+│ │ ├── ManufacturaFormStep.tsx
+│ │ ├── ProteccionIncendiosStep.tsx
+│ │ ├── ProteccionRoboStep.tsx
+│ │ ├── ServiciosFormStep.tsx
+│ │ └── SiniestralidadStep.tsx
+│ ├── layout
+│ │ └── FormLayout.tsx
+│ ├── providers
+│ │ └── ToastProvider.tsx
 │ └── ui
+│ ├── InfoTooltip.tsx
+│ ├── LoadingScreen.tsx
 │ ├── button.tsx
 │ ├── checkbox.tsx
+│ ├── command.tsx
+│ ├── dialog.tsx
 │ ├── form.tsx
 │ ├── input.tsx
 │ ├── label.tsx
+│ ├── popover.tsx
 │ ├── radio-group.tsx
-│ └── select.tsx
+│ ├── select.tsx
+│ ├── textarea.tsx
+│ ├── toast.tsx
+│ └── tooltip.tsx
 ├── components.json
 ├── context.md
+├── contexts
+│ ├── DanosFormContext.tsx
+│ └── FormContext.tsx
 ├── lib
 │ ├── schemas.ts
+│ ├── services
+│ │ └── cnaeService.ts
 │ ├── session.ts
 │ ├── supabase.ts
 │ └── utils.ts
 ├── next-env.d.ts
-├── next.config.ts
-├── package-lock.json
+├── next.config.js
 ├── package.json
+├── postcss.config.js
 ├── postcss.config.mjs
+├── public
+│ ├── favicon.png
+│ ├── favicons
+│ │ └── smart-advice-logo.png
+│ ├── file.svg
+│ ├── globe.svg
+│ ├── images
+│ │ ├── legal-pattern.png
+│ │ └── smart-advice-logo.png
+│ ├── next.svg
+│ ├── vercel.svg
+│ └── window.svg
+├── tailwind.config.js
 ├── tsconfig.json
 └── types
 └── index.ts
+
 Flujo de Datos
 Inicio:
 
@@ -222,4 +283,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-Vamos a darle forma a las recomendaciones de seguro para seguros de danos y tambien seguro de responsabilidad civil! Te voy a compartir las imagenes de mi cliente para que entiendas que queremos hacer con las recomendaciones. Antes de escribir codigo pedime cualquier archivo y tambien discutamos como te parece que lo hagamos!
+We are making this changes on the forms! Take into account that we are using different steps for every Step on the form! We are starting with the Danos form.

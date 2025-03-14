@@ -1,3 +1,5 @@
+///Users/bautistaroberts/smart-advice/components/CombinedCoverageRecommendations.tsx
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Download, Mail, Shield, FileText } from "lucide-react";

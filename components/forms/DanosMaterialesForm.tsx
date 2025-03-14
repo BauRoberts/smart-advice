@@ -233,11 +233,6 @@ function DanosMaterialesFormContent() {
     try {
       await submitForm();
 
-      // Clear ALL data after successful submission if needed
-      // localStorage.removeItem("session_data");
-      // localStorage.removeItem("session_id");
-      // localStorage.removeItem("formData");
-
       toast({
         title: "Formulario enviado",
         description: "Redirigiendo a tus recomendaciones personalizadas...",
@@ -246,7 +241,6 @@ function DanosMaterialesFormContent() {
 
       // Modificar redirección para incluir el parámetro tipo basado en el formulario actual
       setTimeout(() => {
-        const formType = formData.form_type; // O un valor fijo según el formulario
         router.push(`/recomendaciones?tipo=danos_materiales`);
       }, 2000);
     } catch (error) {
@@ -358,12 +352,14 @@ function DanosMaterialesFormContent() {
   return (
     <div className="min-h-screen">
       {renderStep()}
-      <button
-        onClick={startNewForm}
-        className="text-sm text-blue-600 hover:underline"
-      >
-        Comenzar nuevo formulario
-      </button>
+      <div className="text-center mt-4 mb-8">
+        <button
+          onClick={startNewForm}
+          className="text-sm text-blue-600 hover:underline"
+        >
+          Comenzar nuevo formulario
+        </button>
+      </div>
     </div>
   );
 }

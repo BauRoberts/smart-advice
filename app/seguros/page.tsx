@@ -21,7 +21,7 @@ export default function SegurosPage() {
 
       {/* Hero section with branded style */}
       <section className="py-16 px-6 bg-[#F5F2FB] relative">
-        <div className="container mx-auto text-center max-w-3xl">
+        <div className="container mx-auto text-center max-w-2xl">
           <span className="inline-block px-4 py-1 bg-[rgba(6,42,90,0.05)] text-[#062A5A] rounded-md font-medium mb-6">
             <Shield className="inline-block text-[#FB2E25] mr-2 w-4 h-4" />
             Seguros para empresas
@@ -43,7 +43,7 @@ export default function SegurosPage() {
       {/* Insurance options section */}
       <section className="py-16 px-6 bg-white">
         <div className="container mx-auto">
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-16">
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
             {/* Responsabilidad Civil */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-[#FB2E25] transition-all hover:shadow-lg hover:-translate-y-1">
               <div className="p-6">

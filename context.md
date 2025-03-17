@@ -66,6 +66,13 @@ FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow select by session_id" ON contact_info
 FOR SELECT USING (true);
 
+-- Add privacy_policy_accepted column to the contact_info table
+ALTER TABLE contact_info
+ADD COLUMN privacy_policy_accepted BOOLEAN DEFAULT FALSE;
+
+-- Create index for the new column for better query performance
+CREATE INDEX IF NOT EXISTS idx_contact_info_privacy_policy ON contact_info(privacy_policy_accepted);
+
 Estructura del Proyecto
 
 autistaroberts@Bautistas-MacBook-Air smart-advice % tree -I "node_modules|.next|.git|package-lock.json|yarn.lock"

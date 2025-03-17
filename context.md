@@ -291,4 +291,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-We are making changes to the contact step for adding privacy policy!
+Vamos a chequear como estamos recomendando seguros para ambos formularios. Danos y RC! Debemos chequear que esten cumpliendo con todos los requisitos que dejamos en el mensaje. Esto lo hacemos porque a veces no recomendamos nada que esta mal!

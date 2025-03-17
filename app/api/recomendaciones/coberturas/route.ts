@@ -12,6 +12,11 @@ interface InsuranceRecommendation {
   type: "responsabilidad_civil" | "danos_materiales";
   coverages: Coverage[];
   ambitoTerritorial?: string;
+  limits?: {
+    generalLimit: string;
+    victimSubLimit: string;
+    explanation?: string;
+  };
 }
 
 // Indicar a Next.js que esta es una ruta dinámica
@@ -92,6 +97,25 @@ export async function GET(request: NextRequest) {
       { success: false, error: "Failed to generate coverage recommendations" },
       { status: 500 }
     );
+  }
+}
+
+function determineLimitsRC(billingAmount?: number): {
+  generalLimit: string;
+  victimSubLimit: string;
+} {
+  if (!billingAmount) {
+    return { generalLimit: "600.000€", victimSubLimit: "450.000€" };
+  }
+
+  if (billingAmount < 1000000) {
+    return { generalLimit: "600.000€", victimSubLimit: "450.000€" };
+  } else if (billingAmount <= 3000000) {
+    return { generalLimit: "1.000.000€", victimSubLimit: "600.000€" };
+  } else if (billingAmount <= 10000000) {
+    return { generalLimit: "2.000.000€", victimSubLimit: "600.000€" };
+  } else {
+    return { generalLimit: "3.000.000€", victimSubLimit: "900.000€" };
   }
 }
 
@@ -229,10 +253,22 @@ function generateRCCoverages(formData: any): InsuranceRecommendation {
     }
   }
 
+  // Determinar los límites de responsabilidad basados en la facturación
+  const { generalLimit, victimSubLimit } = determineLimitsRC(
+    formData?.company?.billing
+  );
+
   return {
     type: "responsabilidad_civil",
     coverages,
     ambitoTerritorial,
+    limits: {
+      generalLimit,
+      victimSubLimit,
+      explanation: `Según facturación anual de ${
+        formData?.company?.billing?.toLocaleString() || "N/A"
+      }€`,
+    },
   };
 }
 

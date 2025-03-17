@@ -91,30 +91,6 @@ export default function SegurosPage() {
                 </Button>
               </div>
             </div>
-
-            {/* Riesgos Adicionales */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-[#062A5A] transition-all hover:shadow-lg hover:-translate-y-1">
-              <div className="p-6">
-                <div className="flex justify-center mb-6">
-                  <div className="bg-[rgba(6,42,90,0.1)] p-3 rounded-full">
-                    <AlertTriangle className="w-10 h-10 text-[#062A5A]" />
-                  </div>
-                </div>
-                <h2 className="text-xl font-bold mb-2 text-center">
-                  Riesgos Adicionales
-                </h2>
-                <p className="text-gray-600 mb-6 text-center">
-                  Coberturas especiales diseñadas para necesidades específicas
-                  de tu sector o actividad.
-                </p>
-                <Button
-                  asChild
-                  className="w-full bg-[#062A5A] hover:bg-[#051d3e] transition-colors"
-                >
-                  <Link href="/riesgos-adicionales">Seleccionar</Link>
-                </Button>
-              </div>
-            </div>
           </div>
 
           {/* Próximamente section */}

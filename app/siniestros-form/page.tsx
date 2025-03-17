@@ -50,7 +50,7 @@ export default function SiniestroPage() {
             </h3>
             <p className="mb-4">
               Si hay impacto de vehículo, debes rellenar el parte de
-              "Declaración amistosa de accidente".
+              &quot;Declaración amistosa de accidente&quot;.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <Button asChild className="flex items-center" variant="outline">

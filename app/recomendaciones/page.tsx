@@ -1,7 +1,7 @@
 // app/recomendaciones/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { getEffectiveSessionId } from "@/lib/session";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,8 @@ interface InsuranceRecommendation {
   };
 }
 
-export default function AsesoramientoPage() {
+// Create a separate client component for the content that uses useSearchParams
+function AsesoramientoContent() {
   const [coverages, setCoverages] = useState<InsuranceRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -93,9 +94,7 @@ export default function AsesoramientoPage() {
   }, [tipo]);
 
   return (
-    <main className="min-h-screen">
-      <Navbar />
-
+    <>
       {/* Hero section */}
       <section className="py-12 px-6 bg-[#F5F2FB]">
         <div className="container mx-auto max-w-4xl">
@@ -391,7 +390,32 @@ export default function AsesoramientoPage() {
           </section>
         </>
       )}
+    </>
+  );
+}
 
+// Main page component that wraps the content with Suspense
+export default function AsesoramientoPage() {
+  return (
+    <main className="min-h-screen">
+      <Navbar />
+      <Suspense
+        fallback={
+          <section className="py-12 px-6 bg-white">
+            <div className="container mx-auto max-w-4xl text-center">
+              <div className="animate-pulse space-y-4">
+                <div className="h-8 bg-gray-200 rounded w-1/2 mx-auto"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/3 mx-auto"></div>
+                <div className="h-64 bg-gray-100 rounded-lg"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto"></div>
+              </div>
+              <p className="text-gray-600 mt-6">Cargando asesoramiento...</p>
+            </div>
+          </section>
+        }
+      >
+        <AsesoramientoContent />
+      </Suspense>
       <Footer />
     </main>
   );

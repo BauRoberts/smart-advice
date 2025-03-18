@@ -14,28 +14,25 @@ import SiniestralidadStep from "@/components/forms/steps/SiniestralidadStep";
 import DanosResumenStep from "@/components/forms/steps/DanosResumenStep";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { toast } from "@/components/ui/toast";
+import { getOrCreateTempSession } from "@/lib/session";
 
 function DanosMaterialesFormContent() {
   const router = useRouter();
   const { formData, dispatch, goToStep, submitForm } = useFormContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Establecer el tipo de formulario
+    // Set the form type
     dispatch({
       type: "SET_FORM_TYPE",
       payload: "danos_materiales",
     });
 
-    // Recuperar sessionId del localStorage si existe
-    const storedSessionId = localStorage.getItem("session_id");
-    if (storedSessionId) {
-      setSessionId(storedSessionId);
-    }
+    // Create temporary session ID
+    getOrCreateTempSession();
 
-    // Simular tiempo de carga
+    // Simulate loading time
     const timer = setTimeout(() => {
       setLoading(false);
     }, 500);
@@ -43,195 +40,101 @@ function DanosMaterialesFormContent() {
     return () => clearTimeout(timer);
   }, [dispatch]);
 
-  // Si está cargando, mostrar pantalla de carga
+  // If loading, show loading screen
   if (loading) {
     return <LoadingScreen message="Cargando formulario..." />;
   }
 
-  // Paso 1: Datos de contacto - con guardado incremental
-  const handleContactNext = async (data: any) => {
-    try {
-      // Guardar en el contexto local
-      dispatch({ type: "SET_CONTACT", payload: data });
+  // Step 1: Company Info (moved from step 2)
+  const handleCompanyNext = (data: any, empresaTipo: any) => {
+    // Save to local context
+    dispatch({
+      type: "SET_COMPANY",
+      payload: data,
+      empresaTipo,
+    });
 
-      // Mostrar indicador de carga
-      const savingToast = toast({
-        title: "Guardando datos...",
-        description: "Estamos guardando tu información de contacto",
-        duration: 2000,
-      });
+    // Show success message
+    toast({
+      title: "Información guardada",
+      description: "Los datos de tu empresa han sido guardados",
+      duration: 2000,
+    });
 
-      // Guardar en la API
-      const contactResponse = await fetch("/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!contactResponse.ok) {
-        throw new Error("Error al guardar datos de contacto");
-      }
-
-      const contactData = await contactResponse.json();
-
-      // Guardar el session_id
-      if (contactData.session_id) {
-        localStorage.setItem("session_id", contactData.session_id);
-        setSessionId(contactData.session_id);
-      }
-
-      // Mostrar mensaje de éxito
-      toast({
-        title: "Información guardada",
-        description: "Tus datos de contacto han sido guardados",
-        duration: 2000,
-      });
-
-      // Avanzar al siguiente paso
-      goToStep(2);
-    } catch (error) {
-      console.error("Error al guardar datos de contacto:", error);
-
-      // Mostrar mensaje de error
-      toast({
-        title: "Error",
-        description:
-          "No pudimos guardar tus datos de contacto, pero puedes continuar",
-        variant: "destructive",
-        duration: 3000,
-      });
-
-      // Aún así, avanzar al siguiente paso
-      goToStep(2);
-    }
-  };
-
-  // Paso 2: Datos de empresa - con guardado incremental
-  const handleCompanyNext = async (data: any, empresaTipo: any) => {
-    try {
-      // Guardar en el contexto local
-      dispatch({
-        type: "SET_COMPANY",
-        payload: data,
-        empresaTipo,
-      });
-
-      // Mostrar indicador de carga
-      toast({
-        title: "Guardando datos...",
-        description: "Estamos guardando la información de tu empresa",
-        duration: 2000,
-      });
-
-      // Si no hay session_id, significa que hubo un problema en el paso anterior
-      if (!sessionId && !localStorage.getItem("session_id")) {
-        throw new Error(
-          "No se encontró ID de sesión para guardar los datos de empresa"
-        );
-      }
-
-      // Usar el sessionId del estado o del localStorage
-      const currentSessionId = sessionId || localStorage.getItem("session_id");
-
-      // Guardar en la API
-      const companyResponse = await fetch("/api/companies", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          session_id: currentSessionId,
-          ...data,
-        }),
-      });
-
-      if (!companyResponse.ok) {
-        throw new Error("Error al guardar datos de empresa");
-      }
-
-      // Mostrar mensaje de éxito
-      toast({
-        title: "Información guardada",
-        description: "Los datos de tu empresa han sido guardados",
-        duration: 2000,
-      });
-
-      // Avanzar al siguiente paso
-      goToStep(3);
-    } catch (error) {
-      console.error("Error al guardar datos de empresa:", error);
-
-      // Mostrar mensaje de error
-      toast({
-        title: "Error",
-        description:
-          "No pudimos guardar los datos de tu empresa, pero puedes continuar",
-        variant: "destructive",
-        duration: 3000,
-      });
-
-      // Aún así, avanzar al siguiente paso
-      goToStep(3);
-    }
-  };
-
-  // Paso 3: Capitales a asegurar
-  const handleCapitalesNext = (data: any) => {
-    dispatch({ type: "SET_CAPITALES", payload: data });
-    goToStep(4);
-  };
-
-  const handleCapitalesBack = () => {
+    // Advance to next step
     goToStep(2);
   };
 
-  // Paso 4: Características constructivas
-  const handleConstruccionNext = (data: any) => {
-    dispatch({ type: "SET_CONSTRUCCION", payload: data });
-    goToStep(5);
-  };
-
-  const handleConstruccionBack = () => {
+  // Step 2: Capitals to insure
+  const handleCapitalesNext = (data: any) => {
+    dispatch({ type: "SET_CAPITALES", payload: data });
     goToStep(3);
   };
 
-  // Paso 5: Protección contra incendios
-  const handleProteccionIncendiosNext = (data: any) => {
-    dispatch({ type: "SET_PROTECCION_INCENDIOS", payload: data });
-    goToStep(6);
+  const handleCapitalesBack = () => {
+    goToStep(1);
   };
 
-  const handleProteccionIncendiosBack = () => {
+  // Step 3: Construction characteristics
+  const handleConstruccionNext = (data: any) => {
+    dispatch({ type: "SET_CONSTRUCCION", payload: data });
     goToStep(4);
   };
 
-  // Paso 6: Protección contra robo
-  const handleProteccionRoboNext = (data: any) => {
-    dispatch({ type: "SET_PROTECCION_ROBO", payload: data });
-    goToStep(7);
+  const handleConstruccionBack = () => {
+    goToStep(2);
   };
 
-  const handleProteccionRoboBack = () => {
+  // Step 4: Fire protection
+  const handleProteccionIncendiosNext = (data: any) => {
+    dispatch({ type: "SET_PROTECCION_INCENDIOS", payload: data });
     goToStep(5);
   };
 
-  // Paso 7: Siniestralidad
-  const handleSiniestralidadNext = (data: any) => {
-    dispatch({ type: "SET_SINIESTRALIDAD", payload: data });
-    goToStep(8);
+  const handleProteccionIncendiosBack = () => {
+    goToStep(3);
   };
 
-  const handleSiniestralidadBack = () => {
+  // Step 5: Theft protection
+  const handleProteccionRoboNext = (data: any) => {
+    dispatch({ type: "SET_PROTECCION_ROBO", payload: data });
     goToStep(6);
   };
 
-  // Paso 8: Resumen y confirmación
+  const handleProteccionRoboBack = () => {
+    goToStep(4);
+  };
+
+  // Step 6: Claims history
+  const handleSiniestralidadNext = (data: any) => {
+    dispatch({ type: "SET_SINIESTRALIDAD", payload: data });
+    goToStep(7);
+  };
+
+  const handleSiniestralidadBack = () => {
+    goToStep(5);
+  };
+
+  // Step 7: Contact Information (moved from step 1)
+  const handleContactNext = (data: any) => {
+    // Save to local context
+    dispatch({ type: "SET_CONTACT", payload: data });
+
+    // Advance to summary step
+    goToStep(8);
+  };
+
+  const handleContactBack = () => {
+    goToStep(6);
+  };
+
+  // Step 8: Summary and submission
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      await submitForm();
+      console.log("Iniciando envío del formulario de daños materiales...");
+      const result = await submitForm();
+      console.log("Formulario enviado exitosamente:", result);
 
       toast({
         title: "Formulario enviado",
@@ -239,7 +142,7 @@ function DanosMaterialesFormContent() {
         duration: 2000,
       });
 
-      // Modificar redirección para incluir el parámetro tipo basado en el formulario actual
+      // Redirect to recommendations page with the form type parameter
       setTimeout(() => {
         router.push(`/recomendaciones?tipo=danos_materiales`);
       }, 2000);
@@ -271,32 +174,22 @@ function DanosMaterialesFormContent() {
     // Reset form context
     dispatch({ type: "RESET_FORM" });
 
-    // Reset session state
-    setSessionId(null);
-
     // Force reload the page to ensure clean state
     window.location.href = "/danos-materiales";
   };
 
-  // Renderizar el paso actual del formulario
+  // Render the current form step
   const renderStep = () => {
     switch (formData.step) {
       case 1:
         return (
-          <ContactFormStep
-            onNext={handleContactNext}
-            defaultValues={formData.contact}
-          />
-        );
-      case 2:
-        return (
           <CompanyFormStep
             onNext={handleCompanyNext}
-            onBack={() => goToStep(1)}
+            onBack={() => router.push("/seguros")}
             defaultValues={formData.company}
           />
         );
-      case 3:
+      case 2:
         return (
           <CapitalesStep
             onNext={handleCapitalesNext}
@@ -304,7 +197,7 @@ function DanosMaterialesFormContent() {
             defaultValues={formData.capitales}
           />
         );
-      case 4:
+      case 3:
         return (
           <ConstruccionStep
             onNext={handleConstruccionNext}
@@ -312,15 +205,19 @@ function DanosMaterialesFormContent() {
             defaultValues={formData.construccion}
           />
         );
-      case 5:
+      case 4:
         return (
           <ProteccionIncendiosStep
             onNext={handleProteccionIncendiosNext}
             onBack={handleProteccionIncendiosBack}
-            defaultValues={formData.proteccion_incendios}
+            defaultValues={{
+              ...formData.proteccion_incendios,
+              columnas_hidrantes_tipo: formData.proteccion_incendios
+                ?.columnas_hidrantes_tipo as "publico" | "privado" | undefined,
+            }}
           />
         );
-      case 6:
+      case 5:
         return (
           <ProteccionRoboStep
             onNext={handleProteccionRoboNext}
@@ -328,12 +225,20 @@ function DanosMaterialesFormContent() {
             defaultValues={formData.proteccion_robo}
           />
         );
-      case 7:
+      case 6:
         return (
           <SiniestralidadStep
             onNext={handleSiniestralidadNext}
             onBack={handleSiniestralidadBack}
             defaultValues={formData.siniestralidad}
+          />
+        );
+      case 7:
+        return (
+          <ContactFormStep
+            onNext={handleContactNext}
+            onBack={handleContactBack}
+            defaultValues={formData.contact}
           />
         );
       case 8:
@@ -364,7 +269,7 @@ function DanosMaterialesFormContent() {
   );
 }
 
-// Componente principal que envuelve con el contexto
+// Main component that wraps with context
 export default function DanosMaterialesForm() {
   return (
     <FormProvider>

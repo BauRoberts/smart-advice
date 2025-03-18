@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import FormLayout from "@/components/layout/FormLayout";
+import { useFormContext } from "@/contexts/FormContext";
 
 // Schema para validar los datos de contacto
 const contactSchema = z.object({
@@ -39,15 +40,22 @@ export type ContactFormData = z.infer<typeof contactSchema>;
 
 interface ContactFormStepProps {
   onNext: (data: ContactFormData) => void;
+  onBack: () => void;
   defaultValues?: Partial<ContactFormData>;
-  backLink?: string; // Si deseas volver a una página en lugar de al paso anterior
 }
 
 export default function ContactFormStep({
   onNext,
+  onBack,
   defaultValues = { name: "", email: "", phone: "", privacyPolicy: false },
-  backLink = "/seguros",
 }: ContactFormStepProps) {
+  const formContext = useFormContext();
+  const { formData } = formContext;
+
+  // Determine which step number to show based on form type
+  const currentStep = formData.form_type === "responsabilidad_civil" ? 4 : 7;
+  const totalSteps = formData.form_type === "responsabilidad_civil" ? 5 : 8;
+
   // Inicializar el formulario con React Hook Form
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
@@ -62,11 +70,11 @@ export default function ContactFormStep({
   return (
     <FormLayout
       title="Datos de contacto"
-      subtitle="Para poder contactarte y ofrecerte las mejores opciones"
-      currentStep={1}
-      totalSteps={5}
+      subtitle="Para poder enviarte las recomendaciones y ofrecerte el mejor servicio"
+      currentStep={currentStep}
+      totalSteps={totalSteps}
       onNext={form.handleSubmit(onSubmit)}
-      backLink={backLink}
+      onBack={onBack}
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -146,6 +154,14 @@ export default function ContactFormStep({
               </FormItem>
             )}
           />
+
+          <div className="pt-4 bg-blue-50 p-4 rounded-md">
+            <p className="text-sm text-blue-800">
+              Tus datos de contacto serán utilizados únicamente para enviarte
+              las recomendaciones de seguros y, si lo deseas, para que nuestro
+              equipo pueda contactarte y ayudarte a elegir la mejor opción.
+            </p>
+          </div>
         </form>
       </Form>
     </FormLayout>

@@ -291,4 +291,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-Vamos a chequear como estamos recomendando seguros para ambos formularios. Danos y RC! Debemos chequear que esten cumpliendo con todos los requisitos que dejamos en el mensaje. Esto lo hacemos porque a veces no recomendamos nada que esta mal!
+I want to check how we are doing the recommendations in my app! When u fill in a form u get an insurance recommendation! Im going to attach the form component with some API so u can help me understand hopw this is working.

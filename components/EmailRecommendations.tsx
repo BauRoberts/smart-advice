@@ -135,8 +135,8 @@ export default function EmailRecommendations({
           </Button>
 
           <p className="text-xs text-gray-500 text-center">
-            Al hacer clic en "Enviar a mi email", aceptas que almacenemos tu
-            email para enviarte este asesoramiento.
+            Al hacer clic en &quot;Enviar a mi email&quot;, aceptas que
+            almacenemos tu email para enviarte este asesoramiento.
           </p>
         </form>
       )}

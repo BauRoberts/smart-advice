@@ -291,6 +291,5 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-I want to enable mail notifications! I already have a free account on sendgrid! I want to build it for free! What do u recomend?
-
-Lets chat about how to it!
+Tengo que tener un lugar de donde poder el descargar el pdf!
+Hoy desde siniestros form lo busca en los archivos que tengo en mi archivo de desarrollo! Pero como uso Vercel no me deja guardarlo asi! Como recomendas o donde lo podriamos guardar? Usar Supabase? O que podriamos usar?

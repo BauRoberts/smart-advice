@@ -54,7 +54,10 @@ export default function SiniestroPage() {
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <Button asChild className="flex items-center" variant="outline">
-                <a href="/documents/Declaracion-amistosa-de-parte.pdf" download>
+                <a
+                  href="https://drive.google.com/file/d/1mCOyotJoBffEb2kw2ZO31ZvSDh7vIa70/view"
+                  download
+                >
                   <Download className="h-4 w-4 mr-2" />
                   Descargar PDF declaración amistosa
                 </a>

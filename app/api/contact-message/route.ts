@@ -1,13 +1,14 @@
 // app/api/contact-message/route.ts
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { sendContactNotification, sendContactConfirmation } from "@/lib/email";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, phone, company, message, privacyPolicy } = body;
+    const { name, email, phone, message, privacyPolicy } = body;
 
-    // Verificar que se ha aceptado la política de privacidad
+    // Verify privacy policy acceptance
     if (!privacyPolicy) {
       return NextResponse.json(
         { success: false, error: "Debes aceptar la política de privacidad" },
@@ -15,14 +16,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // Primero crear o recuperar una sesión
+    // Get or create a session
     let sessionId;
     const existingSession = request.headers.get("x-session-id");
 
     if (existingSession) {
       sessionId = existingSession;
     } else {
-      // Crear nueva sesión
+      // Create new session
       const { data: sessionData, error: sessionError } = await supabase
         .from("sessions")
         .insert({})
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
       sessionId = sessionData.id;
     }
 
-    // Guardar mensaje de contacto - intentar insertar en la tabla contact_messages
+    // Try to save the contact message
     try {
       const { data: contactData, error: contactError } = await supabase
         .from("contact_messages")
@@ -46,14 +47,33 @@ export async function POST(request: Request) {
           name,
           email,
           phone,
-          company: company || null,
           message,
           privacy_policy_accepted: privacyPolicy,
+          status: "new",
+          created_at: new Date().toISOString(),
         })
         .select()
         .single();
 
       if (contactError) throw contactError;
+
+      // Send email notifications asynchronously
+      // We don't await these to keep the response time fast for the user
+      sendContactNotification({
+        name,
+        email,
+        phone,
+        message,
+      }).catch((error) => {
+        console.error("Failed to send admin notification email:", error);
+      });
+
+      sendContactConfirmation({
+        name,
+        email,
+      }).catch((error) => {
+        console.error("Failed to send confirmation email:", error);
+      });
 
       return NextResponse.json({
         success: true,
@@ -62,8 +82,8 @@ export async function POST(request: Request) {
         contact_id: contactData.id,
       });
     } catch (messageError) {
-      // Si falla al insertar en contact_messages, intentar con contact_info como fallback
-      console.error("Error al guardar en contact_messages:", messageError);
+      // Fallback to contact_info table if contact_messages table doesn't exist
+      console.error("Error saving to contact_messages:", messageError);
 
       const { data: contactData, error: contactError } = await supabase
         .from("contact_info")
@@ -73,6 +93,8 @@ export async function POST(request: Request) {
           email,
           phone,
           privacy_policy_accepted: privacyPolicy,
+          // Store message in metadata if possible
+          metadata: { message },
         })
         .select()
         .single();
@@ -80,6 +102,23 @@ export async function POST(request: Request) {
       if (contactError) {
         throw new Error("No se pudo guardar la información de contacto");
       }
+
+      // Still try to send email notifications
+      sendContactNotification({
+        name,
+        email,
+        phone,
+        message,
+      }).catch((error) => {
+        console.error("Failed to send admin notification email:", error);
+      });
+
+      sendContactConfirmation({
+        name,
+        email,
+      }).catch((error) => {
+        console.error("Failed to send confirmation email:", error);
+      });
 
       return NextResponse.json({
         success: true,
@@ -89,7 +128,7 @@ export async function POST(request: Request) {
       });
     }
   } catch (error) {
-    console.error("Error al procesar mensaje de contacto:", error);
+    console.error("Error processing contact message:", error);
     return NextResponse.json(
       {
         success: false,

@@ -291,4 +291,6 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-I want to check how we are doing the recommendations in my app! When u fill in a form u get an insurance recommendation! Im going to attach the form component with some API so u can help me understand hopw this is working.
+I want to enable mail notifications! I already have a free account on sendgrid! I want to build it for free! What do u recomend?
+
+Lets chat about how to it!

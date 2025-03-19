@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Shield, CheckCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import EmailRecommendations from "@/components/EmailRecommendations";
 
 interface Coverage {
   name: string;
@@ -183,111 +184,83 @@ function AsesoramientoContent() {
 
               {coverages && coverages.length > 0 ? (
                 <>
-                  {coverages.map((rec, index) => (
-                    <div key={index} className="mb-10">
-                      <div className="bg-white border rounded-lg shadow-sm p-6 mb-6">
-                        <h3 className="text-xl font-semibold mb-4 flex items-center text-[#062A5A]">
-                          <Shield className="h-5 w-5 mr-2 text-[#FB2E25]" />
-                          {rec.type === "responsabilidad_civil"
-                            ? "Seguro de Responsabilidad Civil"
-                            : "Seguro de Daños Materiales"}
-                        </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                    <div className="md:col-span-2">
+                      {coverages.map((rec, index) => (
+                        <div key={index} className="mb-10">
+                          <div className="bg-white border rounded-lg shadow-sm p-6 mb-6">
+                            <h3 className="text-xl font-semibold mb-4 flex items-center text-[#062A5A]">
+                              <Shield className="h-5 w-5 mr-2 text-[#FB2E25]" />
+                              {rec.type === "responsabilidad_civil"
+                                ? "Seguro de Responsabilidad Civil"
+                                : "Seguro de Daños Materiales"}
+                            </h3>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                          <div>
-                            {rec.ambitoTerritorial && (
-                              <div className="mb-6">
-                                <h4 className="font-medium text-gray-700 mb-2">
-                                  Ámbito territorial recomendado
-                                </h4>
-                                <p className="bg-[#F5F2FB] p-3 rounded-md border border-gray-200 text-[#062A5A] font-medium">
-                                  {rec.ambitoTerritorial}
-                                </p>
-                              </div>
-                            )}
-
-                            {rec.limits && (
-                              <div className="mb-6">
-                                <h4 className="font-medium text-gray-700 mb-2">
-                                  Límites recomendados
-                                </h4>
-                                <div className="bg-[#F5F2FB] p-4 rounded-md border border-gray-200">
-                                  <div className="flex justify-between mb-2">
-                                    <span className="text-gray-600">
-                                      Límite general:
-                                    </span>
-                                    <span className="font-semibold text-[#062A5A]">
-                                      {rec.limits.generalLimit}
-                                    </span>
-                                  </div>
-
-                                  {rec.limits.victimSubLimit && (
-                                    <div className="flex justify-between mb-2">
-                                      <span className="text-gray-600">
-                                        Sublímite por víctima:
-                                      </span>
-                                      <span className="font-semibold text-[#062A5A]">
-                                        {rec.limits.victimSubLimit}
-                                      </span>
-                                    </div>
-                                  )}
-
-                                  {rec.limits.explanation && (
-                                    <p className="text-xs text-gray-600 mt-2 italic">
-                                      {rec.limits.explanation}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                              <div>
+                                {rec.ambitoTerritorial && (
+                                  <div className="mb-6">
+                                    <h4 className="font-medium text-gray-700 mb-2">
+                                      Ámbito territorial recomendado
+                                    </h4>
+                                    <p className="bg-[#F5F2FB] p-3 rounded-md border border-gray-200 text-[#062A5A] font-medium">
+                                      {rec.ambitoTerritorial}
                                     </p>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </div>
+                                  </div>
+                                )}
 
-                          <div>
-                            <h4 className="font-medium text-gray-700 mb-2">
-                              Coberturas necesarias
-                            </h4>
-                            <div className="bg-[#F5F2FB] p-4 rounded-md border border-gray-200 mb-4">
-                              <ul className="space-y-2">
-                                {rec.coverages
-                                  .filter((cov) => cov.required)
-                                  .map((cov, i) => (
-                                    <li key={i} className="flex items-start">
-                                      <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                                      <div>
-                                        <span className="text-sm font-medium">
-                                          {cov.name}
+                                {rec.limits && (
+                                  <div className="mb-6">
+                                    <h4 className="font-medium text-gray-700 mb-2">
+                                      Límites recomendados
+                                    </h4>
+                                    <div className="bg-[#F5F2FB] p-4 rounded-md border border-gray-200">
+                                      <div className="flex justify-between mb-2">
+                                        <span className="text-gray-600">
+                                          Límite general:
                                         </span>
-                                        {cov.condition && (
-                                          <span className="block text-xs text-gray-500 mt-0.5">
-                                            {cov.condition}
-                                          </span>
-                                        )}
+                                        <span className="font-semibold text-[#062A5A]">
+                                          {rec.limits.generalLimit}
+                                        </span>
                                       </div>
-                                    </li>
-                                  ))}
-                              </ul>
-                            </div>
 
-                            {rec.coverages.some((cov) => !cov.required) && (
-                              <>
+                                      {rec.limits.victimSubLimit && (
+                                        <div className="flex justify-between mb-2">
+                                          <span className="text-gray-600">
+                                            Sublímite por víctima:
+                                          </span>
+                                          <span className="font-semibold text-[#062A5A]">
+                                            {rec.limits.victimSubLimit}
+                                          </span>
+                                        </div>
+                                      )}
+
+                                      {rec.limits.explanation && (
+                                        <p className="text-xs text-gray-600 mt-2 italic">
+                                          {rec.limits.explanation}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              <div>
                                 <h4 className="font-medium text-gray-700 mb-2">
-                                  Coberturas opcionales
+                                  Coberturas necesarias
                                 </h4>
-                                <div className="bg-[#F5F2FB] p-4 rounded-md border border-gray-200">
+                                <div className="bg-[#F5F2FB] p-4 rounded-md border border-gray-200 mb-4">
                                   <ul className="space-y-2">
                                     {rec.coverages
-                                      .filter((cov) => !cov.required)
-                                      .slice(0, 5) // Limit to first 5 optional coverages
+                                      .filter((cov) => cov.required)
                                       .map((cov, i) => (
                                         <li
                                           key={i}
                                           className="flex items-start"
                                         >
-                                          <span className="text-gray-400 mr-2 flex-shrink-0 mt-0.5">
-                                            ○
-                                          </span>
+                                          <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
                                           <div>
-                                            <span className="text-sm">
+                                            <span className="text-sm font-medium">
                                               {cov.name}
                                             </span>
                                             {cov.condition && (
@@ -299,52 +272,95 @@ function AsesoramientoContent() {
                                         </li>
                                       ))}
                                   </ul>
+                                </div>
 
-                                  {rec.coverages.filter((cov) => !cov.required)
-                                    .length > 5 && (
-                                    <p className="text-xs text-gray-500 mt-2 italic">
-                                      Y{" "}
+                                {rec.coverages.some((cov) => !cov.required) && (
+                                  <>
+                                    <h4 className="font-medium text-gray-700 mb-2">
+                                      Coberturas opcionales
+                                    </h4>
+                                    <div className="bg-[#F5F2FB] p-4 rounded-md border border-gray-200">
+                                      <ul className="space-y-2">
+                                        {rec.coverages
+                                          .filter((cov) => !cov.required)
+                                          .slice(0, 5) // Limit to first 5 optional coverages
+                                          .map((cov, i) => (
+                                            <li
+                                              key={i}
+                                              className="flex items-start"
+                                            >
+                                              <span className="text-gray-400 mr-2 flex-shrink-0 mt-0.5">
+                                                ○
+                                              </span>
+                                              <div>
+                                                <span className="text-sm">
+                                                  {cov.name}
+                                                </span>
+                                                {cov.condition && (
+                                                  <span className="block text-xs text-gray-500 mt-0.5">
+                                                    {cov.condition}
+                                                  </span>
+                                                )}
+                                              </div>
+                                            </li>
+                                          ))}
+                                      </ul>
+
                                       {rec.coverages.filter(
                                         (cov) => !cov.required
-                                      ).length - 5}{" "}
-                                      coberturas opcionales más
-                                    </p>
-                                  )}
-                                </div>
-                              </>
-                            )}
+                                      ).length > 5 && (
+                                        <p className="text-xs text-gray-500 mt-2 italic">
+                                          Y{" "}
+                                          {rec.coverages.filter(
+                                            (cov) => !cov.required
+                                          ).length - 5}{" "}
+                                          coberturas opcionales más
+                                        </p>
+                                      )}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            </div>
                           </div>
+                        </div>
+                      ))}
+
+                      <div className="bg-[#F5F2FB] border border-gray-200 rounded-lg p-6 mt-8">
+                        <h3 className="text-xl font-semibold mb-4 text-[#062A5A]">
+                          ¿Qué hacer con este asesoramiento?
+                        </h3>
+                        <p className="text-gray-700 mb-6">
+                          Este asesoramiento personalizado te ayudará a entender
+                          qué coberturas necesita tu negocio y qué
+                          características debe tener tu póliza de seguro. Para
+                          obtener una cotización específica o resolver dudas
+                          sobre este asesoramiento, te recomendamos contactar
+                          con uno de nuestros agentes especializados.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                          <Button
+                            asChild
+                            className="bg-[#062A5A] hover:bg-[#051d3e]"
+                          >
+                            <Link href="/contacto">
+                              Contactar con un agente
+                            </Link>
+                          </Button>
+                          <Button
+                            asChild
+                            variant="outline"
+                            className="border-[#062A5A] text-[#062A5A] hover:bg-[#F5F2FB]"
+                          >
+                            <Link href="/seguros">Explorar más seguros</Link>
+                          </Button>
                         </div>
                       </div>
                     </div>
-                  ))}
 
-                  <div className="bg-[#F5F2FB] border border-gray-200 rounded-lg p-6 mt-8">
-                    <h3 className="text-xl font-semibold mb-4 text-[#062A5A]">
-                      ¿Qué hacer con este asesoramiento?
-                    </h3>
-                    <p className="text-gray-700 mb-6">
-                      Este asesoramiento personalizado te ayudará a entender qué
-                      coberturas necesita tu negocio y qué características debe
-                      tener tu póliza de seguro. Para obtener una cotización
-                      específica o resolver dudas sobre este asesoramiento, te
-                      recomendamos contactar con uno de nuestros agentes
-                      especializados.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <Button
-                        asChild
-                        className="bg-[#062A5A] hover:bg-[#051d3e]"
-                      >
-                        <Link href="/contacto">Contactar con un agente</Link>
-                      </Button>
-                      <Button
-                        asChild
-                        variant="outline"
-                        className="border-[#062A5A] text-[#062A5A] hover:bg-[#F5F2FB]"
-                      >
-                        <Link href="/seguros">Explorar más seguros</Link>
-                      </Button>
+                    {/* Email recommendations sidebar */}
+                    <div className="md:col-span-1">
+                      <EmailRecommendations tipo={tipo || undefined} />
                     </div>
                   </div>
                 </>

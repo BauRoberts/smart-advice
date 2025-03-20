@@ -1,4 +1,3 @@
-// app/contacto/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -32,6 +31,7 @@ const contactFormSchema = z.object({
   privacyPolicy: z.boolean().refine((val) => val === true, {
     message: "Debes aceptar la política de privacidad",
   }),
+  commercialNotifications: z.boolean().optional(), // Nuevo campo opcional
 });
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
@@ -50,6 +50,7 @@ export default function ContactPage() {
       phone: "",
       message: "",
       privacyPolicy: false,
+      commercialNotifications: false, // Valor por defecto
     },
   });
 
@@ -147,9 +148,7 @@ export default function ContactPage() {
                     <Mail className="h-5 w-5 mr-3 flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="font-medium">Email</p>
-                      <p className="text-white/80 mt-1">
-                        info@smart-advice.com
-                      </p>
+                      <p className="text-white/80 mt-1">info@smartadvice.es</p>
                     </div>
                   </div>
 
@@ -283,33 +282,56 @@ export default function ContactPage() {
                         )}
                       />
 
-                      <FormField
-                        control={form.control}
-                        name="privacyPolicy"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel className="text-sm font-normal">
-                                He leído y acepto la{" "}
-                                <Link
-                                  href="/politica-privacidad"
-                                  className="text-blue-600 hover:underline"
-                                  target="_blank"
-                                >
-                                  política de privacidad
-                                </Link>
-                              </FormLabel>
-                              <FormMessage />
-                            </div>
-                          </FormItem>
-                        )}
-                      />
+                      <div className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="privacyPolicy"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-normal">
+                                  He leído y acepto la{" "}
+                                  <Link
+                                    href="/politica-privacidad"
+                                    className="text-blue-600 hover:underline"
+                                    target="_blank"
+                                  >
+                                    política de privacidad
+                                  </Link>
+                                </FormLabel>
+                                <FormMessage />
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="commercialNotifications"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-normal">
+                                  Acepto recibir notificaciones comerciales y
+                                  publicidad
+                                </FormLabel>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
                       <div className="pt-4">
                         <Button

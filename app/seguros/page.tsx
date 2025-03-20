@@ -3,16 +3,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import {
-  Shield,
-  FileText,
-  AlertTriangle,
-  User,
-  Truck,
-  Leaf,
-  Cloud,
-  Briefcase,
-} from "lucide-react";
+import { Shield, User, Truck, Leaf, Cloud, Briefcase } from "lucide-react";
+import { FaIndustry, FaNewspaper } from "react-icons/fa"; // Nuevos íconos
 
 export default function SegurosPage() {
   return (
@@ -73,7 +65,7 @@ export default function SegurosPage() {
               <div className="p-6">
                 <div className="flex justify-center mb-6">
                   <div className="bg-[rgba(252,122,55,0.1)] p-3 rounded-full">
-                    <FileText className="w-10 h-10 text-[#FC7A37]" />
+                    <FaIndustry className="w-10 h-10 text-[#FC7A37]" />
                   </div>
                 </div>
                 <h2 className="text-xl font-bold mb-2 text-center">
@@ -180,6 +172,23 @@ export default function SegurosPage() {
                   <h2 className="text-lg font-bold mb-2 text-center">
                     Seguro de Responsabilidad Civil de Administradores y
                     Directivos
+                  </h2>
+                  <div className="absolute top-0 right-0 bg-gray-100 text-gray-600 text-xs font-medium py-1 px-2 rounded-bl-lg">
+                    próximamente
+                  </div>
+                </div>
+              </div>
+
+              {/* Información Relevante para tu Negocio */}
+              <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-gray-300 transition-all hover:shadow-lg">
+                <div className="p-6 relative">
+                  <div className="flex justify-center mb-4">
+                    <div className="bg-gray-100 p-3 rounded-full">
+                      <FaNewspaper className="w-8 h-8 text-gray-500" />
+                    </div>
+                  </div>
+                  <h2 className="text-lg font-bold mb-2 text-center">
+                    Información Relevante para tu Negocio
                   </h2>
                   <div className="absolute top-0 right-0 bg-gray-100 text-gray-600 text-xs font-medium py-1 px-2 rounded-bl-lg">
                     próximamente

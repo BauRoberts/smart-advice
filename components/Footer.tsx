@@ -64,7 +64,7 @@ export default function Footer() {
             <h4 className="text-lg font-semibold mb-4">Contacto</h4>
             <p className="mb-3 text-gray-300 flex items-start">
               <span className="text-[#FB2E25] mr-2 mt-1">•</span>
-              Email: info@smart-advice.com
+              Email: info@smartadvice.es
             </p>
             <p className="mb-4 text-gray-300 flex items-start">
               <span className="text-[#FB2E25] mr-2 mt-1">•</span>
@@ -152,7 +152,7 @@ export default function Footer() {
             </div>
           </div>
           <p className="text-gray-400">
-            © {currentYear} Smart-Advice. Todos los derechos reservados.
+            © {currentYear} Smartadvice. Todos los derechos reservados.
           </p>
         </div>
       </div>

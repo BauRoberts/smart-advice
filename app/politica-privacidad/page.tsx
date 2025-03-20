@@ -1,4 +1,3 @@
-// app/politica-privacidad/page.tsx
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -128,10 +127,13 @@ export default function PoliticaPrivacidad() {
             <h2 className="text-xl font-bold mb-4">
               6. DESTINATARIOS DE LOS DATOS
             </h2>
-            <p>
+            <p className="mb-4">
               Los datos personales no serán cedidos a terceros, salvo obligación
               legal o cuando sea necesario para la prestación de los servicios
-              contratados.
+              contratados. En este último caso, los datos podrán ser compartidos
+              con los partners de Smart Advice, quienes actúan como encargados
+              del tratamiento bajo estrictas condiciones de confidencialidad y
+              seguridad.
             </p>
           </section>
 
@@ -153,16 +155,22 @@ export default function PoliticaPrivacidad() {
             <p className="mt-4">
               Para ejercer estos derechos, el usuario puede enviar una solicitud
               por correo electrónico a info@smart-advice.com con el asunto
-              &quot;Protección de Datos&quot;.
+              "Protección de Datos".
             </p>
           </section>
 
           <section>
             <h2 className="text-xl font-bold mb-4">8. MEDIDAS DE SEGURIDAD</h2>
-            <p>
+            <p className="mb-4">
               Se han adoptado las medidas de seguridad necesarias para proteger
               los datos personales contra accesos no autorizados, pérdida o
-              manipulación.
+              manipulación. Las medidas de seguridad implantadas se corresponden
+              con las previstas en el Anexo II (Medidas de seguridad) del Real
+              Decreto 3/2010, de 8 de enero, por el que se regula el Esquema
+              Nacional de Seguridad en el ámbito de la Administración
+              Electrónica y que se encuentran descritas en los documentos que
+              conforman la Política de protección de datos y seguridad de la
+              información de la AEPD.
             </p>
           </section>
 

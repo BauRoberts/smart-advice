@@ -12,7 +12,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Smart-Advice | Seguros para tu empresa",
+  title: "SmartAdvice",
   description: "Encuentra el seguro perfecto para tu PYME o startup",
   icons: {
     icon: [

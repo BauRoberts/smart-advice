@@ -1,4 +1,3 @@
-// components/Navbar.tsx
 "use client";
 
 import { useState } from "react";
@@ -28,7 +27,7 @@ export default function Navbar() {
                 className="object-contain"
               />
             </div>
-            <span className="text-xl font-bold text-[#00000]">
+            <span className="text-xl font-bold text-[#000000]">
               Smart Advice
             </span>
           </Link>
@@ -62,8 +61,15 @@ export default function Navbar() {
           </Link>
         </nav>
 
-        {/* CTA */}
-        <div className="hidden md:flex items-center">
+        {/* Desktop CTA */}
+        <div className="hidden md:flex items-center space-x-4">
+          <Button
+            asChild
+            variant="outline"
+            className="text-[#062A5A] border-[#062A5A] hover:bg-[#062A5A]/10"
+          >
+            <Link href="/contacto">Contacto</Link>
+          </Button>
           <Button
             asChild
             className="bg-[#062A5A] text-white hover:bg-[#051d3e]"
@@ -118,9 +124,18 @@ export default function Navbar() {
             </Link>
             <Button
               asChild
+              variant="outline"
+              className="w-full text-[#062A5A] border-[#062A5A] hover:bg-[#062A5A]/10"
+            >
+              <Link href="/contacto" onClick={() => setMobileMenuOpen(false)}>
+                Contáctanos
+              </Link>
+            </Button>
+            <Button
+              asChild
               className="w-full mt-4 bg-[#062A5A] text-white hover:bg-[#051d3e]"
             >
-              <Link href="/seguros" onClick={() => setMobileMenuOpen(false)}>
+              <Link href="/servicios" onClick={() => setMobileMenuOpen(false)}>
                 Comenzar ahora
               </Link>
             </Button>

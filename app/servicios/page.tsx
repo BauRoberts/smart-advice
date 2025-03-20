@@ -1,4 +1,3 @@
-// app/page.tsx
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
@@ -6,16 +5,14 @@ import Footer from "@/components/Footer";
 import {
   Shield,
   FileText,
-  AlertTriangle,
   Building,
   Lock,
   FileSearch,
-  Briefcase,
   Scale,
   FileSymlink,
-  MessageSquare,
   Database,
 } from "lucide-react";
+import { FaFire, FaGavel, FaHandshake } from "react-icons/fa"; // Nuevos íconos
 
 export default function HomePage() {
   return (
@@ -27,7 +24,7 @@ export default function HomePage() {
         <div className="container mx-auto text-center max-w-4xl">
           <span className="inline-block px-4 py-1 bg-[rgba(6,42,90,0.05)] text-[#062A5A] rounded-md font-medium mb-6">
             <Shield className="inline-block text-[#FB2E25] mr-2 w-4 h-4" />
-            Smart-Advice para tu empresa
+            Smart Advice para tu empresa
           </span>
 
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -73,7 +70,7 @@ export default function HomePage() {
               <div className="p-5">
                 <div className="flex justify-center mb-4">
                   <div className="bg-[rgba(252,122,55,0.1)] p-3 rounded-full">
-                    <AlertTriangle className="w-8 h-8 text-[#FC7A37]" />
+                    <FaFire className="w-8 h-8 text-[#FC7A37]" />
                   </div>
                 </div>
                 <h2 className="text-lg font-bold mb-2 text-center">
@@ -199,7 +196,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex justify-center mb-4">
                   <div className="bg-gray-100 p-3 rounded-full">
-                    <Briefcase className="w-8 h-8 text-gray-500" />
+                    <FaHandshake className="w-8 h-8 text-gray-500" />
                   </div>
                 </div>
                 <h2 className="text-lg font-bold mb-2 text-center">
@@ -233,7 +230,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex justify-center mb-4">
                   <div className="bg-gray-100 p-3 rounded-full">
-                    <MessageSquare className="w-8 h-8 text-gray-500" />
+                    <FaGavel className="w-8 h-8 text-gray-500" />
                   </div>
                 </div>
                 <h2 className="text-lg font-bold mb-2 text-center">

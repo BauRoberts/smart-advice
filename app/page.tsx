@@ -118,8 +118,8 @@ export default function Home() {
               <Image
                 src="/images/smart-advice-logo.png"
                 alt="Smart Advice"
-                width={120}
-                height={120}
+                width={300}
+                height={300}
                 className="mb-4"
               />
             </div>
@@ -132,49 +132,18 @@ export default function Home() {
             </span>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
-              Brindamos asesoramiento
+              Damos asesoramiento
             </h1>
 
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 italic mb-4">
-              complejo de forma sencilla.
+              de forma sencilla.
             </h2>
 
             <div className="brand-accent"></div>
 
-            <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-              ¿Qué asesoramiento necesitas?
-            </p>
-
-            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
+            <div className="flex justify-center gap-4 mb-8">
               <Button asChild size="lg" className="primary-btn rounded-md px-8">
-                <Link href="/servicios">Solicitar asesoramiento</Link>
-              </Button>
-
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="secondary-btn rounded-md px-8"
-              >
-                <Link href="#como-funciona">
-                  <span className="flex items-center">
-                    Ver coberturas
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="ml-2 h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </span>
-                </Link>
+                <Link href="/servicios">Comenzar</Link>
               </Button>
             </div>
 

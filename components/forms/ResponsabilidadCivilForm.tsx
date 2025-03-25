@@ -11,19 +11,48 @@ import CompanyFormStep, {
   CompanyFormData,
   EmpresaTipo,
 } from "@/components/forms/steps/CompanyFormStep";
-import ManufacturaFormStep from "@/components/forms/steps/ManufacturaFormStep";
-import ServiciosFormStep from "@/components/forms/steps/ServiciosFormStep";
+import AdditionalCoverageStep, {
+  AdditionalCoverageData,
+} from "@/components/forms/steps/AdditionalCoverageStep";
+import ServicesFormStep from "@/components/forms/steps/ServicesFormStep";
+import PreguntasGeneralesStep from "@/components/forms/steps/PreguntasGeneralesStep";
 import CoberturasFormStep from "@/components/forms/steps/CoberturasFormStep";
 import FormSummaryStep from "@/components/forms/steps/FormSummaryStep";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { toast } from "@/components/ui/toast";
 import { getOrCreateTempSession } from "@/lib/session";
+import FabricacionFormStep from "@/components/forms/steps/FabricacionFormStep";
+import SiniestralidadStep from "@/components/forms/steps/SiniestralidadStep";
+
+// Definir los tipos de datos para los formularios de servicios
+interface ServiciosData {
+  subcontrata_personal?: boolean;
+  trabajos_corte_soldadura?: boolean;
+  trabajos_afectan_edificios?: boolean;
+  trabajos_afectan_infraestructuras?: boolean;
+  trabajos_instalaciones_terceros?: boolean;
+  cubre_preexistencias?: boolean;
+}
+
+// Definir los tipos de datos para los formularios de fabricación/manufacturación
+interface ManufacturaData {
+  trabajos_fuera_instalaciones?: boolean;
+  corte_soldadura?: boolean;
+  trabajo_equipos_electronicos?: boolean;
+  empleados_tecnicos?: boolean;
+  trabajos_subcontratistas?: boolean;
+  afecta_edificios_vecinos?: boolean;
+  afecta_instalaciones_subterraneas?: boolean;
+  trabajos_bienes_preexistentes?: boolean;
+}
 
 function ResponsabilidadCivilFormContent() {
   const router = useRouter();
   const { formData, dispatch, goToStep, submitForm } = useFormContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  // Estado para controlar los subpasos cuando hay múltiples opciones seleccionadas
+  const [subStep, setSubStep] = useState(1);
 
   useEffect(() => {
     // Set the form type
@@ -43,12 +72,102 @@ function ResponsabilidadCivilFormContent() {
     return () => clearTimeout(timer);
   }, [dispatch]);
 
+  // Efecto para manejar la navegación condicional en el paso 3
+  useEffect(() => {
+    // Verificar si estamos en el paso 3 y necesitamos determinar qué componente mostrar
+    if (formData.step === 3) {
+      const hasAnyOption =
+        formData.company?.manufactures ||
+        formData.company?.markets ||
+        formData.company?.diseno ||
+        formData.company?.almacenamiento ||
+        formData.company?.provides_services;
+
+      // Si no hay ninguna opción seleccionada, saltar al paso 4
+      if (!hasAnyOption) {
+        goToStep(4);
+      }
+    }
+  }, [formData.step, formData.company, goToStep]);
+
+  // Efecto para reiniciar el subStep cuando se navega a otros pasos
+  useEffect(() => {
+    if (formData.step !== 3) {
+      setSubStep(1);
+    }
+  }, [formData.step]);
+
   // If loading, show loading screen
   if (loading) {
     return <LoadingScreen message="Cargando formulario..." />;
   }
 
-  // Step 1: Company Info (moved from step 2)
+  // Step 3: Activity-specific details based on company type
+  const handleActividadNext = (data: any) => {
+    // Guardar datos según el tipo de actividad
+    const providesServices = formData.company?.provides_services || false;
+    const hasOtherOptions =
+      formData.company?.manufactures ||
+      formData.company?.markets ||
+      formData.company?.diseno ||
+      formData.company?.almacenamiento;
+
+    if (providesServices && !hasOtherOptions) {
+      // Si solo tiene servicios, guardar en el contexto de servicios
+      dispatch({
+        type: "SET_ACTIVIDAD_SERVICIOS",
+        payload: data,
+      });
+    } else {
+      // Si tiene manufactura u otras opciones, guardar en el contexto de manufactura
+      dispatch({
+        type: "SET_ACTIVIDAD_MANUFACTURA",
+        payload: data,
+      });
+    }
+
+    toast({
+      title: "Información guardada",
+      description: "Los detalles de actividad han sido guardados",
+      duration: 2000,
+    });
+
+    goToStep(4);
+  };
+
+  const handleActividadBack = () => {
+    goToStep(2);
+  };
+
+  // Función para manejar la navegación entre subpasos
+  const handleSubStepNext = (data: any, isManufactura: boolean) => {
+    if (isManufactura) {
+      // Guardar datos de fabricación
+      dispatch({
+        type: "SET_ACTIVIDAD_MANUFACTURA",
+        payload: data,
+      });
+
+      // Si hay servicios también, ir al segundo subpaso
+      if (formData.company?.provides_services) {
+        setSubStep(2);
+      } else {
+        // Si no hay servicios, seguir al siguiente paso principal
+        handleActividadNext(data);
+      }
+    } else {
+      // Guardar datos de servicios
+      dispatch({
+        type: "SET_ACTIVIDAD_SERVICIOS",
+        payload: data,
+      });
+
+      // Siempre avanzar al siguiente paso principal después de servicios
+      handleActividadNext(data);
+    }
+  };
+
+  // Step 1: Company Info
   const handleCompanyNext = (
     data: CompanyFormData,
     empresaTipo: EmpresaTipo
@@ -71,38 +190,79 @@ function ResponsabilidadCivilFormContent() {
     goToStep(2);
   };
 
-  // Step 2: Activity-specific details based on company type
-  const handleActividadNext = () => {
+  // Step 2: Additional Coverage
+  const handleAdditionalCoverageNext = (data: AdditionalCoverageData) => {
+    // Save to local context - using SET_COBERTURAS since we need to use an existing action type
+    dispatch({
+      type: "SET_COBERTURAS",
+      payload: {
+        coberturas_adicionales: data,
+      },
+    });
+
+    // Show success message
+    toast({
+      title: "Coberturas adicionales guardadas",
+      description: "La información de coberturas adicionales ha sido guardada",
+      duration: 2000,
+    });
+
+    // Advance to next step
     goToStep(3);
   };
 
-  const handleActividadBack = () => {
+  const handleAdditionalCoverageBack = () => {
     goToStep(1);
   };
 
-  // Step 3: Coverage and territorial scope
-  const handleCoberturasNext = () => {
-    goToStep(4);
+  // Step 4: Siniestralidad
+  const handleSiniestralidadNext = (data: any) => {
+    dispatch({
+      type: "SET_SINIESTRALIDAD",
+      payload: data,
+    });
+
+    toast({
+      title: "Información guardada",
+      description: "Los datos de siniestralidad han sido guardados",
+      duration: 2000,
+    });
+
+    goToStep(5);
   };
 
-  const handleCoberturasBack = () => {
-    goToStep(2);
+  const handleSiniestralidadBack = () => {
+    // Lógica para determinar a qué paso volver
+    const providesServices = formData.company?.provides_services || false;
+    const hasOtherOptions =
+      formData.company?.manufactures ||
+      formData.company?.markets ||
+      formData.company?.diseno ||
+      formData.company?.almacenamiento;
+
+    // Si hay alguna opción que debería mostrar el paso 3, volver a él
+    if (providesServices || hasOtherOptions) {
+      goToStep(3);
+    } else {
+      // Si no, volver al paso 2
+      goToStep(2);
+    }
   };
 
-  // Step 4: Contact Information (moved from step 1)
+  // Step 5: Contact Information
   const handleContactNext = (data: ContactFormData) => {
     // Save to local context
     dispatch({ type: "SET_CONTACT", payload: data });
 
     // Advance to summary step
-    goToStep(5);
+    goToStep(6);
   };
 
   const handleContactBack = () => {
-    goToStep(3);
+    goToStep(4);
   };
 
-  // Step 5: Summary and submission
+  // Step 6: Summary and submission
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
@@ -136,7 +296,7 @@ function ResponsabilidadCivilFormContent() {
   };
 
   const handleSummaryBack = () => {
-    goToStep(4);
+    goToStep(5);
   };
 
   const startNewForm = () => {
@@ -152,6 +312,165 @@ function ResponsabilidadCivilFormContent() {
     window.location.href = "/responsabilidad-civil";
   };
 
+  // Función para determinar qué componente mostrar en el paso 3
+  const getStep3Component = () => {
+    const providesServices = formData.company?.provides_services || false;
+    const hasOtherOptions =
+      formData.company?.manufactures ||
+      formData.company?.markets ||
+      formData.company?.diseno ||
+      formData.company?.almacenamiento;
+
+    // Si SOLO tiene Prestación de servicios (sin otras opciones)
+    if (providesServices && !hasOtherOptions) {
+      // Crear un objeto nuevo con los valores por defecto
+      // En lugar de intentar acceder directamente a las propiedades
+      const defaultServiciosValues: ServiciosData = {
+        subcontrata_personal: false,
+        trabajos_corte_soldadura: false,
+        trabajos_afectan_edificios: false,
+        trabajos_afectan_infraestructuras: false,
+        trabajos_instalaciones_terceros: false,
+        cubre_preexistencias: false,
+      };
+
+      // Si hay datos guardados y son del tipo correcto, intentar usarlos
+      if (formData.actividad?.servicios) {
+        try {
+          const servicios = formData.actividad
+            .servicios as unknown as ServiciosData;
+          if (typeof servicios.subcontrata_personal === "boolean") {
+            defaultServiciosValues.subcontrata_personal =
+              servicios.subcontrata_personal;
+          }
+          if (typeof servicios.trabajos_corte_soldadura === "boolean") {
+            defaultServiciosValues.trabajos_corte_soldadura =
+              servicios.trabajos_corte_soldadura;
+          }
+          if (typeof servicios.trabajos_afectan_edificios === "boolean") {
+            defaultServiciosValues.trabajos_afectan_edificios =
+              servicios.trabajos_afectan_edificios;
+          }
+          if (
+            typeof servicios.trabajos_afectan_infraestructuras === "boolean"
+          ) {
+            defaultServiciosValues.trabajos_afectan_infraestructuras =
+              servicios.trabajos_afectan_infraestructuras;
+          }
+          if (typeof servicios.trabajos_instalaciones_terceros === "boolean") {
+            defaultServiciosValues.trabajos_instalaciones_terceros =
+              servicios.trabajos_instalaciones_terceros;
+          }
+          if (typeof servicios.cubre_preexistencias === "boolean") {
+            defaultServiciosValues.cubre_preexistencias =
+              servicios.cubre_preexistencias;
+          }
+        } catch (error) {
+          console.error("Error al convertir datos de servicios:", error);
+        }
+      }
+
+      return (
+        <ServicesFormStep
+          onNext={(data: any) => handleActividadNext(data)}
+          onBack={handleActividadBack}
+          defaultValues={defaultServiciosValues}
+        />
+      );
+    } else if (hasOtherOptions && providesServices) {
+      // Si tiene Prestación de servicios Y otras opciones, mostrar ambos formularios
+      // En este caso, implementamos una secuencia de pasos dentro del paso 3
+
+      // Crear un objeto nuevo con los valores por defecto para servicios
+      const defaultServiciosValues: ServiciosData = {
+        subcontrata_personal: false,
+        trabajos_corte_soldadura: false,
+        trabajos_afectan_edificios: false,
+        trabajos_afectan_infraestructuras: false,
+        trabajos_instalaciones_terceros: false,
+        cubre_preexistencias: false,
+      };
+
+      // Si hay datos guardados para servicios, intentar usarlos
+      if (formData.actividad?.servicios) {
+        try {
+          const servicios = formData.actividad
+            .servicios as unknown as ServiciosData;
+          if (typeof servicios.subcontrata_personal === "boolean") {
+            defaultServiciosValues.subcontrata_personal =
+              servicios.subcontrata_personal;
+          }
+          if (typeof servicios.trabajos_corte_soldadura === "boolean") {
+            defaultServiciosValues.trabajos_corte_soldadura =
+              servicios.trabajos_corte_soldadura;
+          }
+          if (typeof servicios.trabajos_afectan_edificios === "boolean") {
+            defaultServiciosValues.trabajos_afectan_edificios =
+              servicios.trabajos_afectan_edificios;
+          }
+          if (
+            typeof servicios.trabajos_afectan_infraestructuras === "boolean"
+          ) {
+            defaultServiciosValues.trabajos_afectan_infraestructuras =
+              servicios.trabajos_afectan_infraestructuras;
+          }
+          if (typeof servicios.trabajos_instalaciones_terceros === "boolean") {
+            defaultServiciosValues.trabajos_instalaciones_terceros =
+              servicios.trabajos_instalaciones_terceros;
+          }
+          if (typeof servicios.cubre_preexistencias === "boolean") {
+            defaultServiciosValues.cubre_preexistencias =
+              servicios.cubre_preexistencias;
+          }
+        } catch (error) {
+          console.error("Error al convertir datos de servicios:", error);
+        }
+      }
+
+      if (subStep === 1) {
+        // Mostrar FabricacionFormStep primero
+        return (
+          <div>
+            <h2 className="text-center text-xl font-semibold mb-4">
+              Preguntas sobre Fabricación/Diseño/Comercialización (Paso 1 de 2)
+            </h2>
+            <FabricacionFormStep
+              onNext={(data: any) => handleSubStepNext(data, true)}
+              onBack={handleActividadBack}
+              defaultValues={formData.actividad?.manufactura}
+            />
+          </div>
+        );
+      } else {
+        // Mostrar ServicesFormStep en segundo lugar
+        return (
+          <div>
+            <h2 className="text-center text-xl font-semibold mb-4">
+              Preguntas sobre Prestación de Servicios (Paso 2 de 2)
+            </h2>
+            <ServicesFormStep
+              onNext={(data: any) => handleSubStepNext(data, false)}
+              onBack={() => setSubStep(1)} // Volver al subpaso anterior
+              defaultValues={defaultServiciosValues}
+            />
+          </div>
+        );
+      }
+    } else if (hasOtherOptions) {
+      // Si solo tiene otras opciones (sin Prestación de servicios)
+      return (
+        <FabricacionFormStep
+          onNext={(data: any) => handleActividadNext(data)}
+          onBack={handleActividadBack}
+          defaultValues={formData.actividad?.manufactura}
+        />
+      );
+    } else {
+      // Si no seleccionó ninguna opción (debería ser manejado por el useEffect)
+      return <LoadingScreen message="Procesando información..." />;
+    }
+  };
+
   // Render the current form step
   const renderStep = () => {
     switch (formData.step) {
@@ -164,39 +483,35 @@ function ResponsabilidadCivilFormContent() {
           />
         );
       case 2:
-        return formData.empresaTipo === "manufactura" ? (
-          <ManufacturaFormStep
-            onNext={handleActividadNext}
-            onBack={handleActividadBack}
-            defaultValues={formData.actividad.manufactura}
-          />
-        ) : (
-          <ServiciosFormStep
-            onNext={handleActividadNext}
-            onBack={handleActividadBack}
-            defaultValues={formData.actividad.servicios}
+        return (
+          <AdditionalCoverageStep
+            onNext={handleAdditionalCoverageNext}
+            onBack={handleAdditionalCoverageBack}
+            defaultValues={
+              formData.coberturas_solicitadas?.coberturas_adicionales
+            }
+            formType={formData.form_type}
           />
         );
       case 3:
-        return (
-          <CoberturasFormStep
-            onNext={handleCoberturasNext}
-            onBack={handleActividadBack}
-            defaultValues={{
-              ambito_territorial: formData.ambito_territorial,
-              coberturas_solicitadas: formData.coberturas_solicitadas,
-            }}
-          />
-        );
+        return getStep3Component();
       case 4:
         return (
-          <ContactFormStep
-            onNext={handleContactNext}
-            onBack={handleCoberturasBack}
-            defaultValues={formData.contact}
+          <SiniestralidadStep
+            onNext={handleSiniestralidadNext}
+            onBack={handleSiniestralidadBack}
+            defaultValues={formData.siniestralidad}
           />
         );
       case 5:
+        return (
+          <ContactFormStep
+            onNext={handleContactNext}
+            onBack={handleContactBack}
+            defaultValues={formData.contact}
+          />
+        );
+      case 6:
         return (
           <FormSummaryStep
             onSubmit={handleSubmit}

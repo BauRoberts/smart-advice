@@ -131,13 +131,11 @@ export default function Home() {
               Asesoramiento para Pymes y Startups
             </span>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
-              Damos asesoramiento
-            </h1>
-
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 italic mb-4">
-              de forma sencilla.
-            </h2>
+            <div className="w-full flex justify-center">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 text-center break-words">
+                Damos asesoramiento de forma sencilla.
+              </h1>
+            </div>
 
             <div className="brand-accent"></div>
 

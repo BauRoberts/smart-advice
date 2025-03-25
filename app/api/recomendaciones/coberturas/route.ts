@@ -6,12 +6,27 @@ interface Coverage {
   name: string;
   required: boolean;
   condition?: string;
+  limit?: string;
+  sublimit?: string;
 }
 
 interface InsuranceRecommendation {
   type: "responsabilidad_civil" | "danos_materiales";
+  companyInfo: {
+    name?: string;
+    address?: string;
+    activity?: string;
+    activityDescription?: string;
+    billing?: number;
+    employees?: number;
+    m2?: number;
+    installations_type?: string;
+    owner_name?: string;
+    owner_cif?: string;
+  };
   coverages: Coverage[];
   ambitoTerritorial?: string;
+  ambitoProductos?: string;
   limits?: {
     generalLimit: string;
     victimSubLimit: string;
@@ -34,6 +49,17 @@ export async function GET(request: NextRequest) {
         { success: false, error: "Session ID is required" },
         { status: 400 }
       );
+    }
+
+    // Consulta para obtener datos de contacto
+    const { data: contactData, error: contactError } = await supabase
+      .from("contact_info")
+      .select("*")
+      .eq("session_id", session_id)
+      .single();
+
+    if (contactError && contactError.code !== "PGRST116") {
+      throw contactError;
     }
 
     // Consulta base para obtener formularios
@@ -76,9 +102,15 @@ export async function GET(request: NextRequest) {
       if (recommendationsByType[form.type]) continue;
 
       if (form.type === "responsabilidad_civil") {
-        recommendationsByType[form.type] = generateRCCoverages(form.form_data);
+        recommendationsByType[form.type] = generateRCCoverages(
+          form.form_data,
+          contactData
+        );
       } else if (form.type === "danos_materiales") {
-        recommendationsByType[form.type] = generateDMCoverages(form.form_data);
+        recommendationsByType[form.type] = generateDMCoverages(
+          form.form_data,
+          contactData
+        );
       }
     }
 
@@ -119,291 +151,357 @@ function determineLimitsRC(billingAmount?: number): {
   }
 }
 
-function generateRCCoverages(formData: any): InsuranceRecommendation {
-  // Para Responsabilidad Civil, aplicamos exactamente los condicionales especificados
-  const coverages: Coverage[] = [
-    // Siempre incluidas
-    {
-      name: "Responsabilidad Civil por Explotación",
-      required: true,
-      condition: "Requerido en todos los casos",
-    },
-    {
-      name: "Responsabilidad Civil Patronal",
-      required: true,
-      condition: "Requerido en todos los casos",
-    },
+function buildActivityDescription(formData: any): string {
+  let activityDescription = "";
+  const activities = [];
 
-    // Condicionales específicos
-    {
-      name: "Responsabilidad Civil Cruzada (o acc. Laborales de empleados de subcontratistas)",
-      required:
-        formData?.actividad?.servicios?.trabajos_subcontratistas || false,
-      condition: "Requerido porque trabajas con subcontratistas",
-    },
-    {
-      name: "Daños a Conducciones",
-      required: true,
-    },
-    {
-      name: "Daños a Transformadores o Receptor de Energía",
-      required:
-        formData?.actividad?.servicios?.trabajo_equipos_electronicos || false,
-    },
-    {
-      name: "Responsabilidad Civil Daños a Bienes de Terceros",
-      required: formData?.company?.almacena_bienes_terceros || false,
-    },
-    {
-      name: "Responsabilidad Subsidiaria de Subcontratistas",
-      required:
-        formData?.actividad?.servicios?.trabajos_subcontratistas || false,
-      condition: "Requerido porque trabajas con subcontratistas",
-    },
-    {
-      name: "Responsabilidad por Vehículos de Terceros Aparcados en las Instalaciones",
-      required: formData?.company?.vehiculos_terceros_aparcados || false,
-    },
-    {
-      name: "Responsabilidad de Técnicos en Plantilla",
-      required:
-        formData?.actividad?.manufactura?.tiene_empleados_tecnicos ||
-        formData?.actividad?.servicios?.empleados_tecnicos ||
-        false,
-    },
-    {
-      name: "Daños a Bienes Preexistentes",
-      required: true,
-    },
-    {
-      name: "Trabajos de Derribo y/o Demolición",
-      required:
-        formData?.actividad?.servicios?.trabajos_fuera_instalaciones || false,
-    },
-    {
-      name: "Participación en Exposiciones y Ferias",
-      required: true,
-    },
-    {
-      name: "Daños a Colindantes",
-      required: true,
-    },
-    {
-      name: "Daños a Instalaciones Aéreas o Subterráneas (a Conducciones)",
-      required:
-        formData?.actividad?.servicios?.trabajos_fuera_instalaciones || false,
-    },
-    {
-      name: "Daños a Bienes de Empleados",
-      required: formData?.company?.bienes_empleados || false,
-    },
-    {
-      name: "Responsabilidad Civil por Trabajos Realizados",
-      required:
-        formData?.actividad?.servicios?.trabajos_fuera_instalaciones || false,
-    },
-    {
-      name: "Responsabilidad Civil Locativa",
-      required: formData?.company?.installations_type === "Inquilino",
-    },
-    {
-      name: "Responsabilidad Civil Inmobiliaria",
-      required: formData?.company?.installations_type === "Propietario",
-    },
-    {
-      name: "Responsabilidad por Productos",
-      required:
-        formData?.empresaTipo === "manufactura" ||
-        formData?.actividad?.manufactura?.producto_consumo_humano ||
-        false,
-    },
-    {
-      name: "Responsabilidad por Unión y Mezcla",
-      required:
-        formData?.actividad?.manufactura?.producto_final_o_intermedio ===
-          "intermedio" || false,
-      condition: "Requerido porque fabricas productos intermedios",
-    },
-    {
-      name: "Gastos de Retirada",
-      required:
-        formData?.actividad?.manufactura?.producto_consumo_humano || false,
-      condition:
-        "Requerido porque fabricas productos destinados al consumo humano",
-    },
-  ];
+  // Añadir las actividades seleccionadas
+  if (formData?.company?.manufactures) activities.push("Fabricación");
+  if (formData?.company?.markets) activities.push("Comercialización");
+  if (formData?.company?.diseno) activities.push("Diseño");
+  if (formData?.company?.almacenamiento) activities.push("Almacenamiento");
+  if (formData?.company?.provides_services)
+    activities.push("Prestación de servicios");
 
-  // Determinar el ámbito territorial
-  let ambitoTerritorial = "España y Andorra";
-  if (formData?.ambito_territorial) {
-    ambitoTerritorial = formData.ambito_territorial;
-  } else if (formData?.actividad?.manufactura?.distribucion) {
-    if (
-      formData.actividad.manufactura.distribucion.includes("mundial-con-usa")
-    ) {
-      ambitoTerritorial = "Todo el Mundo incluido USA y Canadá";
-    } else if (
-      formData.actividad.manufactura.distribucion.includes("mundial-sin-usa")
-    ) {
-      ambitoTerritorial = "Todo el Mundo excepto USA y Canadá";
-    } else if (formData.actividad.manufactura.distribucion.includes("ue")) {
-      ambitoTerritorial = "Unión Europea";
-    } else if (formData.actividad.manufactura.distribucion.includes("espana")) {
-      ambitoTerritorial = "España y Andorra";
+  // Construir la descripción de actividad
+  if (activities.length > 0) {
+    activityDescription =
+      activities.join(" y/o ") +
+      " de " +
+      (formData?.company?.product_service_types || "productos/servicios");
+
+    if (formData?.company?.industry_types) {
+      activityDescription +=
+        " para el sector de " + formData.company.industry_types;
     }
   }
 
-  // Determinar los límites de responsabilidad basados en la facturación
+  return activityDescription;
+}
+
+function generateRCCoverages(
+  formData: any,
+  contactData: any
+): InsuranceRecommendation {
   const { generalLimit, victimSubLimit } = determineLimitsRC(
     formData?.company?.billing
   );
 
+  // Preparamos la información de la empresa
+  const companyInfo = {
+    name: contactData?.name || formData?.company?.name || "",
+    address: formData?.company?.localizacion_nave || "",
+    activity: formData?.company?.activity || "",
+    activityDescription: buildActivityDescription(formData),
+    billing: formData?.company?.billing,
+    employees: formData?.company?.employees_number,
+    m2: formData?.company?.m2_installations,
+    installations_type: formData?.company?.installations_type,
+    owner_name: formData?.company?.propietario_nombre,
+    owner_cif: formData?.company?.propietario_cif,
+  };
+
+  // Para Responsabilidad Civil
+  const coverages: Coverage[] = [];
+
+  // Coberturas básicas (siempre incluidas)
+  coverages.push({
+    name: "Responsabilidad Civil por Explotación",
+    required: true,
+    limit: generalLimit,
+  });
+
+  // RC Patronal solo si hay empleados
+  if (formData?.company?.employees_number > 1) {
+    coverages.push({
+      name: "Responsabilidad Civil Patronal",
+      required: true,
+      limit: generalLimit,
+      sublimit: victimSubLimit,
+    });
+  }
+
+  // Contaminación accidental
+  if (
+    formData?.coberturas_solicitadas?.coberturas_adicionales
+      ?.cover_accidental_contamination
+  ) {
+    coverages.push({
+      name: "Responsabilidad Civil por Contaminación Accidental",
+      required: true,
+      limit: generalLimit,
+    });
+  }
+
+  // RC Inmobiliaria (si es propietario)
+  if (formData?.company?.installations_type === "Propietario") {
+    coverages.push({
+      name: "Responsabilidad Civil Inmobiliaria",
+      required: true,
+      limit: generalLimit,
+    });
+  }
+
+  // RC Locativa (si no es propietario)
+  if (formData?.company?.installations_type === "No propietario") {
+    coverages.push({
+      name: "Responsabilidad Civil Locativa",
+      required: true,
+      limit:
+        "Sublímite sugerido: de 300.000€ a 1.200.000€ dependiendo el valor del inmueble alquilado",
+    });
+  }
+
+  // RC Cruzada (si subcontrata)
+  if (formData?.actividad?.servicios?.subcontrata_personal) {
+    coverages.push({
+      name: "Responsabilidad Civil Cruzada y Subsidiaria",
+      required: true,
+      condition: "Incluida",
+    });
+  }
+
+  // RC Productos (si fabrica, diseña, comercializa o almacena)
+  if (
+    formData?.company?.manufactures ||
+    formData?.company?.markets ||
+    formData?.company?.diseno ||
+    formData?.company?.almacenamiento
+  ) {
+    coverages.push({
+      name: "Responsabilidad Civil por Productos y Post-trabajos",
+      required: true,
+      limit: generalLimit,
+    });
+  }
+
+  // RC por Unión y mezcla (si producto intermedio)
+  if (formData?.actividad?.manufactura?.producto_intermedio_final) {
+    coverages.push({
+      name: "Responsabilidad Civil por Unión y Mezcla",
+      required: true,
+      limit: "Límite sugerido: entre 100.000€ a 600.000€",
+    });
+  }
+
+  // Gastos de retirada (si es consumo humano)
+  if (formData?.actividad?.manufactura?.producto_consumo_humano) {
+    coverages.push({
+      name: "Gastos de Retirada",
+      required: true,
+      limit: "Límite sugerido: entre 100.000€ y 600.000€",
+    });
+  }
+
+  // RC de técnicos en plantilla
+  if (
+    formData?.coberturas_solicitadas?.coberturas_adicionales
+      ?.has_contracted_professionals
+  ) {
+    coverages.push({
+      name: "Responsabilidad Civil de Técnicos en Plantilla",
+      required: true,
+      limit: generalLimit,
+    });
+  }
+
+  // RC Daños a conducciones
+  if (formData?.actividad?.servicios?.trabajos_afectan_infraestructuras) {
+    coverages.push({
+      name: "Responsabilidad Civil Daños a Conducciones",
+      required: true,
+      limit: generalLimit,
+    });
+  }
+
+  // Daños a colindantes
+  if (formData?.actividad?.servicios?.trabajos_afectan_edificios) {
+    coverages.push({
+      name: "Daños a Colindantes",
+      required: true,
+      limit: generalLimit,
+    });
+  }
+
+  // RC Objetos confiados/custodiados
+  if (formData?.company?.almacena_bienes_terceros) {
+    coverages.push({
+      name: "Responsabilidad Civil Daños a Objetos Confiados y/o Custodiados",
+      required: true,
+      limit:
+        "Límite sugerido: entre 150.000€ a 600.000€ dependiendo del valor de los bienes custodiados",
+    });
+  }
+
+  // Cobertura de ferias
+  if (
+    formData?.coberturas_solicitadas?.coberturas_adicionales
+      ?.participates_in_fairs
+  ) {
+    coverages.push({
+      name: "Cobertura de Responsabilidad sobre Ferias y Exposiciones",
+      required: true,
+      condition: "Incluida",
+    });
+  }
+
+  // Daños a bienes preexistentes
+  if (formData?.actividad?.servicios?.cubre_preexistencias) {
+    coverages.push({
+      name: "Daños a Bienes Preexistentes",
+      required: true,
+      limit: generalLimit,
+      condition:
+        "Excluyéndose en cualquier caso los daños a aquella parte específica dónde trabaja el asegurado",
+    });
+  }
+
+  // RC vehículos de terceros
+  if (formData?.company?.vehiculos_terceros_aparcados) {
+    coverages.push({
+      name: "Responsabilidad Civil Daños a Vehículos de Terceros dentro de Instalaciones",
+      required: true,
+      condition: "Incluida",
+    });
+  }
+
+  // Daños al receptor de energía
+  if (formData?.company?.placas_venta_red) {
+    coverages.push({
+      name: "Responsabilidad Civil Daños al Receptor de la Energía",
+      required: true,
+      limit: generalLimit,
+    });
+
+    coverages.push({
+      name: "Daños al Receptor de Energía",
+      required: true,
+      condition: "Incluida",
+    });
+  }
+
+  // Daños a bienes de empleados
+  if (
+    formData?.coberturas_solicitadas?.coberturas_adicionales
+      ?.cover_employee_damages
+  ) {
+    coverages.push({
+      name: "Daños a Bienes de Empleados",
+      required: true,
+      limit: "Límite sugerido: entre 30.000€ a 150.000€",
+    });
+  }
+
+  // Perjuicios patrimoniales puros
+  if (
+    formData?.coberturas_solicitadas?.coberturas_adicionales
+      ?.cover_material_damages
+  ) {
+    coverages.push({
+      name: "Perjuicios Patrimoniales Puros",
+      required: true,
+      limit: "Límite sugerido: 100.000€ a 300.000€",
+    });
+  }
+
+  // Determinar el ámbito territorial
+  let ambitoTerritorial = "España y Andorra";
+  if (
+    formData?.coberturas_solicitadas?.coberturas_adicionales
+      ?.has_subsidiaries_outside_spain
+  ) {
+    const scope =
+      formData?.coberturas_solicitadas?.coberturas_adicionales
+        ?.territorial_scope;
+    if (scope === "europe") {
+      ambitoTerritorial = "Unión Europea";
+    } else if (scope === "europe_uk") {
+      ambitoTerritorial = "Unión Europea y Reino Unido";
+    } else if (scope === "worldwide_except_usa_canada") {
+      ambitoTerritorial = "Todo el Mundo excepto USA y Canadá";
+    } else if (scope === "worldwide_including_usa_canada") {
+      ambitoTerritorial = "Todo el Mundo incluido USA y Canadá";
+    }
+  }
+
+  // Determinar el ámbito territorial para productos
+  let ambitoProductos = "España y Andorra";
+  if (formData?.actividad?.manufactura?.alcance_geografico) {
+    const alcance = formData.actividad.manufactura.alcance_geografico;
+    if (alcance === "union_europea") {
+      ambitoProductos = "Unión Europea";
+    } else if (alcance === "europa_reino_unido") {
+      ambitoProductos = "Unión Europea y Reino Unido";
+    } else if (alcance === "mundial_excepto_usa_canada") {
+      ambitoProductos = "Todo el Mundo excepto USA y Canadá";
+    } else if (alcance === "mundial_incluyendo_usa_canada") {
+      ambitoProductos = "Todo el Mundo incluido USA y Canadá";
+    }
+  }
+
+  // Return the recommendation object
   return {
     type: "responsabilidad_civil",
+    companyInfo,
     coverages,
     ambitoTerritorial,
+    ambitoProductos,
     limits: {
       generalLimit,
       victimSubLimit,
-      explanation: `Según facturación anual de ${
-        formData?.company?.billing?.toLocaleString() || "N/A"
-      }€`,
     },
   };
 }
 
-function generateDMCoverages(formData: any): InsuranceRecommendation {
-  // Para Daños Materiales, aplicamos exactamente los condicionales especificados
+// Add the missing generateDMCoverages function
+function generateDMCoverages(
+  formData: any,
+  contactData: any
+): InsuranceRecommendation {
+  // Preparamos la información de la empresa
+  const companyInfo = {
+    name: contactData?.name || formData?.company?.name || "",
+    address: formData?.company?.localizacion_nave || "",
+    activity: formData?.company?.activity || "",
+    activityDescription: buildActivityDescription(formData),
+    billing: formData?.company?.billing,
+    employees: formData?.company?.employees_number,
+    m2: formData?.company?.m2_installations,
+    installations_type: formData?.company?.installations_type,
+    owner_name: formData?.company?.propietario_nombre,
+    owner_cif: formData?.company?.propietario_cif,
+  };
+
   const coverages: Coverage[] = [
-    // Coberturas básicas
     {
-      name: "Coberturas Básicas (incendio, rayo y explosión)",
+      name: "Incendio, Rayo y Explosión",
       required: true,
-      condition: "100% de capitales a asegurar",
-    },
-    {
-      name: "Extensión de Coberturas (lluvia, pedrisco, nieve, viento, humo)",
-      required: true,
-      condition: "100% de capitales a asegurar",
-    },
-    {
-      name: "Cláusula de Valor de Reposición a Nuevo",
-      required: true,
-    },
-    {
-      name: "Cláusula de Compensación de Capitales",
-      required: true,
-    },
-    {
-      name: "Cobertura Automática para Daños",
-      required: true,
-    },
-    {
-      name: "Cláusula de Todo Riesgo Accidental",
-      required: formData?.company?.clausula_todo_riesgo || false,
-    },
-    {
-      name: "Cobertura de Pérdida de Beneficios",
-      required: true,
-      condition: "6/12/24 meses según necesidad",
-    },
-    {
-      name: "Daños Eléctricos a Primer Riesgo",
-      required: true,
-      condition: determineElectricalDamageLimit(
-        formData?.capitales?.valor_edificio
-      ),
+      condition: "Incluida",
     },
     {
       name: "Daños por Agua",
       required: true,
-      condition: "100% de capitales asegurados",
+      condition: "Incluida",
     },
-    {
-      name: "Bienes de Terceros en Custodia",
-      required:
-        formData?.company?.almacena_bienes_terceros ||
-        formData?.capitales?.existencias_terceros ||
-        false,
-      condition: "Suma indicada en el formulario",
-    },
-    {
-      name: "Bienes Propios en Casa de Terceros",
-      required: formData?.capitales?.existencias_propias_terceros || false,
-    },
-    {
-      name: "Bienes Refrigerados",
-      required: formData?.construccion?.camaras_frigorificas || false,
-    },
-    {
-      name: "Bienes a la Intemperie (maquinaria o existencias)",
-      required: formData?.company?.existencias_intemperie || false,
-    },
-    {
-      name: "Daños a Vehículos Aparcados en las Instalaciones",
-      required: formData?.company?.vehiculos_terceros_aparcados || false,
-    },
-    {
-      name: "Robo y Expoliación a Valor Parcial",
-      required: true,
-      condition: "25% del valor asegurado",
-    },
-    {
-      name: "Desperfectos por Robo",
-      required: true,
-      condition: determineRobberyCoverageLimit(
-        formData?.capitales?.valor_edificio
-      ),
-    },
+    // Add more coverages as needed
   ];
 
-  // Coberturas para dinero en efectivo
-  if (
-    formData?.company?.dinero_caja_fuerte &&
-    formData.company.dinero_caja_fuerte > 0
-  ) {
+  // If they have solar panels for grid sale
+  if (formData?.company?.placas_venta_red) {
     coverages.push({
-      name: "Robo Dinero en Efectivo en Caja Fuerte",
+      name: "Daños al Receptor de Energía",
       required: true,
-      condition: `${formData.company.dinero_caja_fuerte.toLocaleString()}€`,
-    });
-  }
-
-  if (
-    formData?.company?.dinero_fuera_caja &&
-    formData.company.dinero_fuera_caja > 0
-  ) {
-    coverages.push({
-      name: "Robo Dinero en Efectivo en Mueble Cerrado",
-      required: true,
-      condition: `${formData.company.dinero_fuera_caja.toLocaleString()}€`,
+      condition: "Incluida",
     });
   }
 
   return {
     type: "danos_materiales",
+    companyInfo,
     coverages,
+    limits: {
+      generalLimit: "Valor total declarado",
+      victimSubLimit: "No aplica",
+    },
   };
-}
-
-function determineElectricalDamageLimit(edificioValue?: number): string {
-  if (!edificioValue) return "15.000€";
-
-  if (edificioValue > 1000000) {
-    return "60.000€";
-  } else if (edificioValue > 500000) {
-    return "30.000€";
-  } else {
-    return "15.000€";
-  }
-}
-
-function determineRobberyCoverageLimit(edificioValue?: number): string {
-  if (!edificioValue) return "15.000€";
-
-  if (edificioValue > 500000) {
-    return "30.000€";
-  } else {
-    return "15.000€";
-  }
 }

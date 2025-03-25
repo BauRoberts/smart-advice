@@ -291,5 +291,18 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-Tengo que tener un lugar de donde poder el descargar el pdf!
-Hoy desde siniestros form lo busca en los archivos que tengo en mi archivo de desarrollo! Pero como uso Vercel no me deja guardarlo asi! Como recomendas o donde lo podriamos guardar? Usar Supabase? O que podriamos usar?
+Vamos a hacer cambios en la logica de recomendacion! Hicimos grandes cambios en el form de Responsabilidad Civil! Entonces ahora tenemos que cambiar las recomendaciones.
+Para eso te voy a pasar todos los documentos que entiendo te pueden servir!
+
+Vamos a cambiar la logica de pasos de Responsabilidad Civil form! Entonces ahora dejo detallados los pasos que deberiamos poner.
+1- /Users/bautistaroberts/smart-advice/components/forms/steps/CompanyFormStep.tsx
+2-/Users/bautistaroberts/smart-advice/components/forms/steps/AdditionalCoverageStep.tsx
+3- Condicional en base al primer paso
+ESTAS PREGUNTAS SE DEBEN ACTIVAR SOLO CUANDO SE PONE QUE SE DISEÑA, FABRICA O
+VENDE PRODUCTOS /Users/bautistaroberts/smart-advice/components/forms/steps/FabricacionFormStep.tsx
+ESTAS PREGUNTAS SE DEBEN ACTIVAR SI HACE TRABAJOS…/Users/bautistaroberts/smart-advice/components/forms/steps/ServicesFormStep.tsx
+4-/Users/bautistaroberts/smart-advice/components/forms/steps/SiniestralidadStep.tsx
+5-/Users/bautistaroberts/smart-advice/components/forms/steps/ContactFormStep.tsx
+6- /Users/bautistaroberts/smart-advice/components/forms/steps/FormSummaryStep.tsx
+
+Luego la recomendacion! Esto despues que la enviamos!

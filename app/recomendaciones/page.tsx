@@ -7,20 +7,36 @@ import { getEffectiveSessionId } from "@/lib/session";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Shield, CheckCircle, ArrowLeft } from "lucide-react";
+import { Shield, CheckCircle, ArrowLeft, Download, Mail } from "lucide-react";
 import Link from "next/link";
-import EmailRecommendations from "@/components/EmailRecommendations";
 
 interface Coverage {
   name: string;
   required: boolean;
   condition?: string;
+  limit?: string;
+  sublimit?: string;
+}
+
+interface CompanyInfo {
+  name?: string;
+  address?: string;
+  activity?: string;
+  activityDescription?: string;
+  billing?: number;
+  employees?: number;
+  m2?: number;
+  installations_type?: string;
+  owner_name?: string;
+  owner_cif?: string;
 }
 
 interface InsuranceRecommendation {
   type: string;
+  companyInfo: CompanyInfo;
   coverages: Coverage[];
   ambitoTerritorial?: string;
+  ambitoProductos?: string;
   limits?: {
     generalLimit: string;
     victimSubLimit: string;
@@ -28,9 +44,26 @@ interface InsuranceRecommendation {
   };
 }
 
+// Función para generar PDF
+const generatePDF = (recommendation: InsuranceRecommendation) => {
+  // Esta función se implementaría con una librería como jsPDF o usando una API del backend
+  console.log("Generando PDF para recomendación", recommendation);
+  alert("Descargando informe de aseguramiento...");
+};
+
+// Función para enviar recomendación por email
+const sendRecommendationEmail = (recommendation: InsuranceRecommendation) => {
+  // Esta función se implementaría con una API del backend
+  console.log("Enviando recomendación por email", recommendation);
+  alert(
+    "Solicitud de cotización enviada. Nos pondremos en contacto contigo pronto."
+  );
+};
+
 // Create a separate client component for the content that uses useSearchParams
-function AsesoramientoContent() {
-  const [coverages, setCoverages] = useState<InsuranceRecommendation[]>([]);
+function RecomendacionesContent() {
+  const [recommendation, setRecommendation] =
+    useState<InsuranceRecommendation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,12 +71,12 @@ function AsesoramientoContent() {
   const tipo = searchParams.get("tipo");
 
   useEffect(() => {
-    async function fetchRecommendations() {
+    async function fetchData() {
       try {
         setLoading(true);
         const sessionId = getEffectiveSessionId();
 
-        console.log("===== ASESORAMIENTO PAGE DEBUG =====");
+        console.log("===== RECOMENDACIONES PAGE DEBUG =====");
         console.log("Session ID:", sessionId);
         console.log("Form Type:", tipo);
 
@@ -74,25 +107,45 @@ function AsesoramientoContent() {
         const coveragesData = await coveragesResponse.json();
         console.log("Coverage Advice API Response:", coveragesData);
 
-        if (coveragesData.success && coveragesData.recommendations) {
-          setCoverages(coveragesData.recommendations);
-          console.log(
-            "Coverage advice found:",
-            coveragesData.recommendations.length
+        if (
+          coveragesData.success &&
+          coveragesData.recommendations &&
+          coveragesData.recommendations.length > 0
+        ) {
+          // Tomamos la primera recomendación que corresponda al tipo seleccionado
+          const filteredRecommendations = coveragesData.recommendations.filter(
+            (rec: InsuranceRecommendation) => (tipo ? rec.type === tipo : true)
           );
+
+          if (filteredRecommendations.length > 0) {
+            setRecommendation(filteredRecommendations[0]);
+            console.log("Recommendation found:", filteredRecommendations[0]);
+          } else {
+            console.warn("No recommendation found for type:", tipo);
+            setError(
+              "No se encontró recomendación para el tipo de seguro seleccionado"
+            );
+          }
         } else {
           console.warn("No coverage advice found or unsuccessful response");
+          setError("No se encontraron recomendaciones para tu formulario");
         }
       } catch (err: any) {
-        console.error("Error in asesoramiento page:", err);
+        console.error("Error in recomendaciones page:", err);
         setError(err.message || "An unknown error occurred");
       } finally {
         setLoading(false);
       }
     }
 
-    fetchRecommendations();
+    fetchData();
   }, [tipo]);
+
+  // Formatear el número con separador de miles
+  const formatNumber = (num?: number) => {
+    if (num === undefined) return "N/A";
+    return num.toLocaleString() + "€";
+  };
 
   return (
     <>
@@ -108,15 +161,17 @@ function AsesoramientoContent() {
           </Link>
 
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Asesoramiento personalizado
+            Informe en línea
           </h1>
 
           <div className="h-1 w-24 bg-[#FB2E25] mb-6"></div>
 
           <p className="text-gray-700 text-lg max-w-2xl">
-            Basado en la información proporcionada en tu formulario, hemos
-            creado un asesoramiento personalizado para las necesidades de tu
-            negocio.
+            En base a las respuestas que has dado, tu seguro de{" "}
+            {tipo === "responsabilidad_civil"
+              ? "responsabilidad civil"
+              : "daños materiales"}{" "}
+            debería contener la siguiente información y coberturas:
           </p>
         </div>
       </section>
@@ -142,7 +197,7 @@ function AsesoramientoContent() {
                 </div>
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-red-800">
-                    Error al cargar el asesoramiento
+                    Error al cargar la recomendación
                   </h3>
                   <div className="mt-2 text-sm text-red-700">
                     <p>{error}</p>
@@ -165,245 +220,174 @@ function AsesoramientoContent() {
               <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto"></div>
             </div>
             <p className="text-gray-600 mt-6">
-              Preparando tu asesoramiento personalizado...
+              Preparando tu informe personalizado...
             </p>
           </div>
         </section>
       ) : (
         <>
-          {/* Main content */}
-          <section className="py-12 px-6 bg-white">
-            <div className="container mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold mb-8 text-[#062A5A]">
-                {tipo === "responsabilidad_civil"
-                  ? "Asesoramiento para seguro de Responsabilidad Civil"
-                  : tipo === "danos_materiales"
-                  ? "Asesoramiento para seguro de Daños Materiales"
-                  : "Asesoramiento de seguros para tu negocio"}
-              </h2>
-
-              {coverages && coverages.length > 0 ? (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                    <div className="md:col-span-2">
-                      {coverages.map((rec, index) => (
-                        <div key={index} className="mb-10">
-                          <div className="bg-white border rounded-lg shadow-sm p-6 mb-6">
-                            <h3 className="text-xl font-semibold mb-4 flex items-center text-[#062A5A]">
-                              <Shield className="h-5 w-5 mr-2 text-[#FB2E25]" />
-                              {rec.type === "responsabilidad_civil"
-                                ? "Seguro de Responsabilidad Civil"
-                                : "Seguro de Daños Materiales"}
-                            </h3>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                              <div>
-                                {rec.ambitoTerritorial && (
-                                  <div className="mb-6">
-                                    <h4 className="font-medium text-gray-700 mb-2">
-                                      Ámbito territorial recomendado
-                                    </h4>
-                                    <p className="bg-[#F5F2FB] p-3 rounded-md border border-gray-200 text-[#062A5A] font-medium">
-                                      {rec.ambitoTerritorial}
-                                    </p>
-                                  </div>
-                                )}
-
-                                {rec.limits && (
-                                  <div className="mb-6">
-                                    <h4 className="font-medium text-gray-700 mb-2">
-                                      Límites recomendados
-                                    </h4>
-                                    <div className="bg-[#F5F2FB] p-4 rounded-md border border-gray-200">
-                                      <div className="flex justify-between mb-2">
-                                        <span className="text-gray-600">
-                                          Límite general:
-                                        </span>
-                                        <span className="font-semibold text-[#062A5A]">
-                                          {rec.limits.generalLimit}
-                                        </span>
-                                      </div>
-
-                                      {rec.limits.victimSubLimit && (
-                                        <div className="flex justify-between mb-2">
-                                          <span className="text-gray-600">
-                                            Sublímite por víctima:
-                                          </span>
-                                          <span className="font-semibold text-[#062A5A]">
-                                            {rec.limits.victimSubLimit}
-                                          </span>
-                                        </div>
-                                      )}
-
-                                      {rec.limits.explanation && (
-                                        <p className="text-xs text-gray-600 mt-2 italic">
-                                          {rec.limits.explanation}
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-
-                              <div>
-                                <h4 className="font-medium text-gray-700 mb-2">
-                                  Coberturas necesarias
-                                </h4>
-                                <div className="bg-[#F5F2FB] p-4 rounded-md border border-gray-200 mb-4">
-                                  <ul className="space-y-2">
-                                    {rec.coverages
-                                      .filter((cov) => cov.required)
-                                      .map((cov, i) => (
-                                        <li
-                                          key={i}
-                                          className="flex items-start"
-                                        >
-                                          <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                                          <div>
-                                            <span className="text-sm font-medium">
-                                              {cov.name}
-                                            </span>
-                                            {cov.condition && (
-                                              <span className="block text-xs text-gray-500 mt-0.5">
-                                                {cov.condition}
-                                              </span>
-                                            )}
-                                          </div>
-                                        </li>
-                                      ))}
-                                  </ul>
-                                </div>
-
-                                {rec.coverages.some((cov) => !cov.required) && (
-                                  <>
-                                    <h4 className="font-medium text-gray-700 mb-2">
-                                      Coberturas opcionales
-                                    </h4>
-                                    <div className="bg-[#F5F2FB] p-4 rounded-md border border-gray-200">
-                                      <ul className="space-y-2">
-                                        {rec.coverages
-                                          .filter((cov) => !cov.required)
-                                          .slice(0, 5) // Limit to first 5 optional coverages
-                                          .map((cov, i) => (
-                                            <li
-                                              key={i}
-                                              className="flex items-start"
-                                            >
-                                              <span className="text-gray-400 mr-2 flex-shrink-0 mt-0.5">
-                                                ○
-                                              </span>
-                                              <div>
-                                                <span className="text-sm">
-                                                  {cov.name}
-                                                </span>
-                                                {cov.condition && (
-                                                  <span className="block text-xs text-gray-500 mt-0.5">
-                                                    {cov.condition}
-                                                  </span>
-                                                )}
-                                              </div>
-                                            </li>
-                                          ))}
-                                      </ul>
-
-                                      {rec.coverages.filter(
-                                        (cov) => !cov.required
-                                      ).length > 5 && (
-                                        <p className="text-xs text-gray-500 mt-2 italic">
-                                          Y{" "}
-                                          {rec.coverages.filter(
-                                            (cov) => !cov.required
-                                          ).length - 5}{" "}
-                                          coberturas opcionales más
-                                        </p>
-                                      )}
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-
-                      <div className="bg-[#F5F2FB] border border-gray-200 rounded-lg p-6 mt-8">
-                        <h3 className="text-xl font-semibold mb-4 text-[#062A5A]">
-                          ¿Qué hacer con este asesoramiento?
+          {/* Recommendation content */}
+          {recommendation && (
+            <section className="py-12 px-6 bg-white">
+              <div className="container mx-auto max-w-4xl">
+                <div className="bg-white border rounded-lg shadow-sm p-6 mb-8">
+                  {/* Información general */}
+                  <h2 className="text-xl font-semibold mb-6 text-[#062A5A]">
+                    Información general
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div>
+                      <div className="mb-4">
+                        <h3 className="text-sm font-medium text-gray-700">
+                          Tomador:
                         </h3>
-                        <p className="text-gray-700 mb-6">
-                          Este asesoramiento personalizado te ayudará a entender
-                          qué coberturas necesita tu negocio y qué
-                          características debe tener tu póliza de seguro. Para
-                          obtener una cotización específica o resolver dudas
-                          sobre este asesoramiento, te recomendamos contactar
-                          con uno de nuestros agentes especializados.
+                        <p className="text-base">
+                          {recommendation.companyInfo.name || "No especificado"}
                         </p>
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                          <Button
-                            asChild
-                            className="bg-[#062A5A] hover:bg-[#051d3e]"
-                          >
-                            <Link href="/contacto">
-                              Contactar con un agente
-                            </Link>
-                          </Button>
-                          <Button
-                            asChild
-                            variant="outline"
-                            className="border-[#062A5A] text-[#062A5A] hover:bg-[#F5F2FB]"
-                          >
-                            <Link href="/seguros">Explorar más seguros</Link>
-                          </Button>
-                        </div>
+                      </div>
+
+                      <div className="mb-4">
+                        <h3 className="text-sm font-medium text-gray-700">
+                          Dirección:
+                        </h3>
+                        <p className="text-base">
+                          {recommendation.companyInfo.address ||
+                            "No especificada"}
+                        </p>
+                      </div>
+
+                      <div className="mb-4">
+                        <h3 className="text-sm font-medium text-gray-700">
+                          Actividad cubierta:
+                        </h3>
+                        <p className="text-base">
+                          {recommendation.companyInfo.activityDescription ||
+                            recommendation.companyInfo.activity ||
+                            "No especificada"}
+                        </p>
                       </div>
                     </div>
 
-                    {/* Email recommendations sidebar */}
-                    <div className="md:col-span-1">
-                      <EmailRecommendations tipo={tipo || undefined} />
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <svg
-                        className="h-5 w-5 text-yellow-400"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-yellow-800">
-                        No se encontró asesoramiento
-                      </h3>
-                      <div className="mt-2 text-sm text-yellow-700">
-                        <p>
-                          No se pudo generar un asesoramiento para los datos
-                          proporcionados.
+                    <div>
+                      <div className="mb-4">
+                        <h3 className="text-sm font-medium text-gray-700">
+                          Facturación:
+                        </h3>
+                        <p className="text-base">
+                          {formatNumber(recommendation.companyInfo.billing)}
                         </p>
                       </div>
-                      <div className="mt-4">
-                        <Button
-                          asChild
-                          className="bg-[#062A5A] hover:bg-[#051d3e] text-sm"
-                        >
-                          <Link href="/seguros">Volver a seguros</Link>
-                        </Button>
+
+                      {recommendation.companyInfo.installations_type ===
+                        "No propietario" &&
+                        recommendation.companyInfo.owner_name && (
+                          <div className="mb-4">
+                            <h3 className="text-sm font-medium text-gray-700">
+                              Asegurado adicional:
+                            </h3>
+                            <p className="text-base">
+                              Se hace constar como asegurado adicional en
+                              calidad de propietario de las instalaciones al Sr.
+                              y/o empresa{" "}
+                              {recommendation.companyInfo.owner_name} con
+                              NIF/DNI{" "}
+                              {recommendation.companyInfo.owner_cif ||
+                                "No especificado"}
+                            </p>
+                          </div>
+                        )}
+
+                      <div className="mb-4">
+                        <h3 className="text-sm font-medium text-gray-700">
+                          m² de las instalaciones:
+                        </h3>
+                        <p className="text-base">
+                          {recommendation.companyInfo.m2 || "No especificado"}{" "}
+                          m²
+                        </p>
                       </div>
                     </div>
                   </div>
+
+                  {/* Garantías a contratar */}
+                  <h2 className="text-xl font-semibold mb-6 text-[#062A5A]">
+                    Garantías a contratar
+                  </h2>
+                  <ul className="space-y-3 mb-8">
+                    {recommendation.coverages
+                      .filter((cov) => cov.required)
+                      .map((coverage, index) => (
+                        <li key={index} className="flex items-start">
+                          <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-medium">{coverage.name}</span>
+                            {(coverage.limit ||
+                              coverage.sublimit ||
+                              coverage.condition) && (
+                              <span className="block text-sm text-gray-600 mt-1">
+                                {coverage.limit
+                                  ? `Límite: ${coverage.limit}`
+                                  : ""}
+                                {coverage.sublimit
+                                  ? ` - Sublímite: ${coverage.sublimit}`
+                                  : ""}
+                                {coverage.condition
+                                  ? coverage.limit || coverage.sublimit
+                                    ? ` - ${coverage.condition}`
+                                    : coverage.condition
+                                  : ""}
+                              </span>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                  </ul>
+
+                  {/* Ámbitos territoriales */}
+                  {recommendation.ambitoTerritorial && (
+                    <div className="mb-4">
+                      <h3 className="text-sm font-medium text-gray-700">
+                        Ámbito geográfico general de cobertura:
+                      </h3>
+                      <p className="text-base">
+                        {recommendation.ambitoTerritorial}
+                      </p>
+                    </div>
+                  )}
+
+                  {recommendation.ambitoProductos && (
+                    <div className="mb-4">
+                      <h3 className="text-sm font-medium text-gray-700">
+                        Ámbito geográfico para productos:
+                      </h3>
+                      <p className="text-base">
+                        {recommendation.ambitoProductos}
+                      </p>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </section>
+
+                {/* Botones de acción */}
+                <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
+                  <Button
+                    className="bg-[#062A5A] hover:bg-[#051d3e] flex items-center justify-center"
+                    onClick={() => sendRecommendationEmail(recommendation)}
+                  >
+                    <Mail className="mr-2 h-4 w-4" />
+                    Solicita cotización de tu seguro
+                  </Button>
+
+                  <Button
+                    className="bg-[#FB2E25] hover:bg-[#d92720] flex items-center justify-center"
+                    onClick={() => generatePDF(recommendation)}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Descarga informe de seguro
+                  </Button>
+                </div>
+              </div>
+            </section>
+          )}
         </>
       )}
     </>
@@ -411,7 +395,7 @@ function AsesoramientoContent() {
 }
 
 // Main page component that wraps the content with Suspense
-export default function AsesoramientoPage() {
+export default function RecomendacionesPage() {
   return (
     <main className="min-h-screen">
       <Navbar />
@@ -425,12 +409,12 @@ export default function AsesoramientoPage() {
                 <div className="h-64 bg-gray-100 rounded-lg"></div>
                 <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto"></div>
               </div>
-              <p className="text-gray-600 mt-6">Cargando asesoramiento...</p>
+              <p className="text-gray-600 mt-6">Cargando informe...</p>
             </div>
           </section>
         }
       >
-        <AsesoramientoContent />
+        <RecomendacionesContent />
       </Suspense>
       <Footer />
     </main>

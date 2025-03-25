@@ -1,4 +1,3 @@
-// components/forms/steps/CompanyFormStep.tsx
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -72,6 +71,19 @@ const companySchema = z.object({
   dinero_caja_fuerte: z.number().optional(),
   dinero_fuera_caja: z.number().optional(),
   clausula_todo_riesgo: z.boolean().default(false).optional(),
+  // New fields
+  localizacion_nave: z.string().optional(),
+  propietario_nombre: z.string().optional(),
+  propietario_cif: z.string().optional(),
+  tiene_placas_solares: z.boolean().default(false),
+  placas_autoconsumo: z.boolean().default(false),
+  placas_venta_red: z.boolean().default(false),
+  almacenamiento: z.boolean().default(false),
+  diseno: z.boolean().default(false),
+  instalacion: z.boolean().default(false),
+  mantenimiento: z.boolean().default(false),
+  montaje: z.boolean().default(false),
+  reparacion: z.boolean().default(false),
 });
 
 // Tipo para los datos de la empresa
@@ -93,6 +105,8 @@ export default function CompanyFormStep({
   const [selectedCnaeActivity, setSelectedCnaeActivity] =
     useState<CnaeOption | null>(null);
   const [empresaTipo, setEmpresaTipo] = useState<EmpresaTipo>(null);
+  const [tienePlacasSolares, setTienePlacasSolares] = useState(false);
+  const [placasVentaRed, setPlacasVentaRed] = useState(false);
 
   // Verificar si estamos en el formulario de Daños Materiales
   const isDanosMateriales = formData.form_type === "danos_materiales";
@@ -121,6 +135,18 @@ export default function CompanyFormStep({
       dinero_caja_fuerte: 0,
       dinero_fuera_caja: 0,
       clausula_todo_riesgo: false,
+      localizacion_nave: "",
+      propietario_nombre: "",
+      propietario_cif: "",
+      tiene_placas_solares: false,
+      placas_autoconsumo: false,
+      placas_venta_red: false,
+      almacenamiento: false,
+      diseno: false,
+      instalacion: false,
+      mantenimiento: false,
+      montaje: false,
+      reparacion: false,
       ...defaultValues,
     },
   });
@@ -132,6 +158,19 @@ export default function CompanyFormStep({
   const manufactures = form.watch("manufactures");
   const markets = form.watch("markets");
   const providesServices = form.watch("provides_services");
+
+  // Add watchers for conditional fields
+  const installationsType = form.watch("installations_type");
+  const tienePlacas = form.watch("tiene_placas_solares");
+  const ventaRed = form.watch("placas_venta_red");
+
+  useEffect(() => {
+    setTienePlacasSolares(tienePlacas);
+  }, [tienePlacas]);
+
+  useEffect(() => {
+    setPlacasVentaRed(ventaRed);
+  }, [ventaRed]);
 
   // Determinar tipo de empresa basado en CNAE
   useEffect(() => {
@@ -175,17 +214,17 @@ export default function CompanyFormStep({
     <FormLayout
       title="Datos de la empresa"
       subtitle="Información sobre tu negocio para personalizar las recomendaciones"
-      currentStep={2}
+      currentStep={1}
       totalSteps={totalSteps}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Sección: Información básica de la empresa */}
-          <div className="mb-6">
-            <h3 className="font-medium text-gray-800 mb-3">
-              Información básica
+          {/* Sección: Datos Básicos del Negocio */}
+          <div className="mb-6 border p-4 rounded-md shadow-sm">
+            <h3 className="font-medium text-black-600 mb-3">
+              Datos Básicos del Negocio
             </h3>
 
             <FormField
@@ -241,183 +280,336 @@ export default function CompanyFormStep({
                 </FormItem>
               )}
             />
-          </div>
 
-          {/* Nuevas preguntas para Responsabilidad Civil */}
-          {isResponsabilidadCivil && (
-            <div className="mb-6 border p-4 rounded-md">
-              <h3 className="font-medium text-gray-800 mb-3">
-                Detalles de actividad
-              </h3>
-
-              <div className="mb-4">
-                <FormLabel className="block mb-2">
-                  Tu empresa (selecciona todas las que apliquen):
-                </FormLabel>
-                <div className="space-y-2">
-                  <FormField
-                    control={form.control}
-                    name="manufactures"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Fabrica productos</FormLabel>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="markets"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Comercializa productos</FormLabel>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="provides_services"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Presta servicios</FormLabel>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <FormMessage />
-                {!manufactures &&
-                  !markets &&
-                  !providesServices &&
-                  form.formState.errors.manufactures && (
-                    <p className="text-red-500 text-sm mt-2">
-                      {form.formState.errors.manufactures.message}
-                    </p>
+            {/* Detalles de actividad simplificados como en la imagen */}
+            <div className="mb-4">
+              <FormLabel className="block mb-2">
+                Detalles de actividad (selecciona todas las que apliquen):
+              </FormLabel>
+              <div className="grid grid-cols-2 gap-2">
+                <FormField
+                  control={form.control}
+                  name="manufactures"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Fabricación</FormLabel>
+                      </div>
+                    </FormItem>
                   )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="provides_services"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Prestación de servicios</FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="markets"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Comercialización</FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="almacenamiento"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Almacenamiento</FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="diseno"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Diseño</FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
               </div>
-
-              {(manufactures || markets) && (
-                <FormField
-                  control={form.control}
-                  name="product_service_types"
-                  render={({ field }) => (
-                    <FormItem className="mb-4">
-                      <FormLabel>
-                        ¿Qué tipo de productos {manufactures ? "fabrica" : ""}
-                        {manufactures && markets ? " y/o " : ""}
-                        {markets ? "comercializa" : ""}?
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Ej: maquinaria industrial, alimentos, productos químicos, etc."
-                          className="resize-none"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              {providesServices && (
-                <FormField
-                  control={form.control}
-                  name="product_service_types"
-                  render={({ field }) => (
-                    <FormItem className="mb-4">
-                      <FormLabel>¿Qué tipo de servicios presta?</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Ej: consultoría, instalación, mantenimiento, etc."
-                          className="resize-none"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              <FormField
-                control={form.control}
-                name="industry_types"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>¿Para qué tipo de industria o sector?</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Ej: automoción, alimentación, construcción, etc."
-                        className="resize-none"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
-          )}
-
-          {/* Sección: Datos comerciales */}
-          <div className="mb-6">
-            <h3 className="font-medium text-gray-800 mb-3">
-              Datos comerciales
-            </h3>
 
             <FormField
               control={form.control}
-              name="employees_number"
+              name="industry_types"
               render={({ field }) => (
-                <FormItem className="mb-4">
-                  <FormLabel>Número de Empleados</FormLabel>
+                <FormItem>
+                  <FormLabel>¿Para qué tipo de industria o sector?</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Número de empleados"
-                      value={field.value || ""}
-                      onChange={(e) =>
-                        field.onChange(
-                          e.target.value ? parseInt(e.target.value) : ""
-                        )
-                      }
-                      onBlur={field.onBlur}
-                      name={field.name}
-                      ref={field.ref}
+                    <Textarea
+                      placeholder="Ej: automoción, alimentación, construcción, etc."
+                      className="resize-none"
+                      {...field}
                     />
                   </FormControl>
-                  <FormDescription>
-                    Solo se consideran empleados en nómina
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
+          </div>
+
+          {/* Sección: Ubicación y Propiedad */}
+          <div className="mb-6 border p-4 rounded-md shadow-sm">
+            <h3 className="font-medium text-black-600 mb-3">
+              Ubicación y Propiedad
+            </h3>
+
+            <FormField
+              control={form.control}
+              name="localizacion_nave"
+              render={({ field }) => (
+                <FormItem className="mb-4">
+                  <FormLabel>Localización de la nave</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Dirección de la nave/instalación"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="installations_type"
+              render={({ field }) => (
+                <FormItem className="mb-4">
+                  <FormLabel>Instalaciones</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar tipo" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Propietario">
+                        Soy propietario
+                      </SelectItem>
+                      <SelectItem value="No propietario">
+                        No soy propietario
+                      </SelectItem>
+                      <SelectItem value="Otros">Otros</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Conditional owner fields */}
+            {installationsType === "No propietario" && (
+              <div className="pl-4 border-l-2 border-gray-200 mb-4">
+                <FormField
+                  control={form.control}
+                  name="propietario_nombre"
+                  render={({ field }) => (
+                    <FormItem className="mb-4">
+                      <FormLabel>Nombre del propietario</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Nombre del propietario"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="propietario_cif"
+                  render={({ field }) => (
+                    <FormItem className="mb-4">
+                      <FormLabel>CIF/DNI del propietario</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="CIF o DNI del propietario"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            <FormField
+              control={form.control}
+              name="m2_installations"
+              render={({ field }) => (
+                <FormItem className="mb-4">
+                  <FormLabel>Metros Cuadrados</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        placeholder="m² de instalaciones"
+                        value={field.value || ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value ? parseFloat(e.target.value) : ""
+                          )
+                        }
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                      <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        m²
+                      </span>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Solar panels section */}
+            <FormField
+              control={form.control}
+              name="tiene_placas_solares"
+              render={({ field }) => (
+                <FormItem className="mb-2">
+                  <div className="flex items-center space-x-2">
+                    <FormLabel>¿Tienes placas solares?</FormLabel>
+                    <div className="flex space-x-4">
+                      <div className="flex items-center space-x-1">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={(checked) => {
+                              field.onChange(checked === true);
+                              if (!checked) {
+                                form.setValue("placas_autoconsumo", false);
+                                form.setValue("placas_venta_red", false);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <span>Sí</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <FormControl>
+                          <Checkbox
+                            checked={!field.value}
+                            onCheckedChange={(checked) => {
+                              field.onChange(checked !== true);
+                              if (checked) {
+                                form.setValue("placas_autoconsumo", false);
+                                form.setValue("placas_venta_red", false);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <span>No</span>
+                      </div>
+                    </div>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            {tienePlacasSolares && (
+              <div className="pl-6 border-l-2 border-gray-200 mb-4">
+                <FormField
+                  control={form.control}
+                  name="placas_autoconsumo"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-3 space-y-0 mb-2">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Para autoconsumo</FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="placas_venta_red"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Para venta a la red</FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Sección: Facturación */}
+          <div className="mb-6 border p-4 rounded-md shadow-sm">
+            <h3 className="font-medium text-black-600 mb-3">Facturación</h3>
 
             <FormField
               control={form.control}
@@ -453,6 +645,35 @@ export default function CompanyFormStep({
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="employees_number"
+              render={({ field }) => (
+                <FormItem className="mb-4">
+                  <FormLabel>Número de Empleados</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Número de empleados"
+                      value={field.value || ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value ? parseInt(e.target.value) : ""
+                        )
+                      }
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Solo se consideran empleados en nómina
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="flex items-center justify-between space-x-4 mb-4">
               <FormField
                 control={form.control}
@@ -466,7 +687,7 @@ export default function CompanyFormStep({
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>Facturación online</FormLabel>
+                      <FormLabel>Facturas online</FormLabel>
                     </div>
                   </FormItem>
                 )}
@@ -512,74 +733,10 @@ export default function CompanyFormStep({
             </div>
           </div>
 
-          {/* Sección: Instalaciones */}
-          <div className="mb-6">
-            <h3 className="font-medium text-gray-800 mb-3">Instalaciones</h3>
-
-            <FormField
-              control={form.control}
-              name="installations_type"
-              render={({ field }) => (
-                <FormItem className="mb-4">
-                  <FormLabel>Tipo de instalaciones</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar tipo" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Propietario">
-                        Actúo como Propietario
-                      </SelectItem>
-                      <SelectItem value="Inquilino">Soy Inquilino</SelectItem>
-                      <SelectItem value="Otros">Otros</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="m2_installations"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Metros Cuadrados</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        placeholder="m² de instalaciones"
-                        value={field.value || ""}
-                        onChange={(e) =>
-                          field.onChange(
-                            e.target.value ? parseFloat(e.target.value) : ""
-                          )
-                        }
-                        onBlur={field.onBlur}
-                        name={field.name}
-                        ref={field.ref}
-                      />
-                      <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        m²
-                      </span>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Campos específicos para Daños Materiales */}
+          {/* Campos específicos para Daños Materiales (mantener si es necesario) */}
           {isDanosMateriales && (
-            <div className="mb-6">
-              <h3 className="font-medium text-gray-800 mb-3">
+            <div className="mb-6 border p-4 rounded-md shadow-sm">
+              <h3 className="font-medium text-red-600 mb-3">
                 Dinero en efectivo
               </h3>
 

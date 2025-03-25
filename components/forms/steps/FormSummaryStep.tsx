@@ -117,7 +117,11 @@ export default function FormSummaryStep({
               <dt className="text-sm font-medium text-gray-500">
                 Facturación anual
               </dt>
-              <dd>{formData.company.billing.toLocaleString()} €</dd>
+              <dd>
+                {formData.company.billing
+                  ? `${formData.company.billing.toLocaleString()} €`
+                  : "No especificada"}
+              </dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">

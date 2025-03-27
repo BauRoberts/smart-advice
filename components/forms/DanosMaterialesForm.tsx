@@ -14,7 +14,8 @@ import ProteccionRoboStep from "@/components/forms/steps/ProteccionRoboStep";
 import SiniestralidadStep from "@/components/forms/steps/SiniestralidadStep";
 import DanosResumenStep from "@/components/forms/steps/DanosResumenStep";
 import LoadingScreen from "@/components/ui/LoadingScreen";
-import { toast } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/use-toast";
+
 import { getOrCreateTempSession, getEffectiveSessionId } from "@/lib/session";
 
 function DanosMaterialesFormContent() {
@@ -22,6 +23,7 @@ function DanosMaterialesFormContent() {
   const { formData, dispatch, goToStep, submitForm } = useFormContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Set the form type

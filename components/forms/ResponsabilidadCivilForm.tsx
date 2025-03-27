@@ -19,7 +19,7 @@ import PreguntasGeneralesStep from "@/components/forms/steps/PreguntasGeneralesS
 import CoberturasFormStep from "@/components/forms/steps/CoberturasFormStep";
 import FormSummaryStep from "@/components/forms/steps/FormSummaryStep";
 import LoadingScreen from "@/components/ui/LoadingScreen";
-import { toast } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/use-toast";
 import { getOrCreateTempSession } from "@/lib/session";
 import FabricacionFormStep from "@/components/forms/steps/FabricacionFormStep";
 import SiniestralidadStep from "@/components/forms/steps/SiniestralidadStep";
@@ -48,6 +48,7 @@ interface ManufacturaData {
 
 function ResponsabilidadCivilFormContent() {
   const router = useRouter();
+  const { toast } = useToast();
   const { formData, dispatch, goToStep, submitForm } = useFormContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);

@@ -2,7 +2,6 @@ import * as React from "react";
 import * as ToastPrimitives from "@radix-ui/react-toast";
 import { cva, type VariantProps } from "class-variance-authority";
 import { X } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 
 const ToastProvider = ToastPrimitives.Provider;
@@ -113,6 +112,39 @@ ToastDescription.displayName = ToastPrimitives.Description.displayName;
 type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>;
 
 type ToastActionElement = React.ReactElement<typeof ToastAction>;
+
+// Custom hook and function for managing toasts
+const TOAST_LIMIT = 1;
+const TOAST_REMOVE_DELAY = 5000;
+
+type ToasterToast = ToastProps & {
+  id: string;
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  action?: ToastActionElement;
+};
+
+let count = 0;
+
+function genId() {
+  count = (count + 1) % Number.MAX_VALUE;
+  return count.toString();
+}
+
+// Function to show a toast
+export function toast(props: Omit<ToasterToast, "id">) {
+  const id = genId();
+
+  const { title, description, variant = "default", ...rest } = props;
+
+  return {
+    id,
+    title,
+    description,
+    variant,
+    ...rest,
+  };
+}
 
 export {
   type ToastProps,

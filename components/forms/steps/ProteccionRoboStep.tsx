@@ -61,10 +61,10 @@ export default function ProteccionRoboStep({
 
   return (
     <FormLayout
-      title="Protección contra robo"
-      subtitle="Información sobre los sistemas de protección contra robo"
-      currentStep={6}
-      totalSteps={7}
+      title="Protecciones contra Robo"
+      subtitle="Información sobre las medidas de protección contra robo"
+      currentStep={4}
+      totalSteps={8}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}
     >

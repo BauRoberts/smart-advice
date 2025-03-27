@@ -291,18 +291,32 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-Vamos a hacer cambios en la logica de recomendacion! Hicimos grandes cambios en el form de Responsabilidad Civil! Entonces ahora tenemos que cambiar las recomendaciones.
-Para eso te voy a pasar todos los documentos que entiendo te pueden servir!
+Vamos a hacer cambios que el cliente nos solicita en el form de Danos! Para eso primero tenemos que analizar los cambios que tenemos que hacer.
 
-Vamos a cambiar la logica de pasos de Responsabilidad Civil form! Entonces ahora dejo detallados los pasos que deberiamos poner.
-1- /Users/bautistaroberts/smart-advice/components/forms/steps/CompanyFormStep.tsx
-2-/Users/bautistaroberts/smart-advice/components/forms/steps/AdditionalCoverageStep.tsx
-3- Condicional en base al primer paso
-ESTAS PREGUNTAS SE DEBEN ACTIVAR SOLO CUANDO SE PONE QUE SE DISEÑA, FABRICA O
-VENDE PRODUCTOS /Users/bautistaroberts/smart-advice/components/forms/steps/FabricacionFormStep.tsx
-ESTAS PREGUNTAS SE DEBEN ACTIVAR SI HACE TRABAJOS…/Users/bautistaroberts/smart-advice/components/forms/steps/ServicesFormStep.tsx
-4-/Users/bautistaroberts/smart-advice/components/forms/steps/SiniestralidadStep.tsx
-5-/Users/bautistaroberts/smart-advice/components/forms/steps/ContactFormStep.tsx
-6- /Users/bautistaroberts/smart-advice/components/forms/steps/FormSummaryStep.tsx
+Basado en los documentos proporcionados, voy a analizar los cambios solicitados para el formulario de Daños Materiales y enfocarme en los cambios del primer paso.
 
-Luego la recomendacion! Esto despues que la enviamos!
+## Análisis de los cambios requeridos
+
+El cliente quiere reorganizar completamente el formulario de Daños Materiales. Actualmente tenemos un flujo de 8 pasos:
+
+1. Información de empresa (CompanyFormStep)
+2. Capitales a asegurar (CapitalesStep)
+3. Características constructivas (ConstruccionStep)
+4. Protección contra incendios (ProteccionIncendiosStep)
+5. Protección contra robo (ProteccionRoboStep)
+6. Siniestralidad (SiniestralidadStep)
+7. Información de contacto (ContactFormStep)
+8. Resumen (DanosResumenStep)
+
+Según la solicitud del cliente, el nuevo flujo debe ser:
+
+1. Información General (combinando información de empresa y detalles adicionales)
+2. Información de las Instalaciones (anteriormente Características constructivas)
+3. Protecciones contra Incendio (con pequeñas modificaciones)
+4. Protecciones contra Robo (sin cambios)
+5. Capitales a asegurar y Coberturas (combinando capitales con nuevas preguntas sobre coberturas)
+6. Siniestralidad (sin cambios)
+7. Contacto (permanece igual)
+8. Resumen (permanece igual)
+
+Hicimos todos los cambios de arriba ademas de armar una nueva api de recomendaciones pero estamos teniendo problemas! Llegamos a la pagina de recomendaciones pero no nos da ningun recomendacion! Entonces quiero empezar a debbuggear esto! Te voy a pasar el archivo del formualario, con los que yo creo que son importante para debbuggear!

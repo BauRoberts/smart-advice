@@ -1,12 +1,13 @@
-// components/forms/DanosMaterialesForm.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FormProvider, useFormContext } from "@/contexts/FormContext";
 import ContactFormStep from "@/components/forms/steps/ContactFormStep";
-import CompanyFormStep from "@/components/forms/steps/CompanyFormStep";
-import CapitalesStep from "@/components/forms/steps/CapitalesStep";
+import InformacionGeneralStep from "@/components/forms/steps/InformacionGeneralStep";
+import { InformacionGeneralData } from "@/components/forms/steps/InformacionGeneralStep";
+import CapitalesYCoberturasStep from "@/components/forms/steps/CapitalesYCoberturasStep"; // Importar nuevo componente
+import { CapitalesYCoberturasData } from "@/components/forms/steps/CapitalesYCoberturasStep"; // Importar el tipo
 import ConstruccionStep from "@/components/forms/steps/ConstruccionStep";
 import ProteccionIncendiosStep from "@/components/forms/steps/ProteccionIncendiosStep";
 import ProteccionRoboStep from "@/components/forms/steps/ProteccionRoboStep";
@@ -14,7 +15,7 @@ import SiniestralidadStep from "@/components/forms/steps/SiniestralidadStep";
 import DanosResumenStep from "@/components/forms/steps/DanosResumenStep";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { toast } from "@/components/ui/toast";
-import { getOrCreateTempSession } from "@/lib/session";
+import { getOrCreateTempSession, getEffectiveSessionId } from "@/lib/session";
 
 function DanosMaterialesFormContent() {
   const router = useRouter();
@@ -26,7 +27,7 @@ function DanosMaterialesFormContent() {
     // Set the form type
     dispatch({
       type: "SET_FORM_TYPE",
-      payload: "danos_materiales",
+      payload: "danos-materiales", // Cambiado de "danos_materiales" a "danos-materiales"
     });
 
     // Create temporary session ID
@@ -45,19 +46,18 @@ function DanosMaterialesFormContent() {
     return <LoadingScreen message="Cargando formulario..." />;
   }
 
-  // Step 1: Company Info (moved from step 2)
-  const handleCompanyNext = (data: any, empresaTipo: any) => {
+  // Step 1: Información General (nuevo primer paso)
+  const handleInformacionGeneralNext = (data: InformacionGeneralData) => {
     // Save to local context
     dispatch({
-      type: "SET_COMPANY",
+      type: "SET_INFORMACION_GENERAL",
       payload: data,
-      empresaTipo,
     });
 
     // Show success message
     toast({
       title: "Información guardada",
-      description: "Los datos de tu empresa han sido guardados",
+      description: "La información general ha sido guardada",
       duration: 2000,
     });
 
@@ -65,47 +65,47 @@ function DanosMaterialesFormContent() {
     goToStep(2);
   };
 
-  // Step 2: Capitals to insure
-  const handleCapitalesNext = (data: any) => {
-    dispatch({ type: "SET_CAPITALES", payload: data });
-    goToStep(3);
-  };
-
-  const handleCapitalesBack = () => {
-    goToStep(1);
-  };
-
-  // Step 3: Construction characteristics
+  // Step 2: Información de las Instalaciones (anterior Construcción)
   const handleConstruccionNext = (data: any) => {
     dispatch({ type: "SET_CONSTRUCCION", payload: data });
-    goToStep(4);
+    goToStep(3);
   };
 
   const handleConstruccionBack = () => {
-    goToStep(2);
+    goToStep(1);
   };
 
-  // Step 4: Fire protection
+  // Step 3: Protecciones contra Incendio
   const handleProteccionIncendiosNext = (data: any) => {
     dispatch({ type: "SET_PROTECCION_INCENDIOS", payload: data });
-    goToStep(5);
-  };
-
-  const handleProteccionIncendiosBack = () => {
-    goToStep(3);
-  };
-
-  // Step 5: Theft protection
-  const handleProteccionRoboNext = (data: any) => {
-    dispatch({ type: "SET_PROTECCION_ROBO", payload: data });
-    goToStep(6);
-  };
-
-  const handleProteccionRoboBack = () => {
     goToStep(4);
   };
 
-  // Step 6: Claims history
+  const handleProteccionIncendiosBack = () => {
+    goToStep(2);
+  };
+
+  // Step 4: Protecciones contra Robo
+  const handleProteccionRoboNext = (data: any) => {
+    dispatch({ type: "SET_PROTECCION_ROBO", payload: data });
+    goToStep(5);
+  };
+
+  const handleProteccionRoboBack = () => {
+    goToStep(3);
+  };
+
+  // Step 5: Capitales a asegurar y Coberturas (combinando capitales con coberturas)
+  const handleCapitalesYCoberturasNext = (data: CapitalesYCoberturasData) => {
+    dispatch({ type: "SET_CAPITALES_Y_COBERTURAS", payload: data });
+    goToStep(6);
+  };
+
+  const handleCapitalesYCoberturasBack = () => {
+    goToStep(4);
+  };
+
+  // Step 6: Siniestralidad
   const handleSiniestralidadNext = (data: any) => {
     dispatch({ type: "SET_SINIESTRALIDAD", payload: data });
     goToStep(7);
@@ -115,7 +115,7 @@ function DanosMaterialesFormContent() {
     goToStep(5);
   };
 
-  // Step 7: Contact Information (moved from step 1)
+  // Step 7: Información de Contacto
   const handleContactNext = (data: any) => {
     // Save to local context
     dispatch({ type: "SET_CONTACT", payload: data });
@@ -128,12 +128,44 @@ function DanosMaterialesFormContent() {
     goToStep(6);
   };
 
-  // Step 8: Summary and submission
+  // Actualización para asegurar la consistencia del session_id
+
+  // Modificar la función handleSubmit en DanosMaterialesForm.tsx para redirigir a la API específica
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
       console.log("Iniciando envío del formulario de daños materiales...");
-      const result = await submitForm();
+
+      // Obtener session_id
+      const sessionId = getEffectiveSessionId();
+      if (!sessionId) {
+        throw new Error("No session ID available");
+      }
+
+      console.log("Session ID para envío:", sessionId);
+
+      // Asegurarnos de que form_type esté presente y sea correcto
+      formData.form_type = "danos-materiales";
+
+      // Enviamos directamente a la API específica de daños materiales
+      const response = await fetch("/api/forms/danos-materiales", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+          form_type: "danos-materiales",
+          form_data: formData,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const result = await response.json();
       console.log("Formulario enviado exitosamente:", result);
 
       toast({
@@ -142,9 +174,14 @@ function DanosMaterialesFormContent() {
         duration: 2000,
       });
 
-      // Redirect to recommendations page with the form type parameter
+      // Guardamos explícitamente el sessionId en localStorage para asegurar consistencia
+      localStorage.setItem("current_session_id", sessionId);
+
+      // IMPORTANTE: Redirigir directamente a nuestra API específica en lugar de la general
+      // Usar window.location.href para garantizar una recarga completa
       setTimeout(() => {
-        router.push(`/recomendaciones?tipo=danos_materiales`);
+        // Use the specific danos-materiales page instead of the general recommendations page
+        window.location.href = `/recomendaciones/danos-materiales?session_id=${sessionId}`;
       }, 2000);
     } catch (error) {
       console.error("Error al enviar formulario:", error);
@@ -183,21 +220,13 @@ function DanosMaterialesFormContent() {
     switch (formData.step) {
       case 1:
         return (
-          <CompanyFormStep
-            onNext={handleCompanyNext}
+          <InformacionGeneralStep
+            onNext={handleInformacionGeneralNext}
             onBack={() => router.push("/seguros")}
-            defaultValues={formData.company}
+            defaultValues={formData.informacion_general}
           />
         );
       case 2:
-        return (
-          <CapitalesStep
-            onNext={handleCapitalesNext}
-            onBack={handleCapitalesBack}
-            defaultValues={formData.capitales}
-          />
-        );
-      case 3:
         return (
           <ConstruccionStep
             onNext={handleConstruccionNext}
@@ -205,7 +234,7 @@ function DanosMaterialesFormContent() {
             defaultValues={formData.construccion}
           />
         );
-      case 4:
+      case 3:
         return (
           <ProteccionIncendiosStep
             onNext={handleProteccionIncendiosNext}
@@ -217,12 +246,20 @@ function DanosMaterialesFormContent() {
             }}
           />
         );
-      case 5:
+      case 4:
         return (
           <ProteccionRoboStep
             onNext={handleProteccionRoboNext}
             onBack={handleProteccionRoboBack}
             defaultValues={formData.proteccion_robo}
+          />
+        );
+      case 5:
+        return (
+          <CapitalesYCoberturasStep
+            onNext={handleCapitalesYCoberturasNext}
+            onBack={handleCapitalesYCoberturasBack}
+            defaultValues={formData.capitales_y_coberturas}
           />
         );
       case 6:

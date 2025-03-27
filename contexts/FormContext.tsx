@@ -10,31 +10,35 @@ import {
 } from "@/lib/schemas";
 import { PreguntasGeneralesFormData } from "@/lib/schemas"; // Importar desde schemas, no de session
 import { AdditionalCoverageData } from "@/components/forms/steps/AdditionalCoverageStep";
+import { InformacionGeneralData } from "@/components/forms/steps/InformacionGeneralStep";
+import { CapitalesYCoberturasData } from "@/components/forms/steps/CapitalesYCoberturasStep"; // Importar el nuevo tipo
 
 export interface FormData {
   form_type: string;
   step: number;
   contact: Partial<ContactFormData>;
   company: Partial<CompanyFormData>;
+  informacion_general?: Partial<InformacionGeneralData>;
   empresaTipo: EmpresaTipo | null;
   actividad: {
     manufactura: Partial<ManufacturaFormData>;
     servicios: Partial<ServiciosFormData>;
   };
-  preguntas_generales: Partial<PreguntasGeneralesFormData>; // Nueva propiedad
+  preguntas_generales: Partial<PreguntasGeneralesFormData>;
   ambito_territorial: string;
   capitales?: any;
   construccion?: any;
   proteccion_incendios?: any;
   proteccion_robo?: any;
   siniestralidad?: any;
+  capitales_y_coberturas?: Partial<CapitalesYCoberturasData>; // Nuevo campo para CapitalesYCoberturasStep
   coberturas_solicitadas: {
     exploitation: boolean;
     patronal: boolean;
     productos: boolean;
     trabajos: boolean;
     profesional: boolean;
-    coberturas_adicionales?: Partial<AdditionalCoverageData>; // Add the additional coverage data
+    coberturas_adicionales?: Partial<AdditionalCoverageData>;
   };
 }
 
@@ -44,7 +48,7 @@ type CoberturasData = {
   productos: boolean;
   trabajos: boolean;
   profesional: boolean;
-  coberturas_adicionales?: Partial<AdditionalCoverageData>; // Add here too
+  coberturas_adicionales?: Partial<AdditionalCoverageData>;
 };
 
 // Definir los tipos de acciones
@@ -58,13 +62,21 @@ type FormAction =
       payload: Partial<CompanyFormData>;
       empresaTipo: EmpresaTipo | null;
     }
+  | {
+      type: "SET_INFORMACION_GENERAL";
+      payload: Partial<InformacionGeneralData>;
+    }
   | { type: "SET_ACTIVIDAD_MANUFACTURA"; payload: Partial<ManufacturaFormData> }
   | { type: "SET_ACTIVIDAD_SERVICIOS"; payload: Partial<ServiciosFormData> }
   | {
       type: "SET_PREGUNTAS_GENERALES";
       payload: Partial<PreguntasGeneralesFormData>;
-    } // Nueva acción
+    }
   | { type: "SET_CAPITALES"; payload: any }
+  | {
+      type: "SET_CAPITALES_Y_COBERTURAS";
+      payload: Partial<CapitalesYCoberturasData>;
+    } // Nueva acción
   | { type: "SET_CONSTRUCCION"; payload: any }
   | { type: "SET_PROTECCION_INCENDIOS"; payload: any }
   | { type: "SET_PROTECCION_ROBO"; payload: any }
@@ -79,6 +91,7 @@ const initialFormData: FormData = {
   step: 1,
   contact: {},
   company: {},
+  informacion_general: {},
   empresaTipo: null,
   actividad: {
     manufactura: {},
@@ -86,13 +99,14 @@ const initialFormData: FormData = {
   },
   ambito_territorial: "",
   siniestralidad: undefined,
+  capitales_y_coberturas: {}, // Inicializar el nuevo campo
   coberturas_solicitadas: {
     exploitation: false,
     patronal: false,
     productos: false,
     trabajos: false,
     profesional: false,
-    coberturas_adicionales: {}, // Initialize the additional coverage data
+    coberturas_adicionales: {},
   },
   preguntas_generales: {},
 };
@@ -121,6 +135,11 @@ function reducer(state: FormData, action: FormAction): FormData {
         company: action.payload,
         empresaTipo: action.empresaTipo,
       };
+    case "SET_INFORMACION_GENERAL":
+      return {
+        ...state,
+        informacion_general: action.payload,
+      };
     case "SET_ACTIVIDAD_MANUFACTURA":
       return {
         ...state,
@@ -137,7 +156,7 @@ function reducer(state: FormData, action: FormAction): FormData {
           servicios: action.payload,
         },
       };
-    case "SET_PREGUNTAS_GENERALES": // Nuevo case
+    case "SET_PREGUNTAS_GENERALES":
       return {
         ...state,
         preguntas_generales: action.payload,
@@ -146,6 +165,11 @@ function reducer(state: FormData, action: FormAction): FormData {
       return {
         ...state,
         capitales: action.payload,
+      };
+    case "SET_CAPITALES_Y_COBERTURAS": // Nuevo case para manejar los capitales y coberturas combinados
+      return {
+        ...state,
+        capitales_y_coberturas: action.payload,
       };
     case "SET_CONSTRUCCION":
       return {

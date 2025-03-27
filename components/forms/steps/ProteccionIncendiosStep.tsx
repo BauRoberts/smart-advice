@@ -133,10 +133,10 @@ export default function ProteccionIncendiosStep({
 
   return (
     <FormLayout
-      title="Protección contra incendios"
-      subtitle="Indica las protecciones contra incendio que dispongas"
-      currentStep={5}
-      totalSteps={7}
+      title="Protecciones contra Incendio"
+      subtitle="Información sobre las medidas de protección contra incendios"
+      currentStep={3}
+      totalSteps={8}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}
     >
@@ -195,7 +195,9 @@ export default function ProteccionIncendiosStep({
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel>¿Cubren la totalidad del riesgo?</FormLabel>
+                        <FormLabel>
+                          ¿Cubren la totalidad de la Instalación?
+                        </FormLabel>
                       </div>
                     </FormItem>
                   )}

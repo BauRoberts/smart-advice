@@ -64,8 +64,8 @@ export default function SiniestralidadStep({
     <FormLayout
       title="Siniestralidad"
       subtitle="Información sobre los siniestros ocurridos en los últimos años"
-      currentStep={7}
-      totalSteps={7}
+      currentStep={6}
+      totalSteps={8}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}
       isLastStep={true}

@@ -6,6 +6,7 @@ import { getEffectiveSessionId } from "@/lib/session";
 import { Button } from "@/components/ui/button";
 import { Shield, CheckCircle, ArrowLeft, Download, Mail } from "lucide-react";
 import Link from "next/link";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Coverage {
   name: string;
@@ -73,10 +74,7 @@ interface DanosInsuranceRecommendation {
   specialClauses: Coverage[];
 }
 
-const generatePDF = (recommendation: DanosInsuranceRecommendation) => {
-  console.log("Generando PDF para recomendación", recommendation);
-  alert("Descargando informe de aseguramiento...");
-};
+// Actualizar el método generatePDF en el componente DanosRecomendacionesContent
 
 const sendRecommendationEmail = (
   recommendation: DanosInsuranceRecommendation
@@ -97,9 +95,33 @@ export default function DanosRecomendacionesContent() {
     useState<DanosInsuranceRecommendation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
+  const generatePDF = async (recommendation: DanosInsuranceRecommendation) => {
+    try {
+      const { generateInsuranceReport } = await import(
+        "@/lib/services/pdfGenerator"
+      );
+      await generateInsuranceReport(recommendation);
+
+      toast({
+        title: "¡PDF generado con éxito!",
+        description: "El informe de seguro se ha descargado correctamente.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error detallado al generar PDF:", error);
+
+      toast({
+        title: "Error al generar PDF",
+        description:
+          "Ha ocurrido un error al generar el informe. Por favor, inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     async function fetchData() {

@@ -291,32 +291,5 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-Vamos a hacer cambios que el cliente nos solicita en el form de Danos! Para eso primero tenemos que analizar los cambios que tenemos que hacer.
-
-Basado en los documentos proporcionados, voy a analizar los cambios solicitados para el formulario de Daños Materiales y enfocarme en los cambios del primer paso.
-
-## Análisis de los cambios requeridos
-
-El cliente quiere reorganizar completamente el formulario de Daños Materiales. Actualmente tenemos un flujo de 8 pasos:
-
-1. Información de empresa (CompanyFormStep)
-2. Capitales a asegurar (CapitalesStep)
-3. Características constructivas (ConstruccionStep)
-4. Protección contra incendios (ProteccionIncendiosStep)
-5. Protección contra robo (ProteccionRoboStep)
-6. Siniestralidad (SiniestralidadStep)
-7. Información de contacto (ContactFormStep)
-8. Resumen (DanosResumenStep)
-
-Según la solicitud del cliente, el nuevo flujo debe ser:
-
-1. Información General (combinando información de empresa y detalles adicionales)
-2. Información de las Instalaciones (anteriormente Características constructivas)
-3. Protecciones contra Incendio (con pequeñas modificaciones)
-4. Protecciones contra Robo (sin cambios)
-5. Capitales a asegurar y Coberturas (combinando capitales con nuevas preguntas sobre coberturas)
-6. Siniestralidad (sin cambios)
-7. Contacto (permanece igual)
-8. Resumen (permanece igual)
-
-Hicimos todos los cambios de arriba ademas de armar una nueva api de recomendaciones pero estamos teniendo problemas! Llegamos a la pagina de recomendaciones pero no nos da ningun recomendacion! Entonces quiero empezar a debbuggear esto! Te voy a pasar el archivo del formualario, con los que yo creo que son importante para debbuggear!
+En nuestra app una vez que nosotros damos recomendaciones de seguros que deberian comprar les damos la opcion de enviarse un email o tambien descargar un pdf! Ahora vamos a terminar con la generacion del PDF! El pdf tiene una estructura que el cliente quiere que tenga.
+Ademas de eso te voy a pasar la pagina de recomendaciones como la api que usamos en el caso de danos materiales para que te puedas guiar! Charlemos de como hacerlo antes de hacerlo.

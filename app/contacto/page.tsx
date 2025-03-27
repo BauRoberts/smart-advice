@@ -140,7 +140,7 @@ export default function ContactPage() {
                     <Phone className="h-5 w-5 mr-3 flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="font-medium">Teléfono</p>
-                      <p className="text-white/80 mt-1">+34 912 456 789</p>
+                      <p className="text-white/80 mt-1">+ 34 611 403013</p>
                     </div>
                   </div>
 

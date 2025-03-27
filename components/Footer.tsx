@@ -68,7 +68,7 @@ export default function Footer() {
             </p>
             <p className="mb-4 text-gray-300 flex items-start">
               <span className="text-[#FB2E25] mr-2 mt-1">•</span>
-              Teléfono: +34 900 123 456
+              Teléfono: + 34 611 403013
             </p>
             <div className="flex items-center space-x-4 mt-6">
               <Link

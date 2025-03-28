@@ -138,6 +138,7 @@ export interface Coverage {
 }
 
 export interface CompanyInfo {
+  is_owner: boolean;
   name?: string;
   address?: string;
   activity?: string;

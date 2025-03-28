@@ -291,4 +291,5 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-Vamos a hacer unos cambios en los botones de la pagina de recomendaciones! Debemos mostrar un carte de email enviado con exito de alguna manera, cuando se apreta el boton de envio de mail! Me ayudarias con eso ?
+Vamos a hacer cambios en el pdf que estamos generando!
+Te voy a dar el archivo que deberiamos generar!

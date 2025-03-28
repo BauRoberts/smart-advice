@@ -291,5 +291,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-Vamos a hacer cambios en el pdf que estamos generando!
-Te voy a dar el archivo que deberiamos generar!
+Vamos a hacer cambios con el email recommendatio en el formulario de Responsabilidad Civil!

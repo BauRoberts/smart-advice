@@ -2,165 +2,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { generateDanosInternalEmailContent } from "@/lib/services/emailService";
-import { DanosInsuranceRecommendation } from "@/types";
+import { generateRCExactEmailContent } from "@/lib/services/rcEmailService";
 
 // Inicializar Resend con la API key
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Función auxiliar para obtener el límite de daños eléctricos
-function getDanosElectricosLimit(valorEdificio?: number): string {
-  if (!valorEdificio) return "30.000€";
-  if (valorEdificio >= 1000000) return "100.000€";
-  if (valorEdificio >= 500000) return "60.000€";
-  return "30.000€";
-}
-
-// Función auxiliar para obtener el porcentaje de robo
-function getRoboPercentage(capitalesInfo: any): string {
-  const totalCapitales =
-    (capitalesInfo.valor_edificio || 0) +
-    (capitalesInfo.valor_ajuar || 0) +
-    (capitalesInfo.valor_existencias || 0);
-
-  return totalCapitales > 1000000 ? "50%" : "25%";
-}
-
-// Función para generar la lista de coberturas en HTML
-function generateCoveragesListHTML(coverages: any[]): string {
-  let htmlList = "";
-
-  // Verificar si hay coberturas específicas para añadirlas
-  const coverageMappings = [
-    { name: "Avería de maquinaria", label: "Avería de maquinaria" },
-    {
-      name: "Robo de metálico en caja fuerte",
-      label: "Robo de metálico en caja fuerte",
-    },
-    {
-      name: "Robo de metálico en mueble cerrado",
-      label: "Robo de metálico en mueble cerrado",
-    },
-    {
-      name: "Robo al transportador de fondos",
-      label: "Robo al transportador de fondos",
-    },
-    {
-      name: "Bienes de terceros depositados en las instalaciones del asegurado",
-      label:
-        "Bienes de terceros depositados en las instalaciones del asegurado",
-    },
-    {
-      name: "Bienes propios depositados en casa de terceros",
-      label: "Bienes propios depositados en casa de terceros",
-    },
-    {
-      name: "Bienes depositados a la intemperie o aire libre",
-      label: "Bienes depositados a la intemperie o aire libre",
-    },
-    { name: "Bienes refrigerados", label: "Bienes refrigerados" },
-    { name: "Placas fotovoltaicas", label: "Placas fotovoltaicas" },
-    {
-      name: "Vehículos aparcados en instalaciones",
-      label: "Vehículos aparcados en instalaciones",
-    },
-    { name: "Bienes de empleados", label: "Bienes de empleados" },
-    {
-      name: "Responsabilidad civil general",
-      label: "Responsabilidad civil general",
-      value: "600.000€",
-    },
-    {
-      name: "Responsabilidad civil patronal",
-      label: "Responsabilidad civil patronal",
-      value: "600.000€",
-    },
-    {
-      name: "Responsabilidad civil por productos",
-      label: "Responsabilidad civil por productos",
-      value: "600.000€",
-    },
-    {
-      name: "Responsabilidad civil inmobiliaria",
-      label: "Responsabilidad civil inmobiliaria",
-      value: "600.000€",
-    },
-    {
-      name: "Responsabilidad civil locativa",
-      label: "Responsabilidad civil locativa",
-      value: "600.000€",
-    },
-  ];
-
-  // Generar elementos HTML para cada cobertura
-  coverageMappings.forEach((mapping) => {
-    const coverage = coverages.find(
-      (c) => c.name === mapping.name && c.required
-    );
-    if (coverage) {
-      let coverageHtml = `<li class="checklist-item">
-                            <div class="checklist-icon">✓</div>
-                            <div><strong>${mapping.label}:</strong> `;
-
-      if (mapping.value) {
-        coverageHtml += mapping.value;
-      } else if (coverage.limit) {
-        coverageHtml += coverage.limit;
-      } else {
-        coverageHtml += "Incluido";
-      }
-
-      if (coverage.condition) {
-        coverageHtml += ` (${coverage.condition})`;
-      }
-
-      coverageHtml += `</div></li>`;
-      htmlList += coverageHtml;
-    }
-  });
-
-  // Añadir sublímite para patronal si existe
-  if (
-    coverages.find(
-      (c) => c.name === "Responsabilidad civil patronal" && c.required
-    )
-  ) {
-    htmlList += `<li class="checklist-item">
-                  <div class="checklist-icon">✓</div>
-                  <div><strong>Sublímite víctima patronal:</strong> 450.000€</div>
-                </li>`;
-  }
-
-  return htmlList;
-}
-
-// Función para verificar si hay cláusula de todo riesgo accidental
-function hasTodoRiesgoAccidental(specialClauses: any[]): boolean {
-  return specialClauses.some(
-    (c) => c.name === "Cláusula todo riesgo accidental" && c.required
-  );
-}
-
-// Función para verificar si hay cláusula de leasing
-function hasLeasingClause(specialClauses: any[], companyInfo: any): boolean {
-  return specialClauses.some(
-    (c) => c.name && c.name.includes("Cláusula de Leasing") && c.required
-  );
-}
-
-// Función auxiliar para formatear moneda
-function formatCurrency(value?: number): string {
-  if (value === undefined || value === null) return "N/A";
-  return (
-    new Intl.NumberFormat("es-ES", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value) + "€"
-  );
-}
-
 // Templates de email
 const emailTemplates: Record<string, (data: any) => string> = {
-  // Template para cliente
+  // Template para cliente de Daños Materiales
   "danos-cliente": (data) => {
     const { clientName, recommendation } = data;
 
@@ -202,8 +51,200 @@ const emailTemplates: Record<string, (data: any) => string> = {
       </body>
     </html>`;
   },
+  // app/api/email/route.ts - Agregar el template exacto
 
-  // Template para uso interno - Este utiliza la función que generará el contenido exacto según la estructura solicitada
+  // Añade este template al objeto emailTemplates en el archivo existente:
+
+  // Template para cliente de Responsabilidad Civil con formato exacto
+  "rc-exacto": (data) => {
+    return `
+    <html>
+      <head>
+        <style>
+          body { font-family: Calibri, Arial, sans-serif; line-height: 1.6; color: #333; }
+          ul { list-style-type: disc; padding-left: 20px; margin-top: 15px; }
+          .red-text { color: #FF0000; font-weight: bold; }
+          p { margin-bottom: 10px; }
+        </style>
+      </head>
+      <body>
+        <p>Estimados colaboradores,</p>
+        
+        <p>Sirva el presente correo para solicitar cotización de seguro de Responsabilidad Civil General de acuerdo con la siguiente información:</p>
+        
+        <ul>
+          <li>TOMADOR XXXX (QUE PONGA EL TOMADOR)</li>
+          <li>CIF XXXX (QUE PONGA EL CIF)</li>
+          <li>DIRECCION XXXX (ASÍ SUCESIVAMENTE)</li>
+          <li>CNAE: ${
+            data.recommendation.companyInfo.cnae_code || "XXXXXX"
+          }</li>
+          <li>ACTIVIDAD: ${
+            data.recommendation.companyInfo.activity || "XXXXXX"
+          }</li>
+          <li>FACTURACION XXX</li>
+          <li>ASEGURADO ADICIONAL INCLUIR COMO ASEGURADO ADICIONAL AL PROPIETARIO DE LA NAVE, SR./EMPRESA XXXXXX</li>
+        </ul>
+        
+        <p>Garantías y límites</p>
+        
+        <p class="red-text">ACA METEMOS TODO TAL CUAL EL CLIENTE NOS LO DIO Y QUE QUEDO EN LA WEB</p>
+        
+        <p>Ámbito geográfico general: IDEM</p>
+        
+        <p>Ámbito geográfico productos: IDEM</p>
+        
+        <p>Siniestralidad últimos 3 años: IDEM</p>
+        
+        <p>Quedamos a la espera de respuesta.</p>
+        
+        <p>Saludos cordiales.</p>
+        
+        <p style="font-weight: bold;">SMART ADVICE</p>
+      </body>
+    </html>
+    `;
+  },
+
+  // Template para cliente de Responsabilidad Civil
+  // Añadir este template a la colección de emailTemplates en app/api/email/route.ts
+
+  // Template mejorado para cliente de Responsabilidad Civil con variables y mejor diseño
+  "rc-client-enhanced": (data) => {
+    const { clientName, recommendation, clientEmail } = data;
+    const year = new Date().getFullYear();
+    const companyName = recommendation.companyInfo.name || "tu empresa";
+    const activityDescription =
+      recommendation.companyInfo.activity ||
+      recommendation.companyInfo.activityDescription ||
+      "tu actividad";
+
+    // Función para formatear números como moneda
+    const formatCurrency = (value: number | undefined | null): string => {
+      if (value === undefined || value === null) return "N/A";
+      return (
+        new Intl.NumberFormat("es-ES", {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(value) + "€"
+      );
+    };
+
+    const billing = formatCurrency(recommendation.companyInfo.billing || 0);
+
+    return `
+    <html>
+      <head>
+        <style>
+          body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+          }
+          .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 0;
+            background-color: #ffffff;
+          }
+          .header { 
+            background-color: #062A5A; 
+            color: white; 
+            padding: 30px 20px; 
+            text-align: center; 
+          }
+          .content { 
+            padding: 30px 20px; 
+            background-color: #ffffff;
+          }
+          .footer { 
+            text-align: center; 
+            margin-top: 20px; 
+            font-size: 12px; 
+            color: #666; 
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-top: 1px solid #eeeeee;
+          }
+          .btn { 
+            display: inline-block; 
+            background-color: #FB2E25; 
+            color: white; 
+            padding: 12px 24px; 
+            text-decoration: none; 
+            border-radius: 4px; 
+            font-weight: bold;
+            margin-top: 20px;
+          }
+          .info-box {
+            background-color: #f5f7fa;
+            border-left: 4px solid #062A5A;
+            padding: 15px;
+            margin: 20px 0;
+          }
+          h1 { 
+            margin: 0; 
+            font-size: 24px; 
+            font-weight: bold;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Tu solicitud de seguro de Responsabilidad Civil</h1>
+          </div>
+          <div class="content">
+            <p>Hola ${clientName || "Estimado cliente"},</p>
+            
+            <p>Hemos recibido correctamente tu solicitud de cotización para el seguro de Responsabilidad Civil para <strong>${companyName}</strong>.</p>
+            
+            <div class="info-box">
+              <p><strong>Detalles de la solicitud:</strong></p>
+              <ul>
+                <li><strong>Actividad:</strong> ${activityDescription}</li>
+                <li><strong>Facturación anual:</strong> ${billing}</li>
+                ${
+                  recommendation.ambitoTerritorial
+                    ? `<li><strong>Ámbito geográfico:</strong> ${recommendation.ambitoTerritorial}</li>`
+                    : ""
+                }
+              </ul>
+            </div>
+            
+            <p>Nos pondremos en contacto contigo a la mayor brevedad con una propuesta personalizada para tu empresa. Se ha adjuntado a este email un informe con el detalle de coberturas recomendadas para tu seguro.</p>
+            
+            <p>Este informe incluye:</p>
+            <ul>
+              <li>Información general sobre el seguro de responsabilidad civil</li>
+              <li>Las garantías recomendadas para tu actividad</li>
+              <li>Explicaciones sobre cada cobertura y ejemplos prácticos</li>
+              <li>Recomendaciones para una adecuada protección de tu negocio</li>
+            </ul>
+            
+            <p>Si tienes alguna duda o quieres añadir información adicional a tu solicitud, puedes responder directamente a este correo.</p>
+            
+            <p>Saludos cordiales,</p>
+            <p><strong>El equipo de Smart Advice</strong></p>
+            
+            <a href="https://www.smartadvice.es/contacto" class="btn">Contactar con un especialista</a>
+          </div>
+          <div class="footer">
+            <p>© ${year} Smart Advice - Todos los derechos reservados</p>
+            <p>Este mensaje ha sido enviado a ${
+              clientEmail || "[email protegido]"
+            }</p>
+            <p><small>El contenido de este mensaje y los documentos adjuntos son confidenciales.</small></p>
+          </div>
+        </div>
+      </body>
+    </html>`;
+  },
+
+  // Template para uso interno de Daños Materiales
   "danos-interno": (data) => {
     const { recommendation } = data;
     const emailContent = generateDanosInternalEmailContent(recommendation);
@@ -225,6 +266,27 @@ const emailTemplates: Record<string, (data: any) => string> = {
       <body>
         <div class="container">
           ${htmlContent}
+        </div>
+      </body>
+    </html>`;
+  },
+
+  // Template para uso interno de Responsabilidad Civil
+  "rc-interno": (data) => {
+    const { recommendation } = data;
+    const emailContent = generateRCExactEmailContent(recommendation);
+
+    return `
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          ${emailContent}
         </div>
       </body>
     </html>`;

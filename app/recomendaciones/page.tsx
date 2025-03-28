@@ -9,6 +9,10 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Shield, CheckCircle, ArrowLeft, Download, Mail } from "lucide-react";
 import Link from "next/link";
+import { sendRCRecommendationEmail } from "@/lib/services/rcEmailService";
+import { generateRCInsuranceReport } from "@/lib/services/rcReportService";
+import { useToast } from "@/components/ui/use-toast";
+import { SuccessDialog } from "@/components/ui/SuccessDialog";
 
 interface Coverage {
   name: string;
@@ -45,19 +49,19 @@ interface InsuranceRecommendation {
 }
 
 // Función para generar PDF
-const generatePDF = (recommendation: InsuranceRecommendation) => {
-  // Esta función se implementaría con una librería como jsPDF o usando una API del backend
-  console.log("Generando PDF para recomendación", recommendation);
-  alert("Descargando informe de aseguramiento...");
-};
-
-// Función para enviar recomendación por email
-const sendRecommendationEmail = (recommendation: InsuranceRecommendation) => {
-  // Esta función se implementaría con una API del backend
-  console.log("Enviando recomendación por email", recommendation);
-  alert(
-    "Solicitud de cotización enviada. Nos pondremos en contacto contigo pronto."
-  );
+const generatePDF = async (recommendation: InsuranceRecommendation) => {
+  try {
+    // Generar el PDF de Responsabilidad Civil
+    await generateRCInsuranceReport(recommendation, true);
+    console.log(
+      "PDF de Responsabilidad Civil generado y descargado correctamente"
+    );
+  } catch (error) {
+    console.error("Error al generar PDF:", error);
+    alert(
+      "Error al generar el informe. Por favor, inténtalo de nuevo más tarde."
+    );
+  }
 };
 
 // Create a separate client component for the content that uses useSearchParams
@@ -66,7 +70,10 @@ function RecomendacionesContent() {
     useState<InsuranceRecommendation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
+  const { toast } = useToast();
   const searchParams = useSearchParams();
   const tipo = searchParams.get("tipo");
 
@@ -145,6 +152,111 @@ function RecomendacionesContent() {
   const formatNumber = (num?: number) => {
     if (num === undefined) return "N/A";
     return num.toLocaleString() + "€";
+  };
+
+  // Función para enviar recomendación por email
+  const sendRecommendationEmail = async (
+    recommendation: InsuranceRecommendation
+  ) => {
+    try {
+      setSending(true);
+
+      // Obtener los datos del contacto del formulario
+      const contactData = {
+        email: "",
+        name: "",
+      };
+
+      // Intentamos obtener los datos del formulario
+      try {
+        // Primero del localStorage
+        const formDataStr = localStorage.getItem("formData");
+        if (formDataStr) {
+          const formData = JSON.parse(formDataStr);
+          if (formData.contact) {
+            contactData.email = formData.contact.email || "";
+            contactData.name = formData.contact.name || "";
+          }
+        }
+
+        // Si no encontramos en localStorage, intentar obtener de form_data
+        if (!contactData.email) {
+          // Buscar en el localStorage de session_data
+          const sessionDataStr = localStorage.getItem("session_data");
+          if (sessionDataStr) {
+            const sessionData = JSON.parse(sessionDataStr);
+            if (sessionData.form_data && sessionData.form_data.contact) {
+              contactData.email = sessionData.form_data.contact.email || "";
+              contactData.name = sessionData.form_data.contact.name || "";
+            }
+          }
+        }
+
+        // Si aún no tenemos email, usar los datos de la recomendación
+        if (!contactData.email && recommendation.companyInfo) {
+          // Usar el nombre de la empresa como último recurso
+          contactData.name = recommendation.companyInfo.name || "";
+        }
+      } catch (e) {
+        console.error("Error al obtener datos de contacto:", e);
+      }
+
+      if (!contactData.email) {
+        // Si aún no tenemos email, pedir al usuario
+        const userEmail = prompt(
+          "Por favor, introduce tu email para recibir la cotización:"
+        );
+        if (userEmail) {
+          contactData.email = userEmail;
+        } else {
+          toast({
+            title: "Email requerido",
+            description: "Necesitamos un email para enviar la cotización.",
+            variant: "destructive",
+          });
+          setSending(false);
+          return;
+        }
+      }
+
+      console.log("Enviando solicitud de cotización a:", contactData.email);
+
+      try {
+        // Enviar email usando nuestro servicio actualizado
+        const response = await sendRCRecommendationEmail(
+          recommendation,
+          contactData.email,
+          contactData.name
+        );
+
+        console.log("Respuesta del servidor:", response);
+
+        // Mostrar diálogo de éxito
+        setShowSuccessDialog(true);
+
+        // También mostrar toast
+        toast({
+          title: "Solicitud enviada con éxito",
+          description:
+            "Nos pondremos en contacto contigo a la mayor brevedad con una cotización personalizada. Se ha adjuntado el informe en PDF al email.",
+          variant: "default",
+        });
+      } catch (emailError) {
+        console.error("Error en el servicio de envío de email:", emailError);
+        throw emailError;
+      }
+    } catch (error) {
+      console.error("Error al enviar la recomendación por email:", error);
+
+      toast({
+        title: "Error al enviar solicitud",
+        description:
+          "Ha ocurrido un error al enviar tu solicitud. Por favor, inténtalo de nuevo más tarde.",
+        variant: "destructive",
+      });
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -372,9 +484,12 @@ function RecomendacionesContent() {
                   <Button
                     className="bg-[#062A5A] hover:bg-[#051d3e] flex items-center justify-center"
                     onClick={() => sendRecommendationEmail(recommendation)}
+                    disabled={sending}
                   >
                     <Mail className="mr-2 h-4 w-4" />
-                    Solicita cotización de tu seguro
+                    {sending
+                      ? "Enviando..."
+                      : "Solicita cotización de tu seguro"}
                   </Button>
 
                   <Button
@@ -389,6 +504,17 @@ function RecomendacionesContent() {
             </section>
           )}
         </>
+      )}
+
+      {/* Dialog de éxito */}
+      {showSuccessDialog && (
+        <SuccessDialog
+          isOpen={showSuccessDialog}
+          onClose={() => setShowSuccessDialog(false)}
+          title="¡Solicitud enviada correctamente!"
+          description={`Hemos enviado la solicitud de cotización de seguro de Responsabilidad Civil a tu correo electrónico. Nos pondremos en contacto contigo en breve con una propuesta personalizada para tu empresa.`}
+          buttonText="Aceptar"
+        />
       )}
     </>
   );

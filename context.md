@@ -291,5 +291,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-En nuestra app una vez que nosotros damos recomendaciones de seguros que deberian comprar les damos la opcion de enviarse un email o tambien descargar un pdf! Ahora vamos a terminar con la generacion del PDF! El pdf tiene una estructura que el cliente quiere que tenga.
-Ademas de eso te voy a pasar la pagina de recomendaciones como la api que usamos en el caso de danos materiales para que te puedas guiar! Charlemos de como hacerlo antes de hacerlo.
+Vamos a hacer unos cambios en los botones de la pagina de recomendaciones! Debemos mostrar un carte de email enviado con exito de alguna manera, cuando se apreta el boton de envio de mail! Me ayudarias con eso ?

@@ -1,62 +1,125 @@
 // app/api/contact/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { ContactInfo } from "@/types";
 
-export async function POST(request: Request) {
+export const dynamic = "force-dynamic";
+
+export async function GET(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { name, email, phone, privacyPolicy } = body;
+    const searchParams = request.nextUrl.searchParams;
+    const session_id = searchParams.get("session_id");
 
-    // Verificar que se ha aceptado la política de privacidad
-    if (!privacyPolicy) {
+    if (!session_id) {
       return NextResponse.json(
-        { success: false, error: "Debes aceptar la política de privacidad" },
+        { success: false, error: "Session ID is required" },
         { status: 400 }
       );
     }
 
-    // Primero crear o recuperar una sesión
-    let sessionId;
-    const existingSession = request.headers.get("x-session-id");
+    console.log(
+      `[Contact API] Processing request for session_id: ${session_id}`
+    );
 
-    if (existingSession) {
-      sessionId = existingSession;
-    } else {
-      // Crear nueva sesión
-      const { data: sessionData, error: sessionError } = await supabase
-        .from("sessions")
-        .insert({})
-        .select()
-        .single();
-
-      if (sessionError) throw sessionError;
-      sessionId = sessionData.id;
-    }
-
-    // Guardar información de contacto
+    // Obtener la información de contacto más reciente para esta sesión
     const { data: contactData, error: contactError } = await supabase
       .from("contact_info")
-      .insert({
-        session_id: sessionId,
-        name,
-        email,
-        phone,
-        privacy_policy_accepted: privacyPolicy, // Guardamos que ha aceptado la política
-      })
-      .select()
-      .single();
+      .select("*")
+      .eq("session_id", session_id)
+      .order("created_at", { ascending: false })
+      .limit(1);
 
-    if (contactError) throw contactError;
+    if (contactError) {
+      console.error("[Contact API] Error fetching contact info:", contactError);
+      throw contactError;
+    }
+
+    if (!contactData || contactData.length === 0) {
+      console.log(
+        "[Contact API] No contact info found for session_id:",
+        session_id
+      );
+      return NextResponse.json({
+        success: false,
+        error: "No contact data found",
+      });
+    }
+
+    console.log("[Contact API] Found contact info");
 
     return NextResponse.json({
       success: true,
-      session_id: sessionId,
-      contact_id: contactData.id,
+      data: contactData[0],
     });
   } catch (error) {
-    console.error("Error saving contact info:", error);
+    console.error("[Contact API] Error fetching contact info:", error);
+
     return NextResponse.json(
-      { success: false, error: "Failed to save contact information" },
+      {
+        success: false,
+        error: "Failed to fetch contact information",
+        details: error,
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// Para guardar la información de contacto
+export async function POST(request: NextRequest) {
+  try {
+    const { session_id, name, email, phone, privacy_policy_accepted } =
+      await request.json();
+
+    if (!session_id) {
+      return NextResponse.json(
+        { success: false, error: "Session ID is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!email) {
+      return NextResponse.json(
+        { success: false, error: "Email is required" },
+        { status: 400 }
+      );
+    }
+
+    console.log(
+      `[Contact API] Saving contact info for session_id: ${session_id}`
+    );
+
+    // Insertar o actualizar la información de contacto
+    const { data, error } = await supabase.from("contact_info").insert([
+      {
+        session_id,
+        name,
+        email,
+        phone,
+        privacy_policy_accepted: privacy_policy_accepted || false,
+      },
+    ]);
+
+    if (error) {
+      console.error("[Contact API] Error saving contact info:", error);
+      throw error;
+    }
+
+    console.log("[Contact API] Contact info saved successfully");
+
+    return NextResponse.json({
+      success: true,
+      message: "Contact information saved successfully",
+    });
+  } catch (error) {
+    console.error("[Contact API] Error saving contact info:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to save contact information",
+        details: error,
+      },
       { status: 500 }
     );
   }

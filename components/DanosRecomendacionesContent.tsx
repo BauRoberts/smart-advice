@@ -4,86 +4,18 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getEffectiveSessionId } from "@/lib/session";
 import { Button } from "@/components/ui/button";
-import { Shield, CheckCircle, ArrowLeft, Download, Mail } from "lucide-react";
+import { CheckCircle, ArrowLeft, Download, Mail } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
-
-interface Coverage {
-  name: string;
-  required: boolean;
-  condition?: string;
-  limit?: string;
-  sublimit?: string;
-}
-
-interface CompanyInfo {
-  name?: string;
-  address?: string;
-  activity?: string;
-  activityDescription?: string;
-  billing?: number;
-  employees?: number;
-  m2?: number;
-  installations_type?: string;
-  owner_name?: string;
-  owner_cif?: string;
-  cif?: string;
-  cnae?: string;
-}
-
-interface ConstructionInfo {
-  estructura?: string;
-  cubierta?: string;
-  cerramientos?: string;
-}
-
-interface ProtectionInfo {
-  extintores?: boolean;
-  bocas_incendio?: boolean;
-  deposito_bombeo?: boolean;
-  cobertura_total?: boolean;
-  columnas_hidrantes?: boolean;
-  columnas_hidrantes_tipo?: string;
-  deteccion_automatica?: boolean;
-  deteccion_zona?: string[];
-  rociadores?: boolean;
-  rociadores_zona?: string[];
-  suministro_agua?: string;
-  protecciones_fisicas?: boolean;
-  vigilancia_propia?: boolean;
-  alarma_conectada?: boolean;
-  camaras_circuito?: boolean;
-}
-
-interface CapitalesInfo {
-  valor_edificio?: number;
-  valor_ajuar?: number;
-  valor_existencias?: number;
-  valor_equipo_electronico?: number;
-  margen_bruto_anual?: number;
-  periodo_indemnizacion?: string;
-}
-
-interface DanosInsuranceRecommendation {
-  type: string;
-  companyInfo: CompanyInfo;
-  constructionInfo: ConstructionInfo;
-  protectionInfo: ProtectionInfo;
-  capitalesInfo: CapitalesInfo;
-  coverages: Coverage[];
-  specialClauses: Coverage[];
-}
-
-// Actualizar el método generatePDF en el componente DanosRecomendacionesContent
-
-const sendRecommendationEmail = (
-  recommendation: DanosInsuranceRecommendation
-) => {
-  console.log("Enviando recomendación por email", recommendation);
-  alert(
-    "Solicitud de cotización enviada. Nos pondremos en contacto contigo pronto."
-  );
-};
+import { sendDanosRecommendationEmail } from "@/lib/services/emailService";
+import { DanosInsuranceRecommendation, ContactInfo } from "@/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 const formatNumber = (num?: number) => {
   if (num === undefined) return "N/A";
@@ -95,16 +27,22 @@ export default function DanosRecomendacionesContent() {
     useState<DanosInsuranceRecommendation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [contactData, setContactData] = useState<ContactInfo | null>(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const { toast } = useToast();
 
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
+
   const generatePDF = async (recommendation: DanosInsuranceRecommendation) => {
     try {
       const { generateInsuranceReport } = await import(
         "@/lib/services/pdfGenerator"
       );
-      await generateInsuranceReport(recommendation);
+      // Pasar true para forzar la descarga del PDF
+      await generateInsuranceReport(recommendation, true);
 
       toast({
         title: "¡PDF generado con éxito!",
@@ -123,6 +61,58 @@ export default function DanosRecomendacionesContent() {
     }
   };
 
+  // Modificar la función handleSendRecommendationEmail para generar y adjuntar el PDF
+  const handleSendRecommendationEmail = async () => {
+    if (!recommendation) return;
+
+    try {
+      setSendingEmail(true);
+
+      // Verificamos si tenemos datos de contacto
+      if (!contactData || !contactData.email) {
+        throw new Error(
+          "No se encontraron datos de contacto para enviar el email"
+        );
+      }
+
+      // Generamos el PDF sin descargarlo automáticamente
+      const { generateInsuranceReport } = await import(
+        "@/lib/services/pdfGenerator"
+      );
+      const pdfBlob = await generateInsuranceReport(recommendation, false); // Pasar false para evitar descarga
+
+      // Enviamos el email usando nuestro servicio, incluyendo el PDF
+      await sendDanosRecommendationEmail(
+        recommendation,
+        contactData.email,
+        contactData.name || "Cliente",
+        pdfBlob
+      );
+
+      // Actualizamos el estado
+      setEmailSent(true);
+      setShowSuccessDialog(true);
+
+      toast({
+        title: "Solicitud enviada con éxito",
+        description:
+          "Nos pondremos en contacto contigo a la mayor brevedad con una cotización personalizada. Se ha adjuntado el informe en PDF al email.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error al enviar la solicitud por email:", error);
+
+      toast({
+        title: "Error al enviar solicitud",
+        description:
+          "Ha ocurrido un error al enviar tu solicitud. Por favor, inténtalo de nuevo más tarde.",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -133,6 +123,19 @@ export default function DanosRecomendacionesContent() {
           throw new Error("No session ID found");
         }
 
+        // Obtener datos de contacto
+        const contactResponse = await fetch(
+          `/api/contact?session_id=${effectiveSessionId}`
+        );
+
+        if (contactResponse.ok) {
+          const contactResult = await contactResponse.json();
+          if (contactResult.success && contactResult.data) {
+            setContactData(contactResult.data);
+          }
+        }
+
+        // Obtener recomendaciones
         const recommendationsResponse = await fetch(
           `/api/recomendaciones/danos-materiales?session_id=${effectiveSessionId}`
         );
@@ -634,10 +637,44 @@ export default function DanosRecomendacionesContent() {
             <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
               <Button
                 className="bg-[#062A5A] hover:bg-[#051d3e] flex items-center justify-center"
-                onClick={() => sendRecommendationEmail(recommendation)}
+                onClick={handleSendRecommendationEmail}
+                disabled={sendingEmail || emailSent}
               >
-                <Mail className="mr-2 h-4 w-4" />
-                Solicita cotización de tu seguro
+                {sendingEmail ? (
+                  <div className="flex items-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Enviando...
+                  </div>
+                ) : emailSent ? (
+                  <div className="flex items-center">
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Solicitud enviada
+                  </div>
+                ) : (
+                  <>
+                    <Mail className="mr-2 h-4 w-4" />
+                    Solicita cotización de tu seguro
+                  </>
+                )}
               </Button>
 
               <Button
@@ -651,6 +688,38 @@ export default function DanosRecomendacionesContent() {
           </div>
         </section>
       ) : null}
+
+      {/* Modal de éxito */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl">
+              ¡Solicitud enviada con éxito!
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center py-6">
+            <div className="bg-green-100 rounded-full p-3 mb-4">
+              <CheckCircle className="h-10 w-10 text-green-600" />
+            </div>
+            <p className="text-center mb-4">
+              Tu solicitud de cotización para el seguro de Daños Materiales ha
+              sido enviada correctamente.
+            </p>
+            <p className="text-center text-gray-600">
+              Nos pondremos en contacto contigo a la mayor brevedad con una
+              propuesta personalizada para tu empresa.
+            </p>
+          </div>
+          <DialogFooter className="sm:justify-center">
+            <Button
+              className="bg-[#062A5A] hover:bg-[#051d3e]"
+              onClick={() => setShowSuccessDialog(false)}
+            >
+              Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

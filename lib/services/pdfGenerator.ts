@@ -28,7 +28,8 @@ const COLORS = {
 };
 
 export const generateInsuranceReport = async (
-  recommendation: DanosInsuranceRecommendation
+  recommendation: DanosInsuranceRecommendation,
+  downloadFile: boolean = false
 ) => {
   try {
     const doc = new jsPDF();
@@ -219,13 +220,18 @@ export const generateInsuranceReport = async (
     currentY = (doc.lastAutoTable?.finalY || currentY) + 15;
 
     // Guardar el PDF
-    const fileName = `Informe_Seguro_${
-      recommendation.companyInfo.name || "Cliente"
-    }.pdf`;
-    const safeFileName = fileName.replace(/\s+/g, "_");
-    doc.save(safeFileName);
+    const pdfBlob = doc.output("blob");
 
-    return true;
+    // Guardar localmente el PDF
+    if (downloadFile) {
+      const fileName = `Informe_Seguro_${
+        recommendation.companyInfo.name || "Cliente"
+      }.pdf`;
+      const safeFileName = fileName.replace(/\s+/g, "_");
+      doc.save(safeFileName);
+    }
+
+    return pdfBlob;
   } catch (error) {
     console.error("Error durante la generación del PDF:", error);
     throw error;

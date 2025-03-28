@@ -186,6 +186,7 @@ export interface CapitalesInfo {
 }
 
 export interface DanosInsuranceRecommendation {
+  siniestralidad: string;
   type: string;
   companyInfo: CompanyInfo;
   constructionInfo: ConstructionInfo;

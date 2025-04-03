@@ -615,33 +615,44 @@ export default function CompanyFormStep({
               control={form.control}
               name="billing"
               render={({ field }) => (
-                <FormItem className="mb-4">
-                  <div className="flex items-center">
-                    <FormLabel>Facturación Anual (€)</FormLabel>
-                    <InfoTooltip text="Incluir solo la facturación a terceros excluyendo la facturación a otras empresas del grupo" />
-                  </div>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        placeholder="Facturación anual"
-                        value={field.value?.toString() || ""}
-                        onChange={(e) =>
-                          field.onChange(
-                            e.target.value ? parseFloat(e.target.value) : ""
-                          )
-                        }
-                        onBlur={field.onBlur}
-                        name={field.name}
-                        ref={field.ref}
-                      />
-                      <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        €
-                      </span>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+                <FormField
+                  control={form.control}
+                  name="billing"
+                  render={({ field }) => (
+                    <FormField
+                      control={form.control}
+                      name="billing"
+                      render={({ field }) => (
+                        <FormItem className="mb-4">
+                          <div className="flex items-center">
+                            <FormLabel>Facturación Anual (€)</FormLabel>
+                            <InfoTooltip text="Incluir solo la facturación a terceros excluyendo la facturación a otras empresas del grupo" />
+                          </div>
+                          <FormControl>
+                            <div className="relative">
+                              <Input
+                                type="number" // Sobrescrito a "text" por formatNumber
+                                formatNumber={true}
+                                placeholder="Facturación anual"
+                                {...field}
+                                value={field.value || ""}
+                                onChange={(e) =>
+                                  field.onChange(
+                                    e.target.value ? Number(e.target.value) : ""
+                                  )
+                                }
+                              />
+                              <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                €
+                              </span>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                />
               )}
             />
 

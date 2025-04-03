@@ -291,4 +291,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-Quiero implementar test para testear el sistema de recomendaciones de los formularios de responsabilidad Civil! Me ayudarias?
+Quiero hacer que todos los inputs de numeros que usemos en los formularios tengan separadores de miles! Como podemos hacer esto ?

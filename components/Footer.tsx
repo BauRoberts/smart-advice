@@ -48,13 +48,14 @@ export default function Footer() {
                   frecuentes
                 </Link>
               </li>
+
               <li>
                 <Link
-                  href="/politica-privacidad"
+                  href="/politica-cookies"
                   className="text-gray-300 hover:text-white transition-colors flex items-center"
                 >
                   <span className="text-[#FC7A37] mr-2">›</span>Política de
-                  privacidad
+                  cookies
                 </Link>
               </li>
             </ul>

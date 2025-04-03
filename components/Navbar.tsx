@@ -53,12 +53,6 @@ export default function Navbar() {
           >
             Preguntas frecuentes
           </Link>
-          <Link
-            href="/seguros"
-            className="text-sm text-gray-700 hover:text-[#FB2E25] transition-colors"
-          >
-            Seguros
-          </Link>
         </nav>
 
         {/* Desktop CTA */}

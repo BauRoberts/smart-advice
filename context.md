@@ -291,4 +291,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-Vamos a hacer cambios con el email recommendatio en el formulario de Responsabilidad Civil!
+Quiero implementar test para testear el sistema de recomendaciones de los formularios de responsabilidad Civil! Me ayudarias?

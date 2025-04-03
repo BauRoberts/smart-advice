@@ -118,8 +118,8 @@ export default function Home() {
               <Image
                 src="/images/smart-advice-logo.png"
                 alt="Smart Advice"
-                width={300}
-                height={300}
+                width={200}
+                height={200}
                 className="mb-4"
               />
             </div>

@@ -1,4 +1,4 @@
-"use client";
+// components/fmors / steps / FabricacionFormStep.tsx;
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,10 +20,10 @@ import { InfoTooltip } from "@/components/ui/InfoTooltip";
 // Schema for Fabricación Step
 const fabricacionSchema = z.object({
   // Detalles del producto
-  producto_intermedio_final: z.boolean().default(false),
+  producto_intermedio_final: z.enum(["intermedio", "final"]),
   producto_consumo_humano: z.boolean().default(false),
 
-  // Alcance geográfico
+  // El resto del schema permanece igual
   alcance_geografico: z.enum([
     "espana_andorra",
     "union_europea",
@@ -54,12 +54,48 @@ export default function FabricacionFormStep({
   onBack,
   defaultValues = {},
 }: FabricacionStepProps) {
+  console.log("DEBUG - FabricacionFormStep - defaultValues:", defaultValues);
+
+  // Asegurar que siempre haya valores por defecto para los campos críticos
+  // Modificación de mergedDefaultValues
+  const mergedDefaultValues = {
+    producto_intermedio_final:
+      defaultValues.producto_intermedio_final &&
+      (defaultValues.producto_intermedio_final === "intermedio" ||
+        defaultValues.producto_intermedio_final === "final")
+        ? defaultValues.producto_intermedio_final
+        : ("intermedio" as "intermedio" | "final"),
+    producto_consumo_humano: defaultValues.producto_consumo_humano === true,
+    alcance_geografico:
+      defaultValues.alcance_geografico &&
+      [
+        "espana_andorra",
+        "union_europea",
+        "europa_reino_unido",
+        "mundial_excepto_usa_canada",
+        "mundial_incluyendo_usa_canada",
+      ].includes(defaultValues.alcance_geografico)
+        ? defaultValues.alcance_geografico
+        : "espana_andorra",
+    // Los demás campos pueden continuar igual
+    facturacion_espana_andorra: defaultValues.facturacion_espana_andorra,
+    facturacion_union_europea: defaultValues.facturacion_union_europea,
+    facturacion_reino_unido: defaultValues.facturacion_reino_unido,
+    facturacion_resto_mundo: defaultValues.facturacion_resto_mundo,
+    facturacion_usa_canada: defaultValues.facturacion_usa_canada,
+  };
+
+  console.log(
+    "DEBUG - FabricacionFormStep - mergedDefaultValues:",
+    mergedDefaultValues
+  );
+
   const form = useForm<FabricacionData>({
     resolver: zodResolver(fabricacionSchema),
     defaultValues: {
-      producto_intermedio_final: false,
+      producto_intermedio_final: "intermedio" as const,
       producto_consumo_humano: false,
-      alcance_geografico: "espana_andorra",
+      alcance_geografico: "espana_andorra" as const,
       ...defaultValues,
     },
   });
@@ -67,16 +103,48 @@ export default function FabricacionFormStep({
   const alcanceGeografico = form.watch("alcance_geografico");
   const mostrarDetallesRegion = alcanceGeografico !== "espana_andorra";
 
+  // Añadir logs para verificar los valores mientras el formulario está activo
+  console.log("DEBUG - Form values:", form.getValues());
+
   function onSubmit(data: FabricacionData) {
-    onNext(data);
+    // Agregar log para verificar los datos antes de enviarlos
+    console.log(
+      "DEBUG - Datos del formulario de fabricación antes de procesar:",
+      data
+    );
+
+    // Asegurarse de que siempre incluya producto_intermedio_final y producto_consumo_humano
+    // con valores explícitos para evitar problemas de tipo
+    const completedData: FabricacionData = {
+      ...data,
+      producto_intermedio_final:
+        data.producto_intermedio_final === "intermedio"
+          ? "intermedio"
+          : "final",
+      producto_consumo_humano: data.producto_consumo_humano === true,
+      alcance_geografico: data.alcance_geografico,
+      facturacion_espana_andorra: data.facturacion_espana_andorra,
+      facturacion_union_europea: data.facturacion_union_europea,
+      facturacion_reino_unido: data.facturacion_reino_unido,
+      facturacion_resto_mundo: data.facturacion_resto_mundo,
+      facturacion_usa_canada: data.facturacion_usa_canada,
+    };
+
+    console.log("DEBUG - Datos completos a enviar:", completedData);
+    console.log("DEBUG - Valores críticos:", {
+      producto_intermedio_final: completedData.producto_intermedio_final,
+      producto_consumo_humano: completedData.producto_consumo_humano,
+    });
+
+    onNext(completedData);
   }
 
   return (
     <FormLayout
       title="Fabricación y Diseño"
       subtitle="Información sobre tus productos y alcance geográfico"
-      currentStep={3} // This is step 3 of 6 total steps
-      totalSteps={6} // Total steps is 6 (including summary)
+      currentStep={3}
+      totalSteps={6}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}
     >
@@ -87,81 +155,76 @@ export default function FabricacionFormStep({
               Porque Diseñas, Fabricas o vendes productos
             </h3>
 
-            {/* Tipo de producto */}
+            {/* Tipo de producto - Simplificado */}
             <FormField
               control={form.control}
               name="producto_intermedio_final"
               render={({ field }) => (
                 <FormItem className="mb-4">
-                  <div className="flex items-center justify-between">
+                  <div className="space-y-3">
                     <FormLabel className="text-base font-normal">
                       ¿Tu producto es intermedio o final?
                     </FormLabel>
-                    <div className="flex space-x-4">
-                      <div className="flex items-center space-x-2">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={(checked) =>
-                              field.onChange(checked === true)
-                            }
-                          />
-                        </FormControl>
-                        <span className="text-base">Sí</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <FormControl>
-                          <Checkbox
-                            checked={!field.value}
-                            onCheckedChange={(checked) =>
-                              field.onChange(checked !== true)
-                            }
-                          />
-                        </FormControl>
-                        <span className="text-base">No</span>
-                      </div>
-                    </div>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={(value) => {
+                          console.log("Radio cambiado a:", value);
+                          field.onChange(value);
+                        }}
+                        value={field.value}
+                        className="flex space-x-8"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="intermedio" id="intermedio" />
+                          <FormLabel
+                            htmlFor="intermedio"
+                            className="font-normal"
+                          >
+                            Intermedio
+                          </FormLabel>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="final" id="final" />
+                          <FormLabel htmlFor="final" className="font-normal">
+                            Final
+                          </FormLabel>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
                   </div>
+                  <FormDescription className="text-xs mt-1">
+                    Producto intermedio: para uso en otros productos. Producto
+                    final: para uso directo por el consumidor.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Consumo humano */}
+            {/* Consumo humano - Simplificado a un único checkbox */}
             <FormField
               control={form.control}
               name="producto_consumo_humano"
               render={({ field }) => (
                 <FormItem className="mb-4">
-                  <div className="flex items-center justify-between">
-                    <FormLabel className="text-base font-normal">
+                  <div className="flex items-center space-x-3">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={(checked) => {
+                          console.log("Checkbox cambiado a:", checked);
+                          field.onChange(checked === true);
+                        }}
+                        id="consumo-humano"
+                      />
+                    </FormControl>
+                    <FormLabel
+                      htmlFor="consumo-humano"
+                      className="font-normal cursor-pointer"
+                    >
                       ¿Tu producto está destinado al consumo humano o contacto
                       directo con el cuerpo?
                     </FormLabel>
-                    <div className="flex space-x-4">
-                      <div className="flex items-center space-x-2">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={(checked) =>
-                              field.onChange(checked === true)
-                            }
-                          />
-                        </FormControl>
-                        <span className="text-base">Sí</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <FormControl>
-                          <Checkbox
-                            checked={!field.value}
-                            onCheckedChange={(checked) =>
-                              field.onChange(checked !== true)
-                            }
-                          />
-                        </FormControl>
-                        <span className="text-base">No</span>
-                      </div>
-                    </div>
                   </div>
                   <FormMessage />
                 </FormItem>

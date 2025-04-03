@@ -20,7 +20,7 @@ import CoberturasFormStep from "@/components/forms/steps/CoberturasFormStep";
 import FormSummaryStep from "@/components/forms/steps/FormSummaryStep";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { useToast } from "@/components/ui/use-toast";
-import { getOrCreateTempSession } from "@/lib/session";
+import { getOrCreateTempSession, getEffectiveSessionId } from "@/lib/session";
 import FabricacionFormStep from "@/components/forms/steps/FabricacionFormStep";
 import SiniestralidadStep from "@/components/forms/steps/SiniestralidadStep";
 
@@ -105,6 +105,9 @@ function ResponsabilidadCivilFormContent() {
 
   // Step 3: Activity-specific details based on company type
   const handleActividadNext = (data: any) => {
+    // Log para depuración
+    console.log("DEBUG - handleActividadNext:", data, formData);
+
     // Guardar datos según el tipo de actividad
     const providesServices = formData.company?.provides_services || false;
     const hasOtherOptions =
@@ -121,9 +124,21 @@ function ResponsabilidadCivilFormContent() {
       });
     } else {
       // Si tiene manufactura u otras opciones, guardar en el contexto de manufactura
+      // Asegurarse de preservar todos los datos de manufactura existentes
+      const currentManufacturaData = formData.actividad?.manufactura || {};
+      const updatedManufacturaData = {
+        ...currentManufacturaData,
+        ...data,
+      };
+
+      console.log(
+        "DEBUG - Datos actualizados de manufactura:",
+        updatedManufacturaData
+      );
+
       dispatch({
         type: "SET_ACTIVIDAD_MANUFACTURA",
-        payload: data,
+        payload: updatedManufacturaData,
       });
     }
 
@@ -143,10 +158,70 @@ function ResponsabilidadCivilFormContent() {
   // Función para manejar la navegación entre subpasos
   const handleSubStepNext = (data: any, isManufactura: boolean) => {
     if (isManufactura) {
-      // Guardar datos de fabricación
+      // Log detallado de los datos recibidos
+      console.log(
+        "DEBUG - handleSubStepNext (manufactura) - DATOS RECIBIDOS:",
+        data
+      );
+
+      // Log más explícito para ver exactamente la estructura JSON
+      console.log(
+        "DEBUG - DATOS CRUDOS RECIBIDOS DE FABRICACIÓN:",
+        JSON.stringify(data)
+      );
+
+      // Verificar si los campos necesarios están presentes
+      console.log(
+        "DEBUG - handleSubStepNext - ¿producto_intermedio_final existe?",
+        "producto_intermedio_final" in data
+      );
+      console.log(
+        "DEBUG - handleSubStepNext - ¿producto_consumo_humano existe?",
+        "producto_consumo_humano" in data
+      );
+
+      // Verificación más detallada de los campos críticos
+      console.log("CAMPOS CRÍTICOS:", {
+        "producto_intermedio_final existe": "producto_intermedio_final" in data,
+        "valor de producto_intermedio_final": data.producto_intermedio_final,
+        "tipo de producto_intermedio_final":
+          typeof data.producto_intermedio_final,
+
+        "producto_consumo_humano existe": "producto_consumo_humano" in data,
+        "valor de producto_consumo_humano": data.producto_consumo_humano,
+        "tipo de producto_consumo_humano": typeof data.producto_consumo_humano,
+      });
+
+      // Asegurarse de que los campos específicos se preserven con valores explícitos
+      const manufacturaData = {
+        ...data,
+        // Asegurar que estos campos siempre estén presentes
+        producto_intermedio_final:
+          data.producto_intermedio_final === "intermedio"
+            ? "intermedio"
+            : "final",
+        producto_consumo_humano: data.producto_consumo_humano === true,
+      };
+
+      console.log(
+        "DEBUG - handleSubStepNext - Datos procesados de manufactura:",
+        manufacturaData
+      );
+      console.log("DEBUG - handleSubStepNext - Valores críticos finales:", {
+        producto_intermedio_final: manufacturaData.producto_intermedio_final,
+        producto_consumo_humano: manufacturaData.producto_consumo_humano,
+      });
+
+      // Log final de los datos que se enviarán al reducer
+      console.log(
+        "DATOS FINALES QUE SE ENVÍAN AL REDUCER:",
+        JSON.stringify(manufacturaData)
+      );
+
+      // Guardar datos de fabricación con los campos garantizados
       dispatch({
         type: "SET_ACTIVIDAD_MANUFACTURA",
-        payload: data,
+        payload: manufacturaData,
       });
 
       // Si hay servicios también, ir al segundo subpaso
@@ -154,9 +229,12 @@ function ResponsabilidadCivilFormContent() {
         setSubStep(2);
       } else {
         // Si no hay servicios, seguir al siguiente paso principal
-        handleActividadNext(data);
+        handleActividadNext(manufacturaData);
       }
     } else {
+      // Log para depuración
+      console.log("DEBUG - handleSubStepNext (servicios):", data);
+
       // Guardar datos de servicios
       dispatch({
         type: "SET_ACTIVIDAD_SERVICIOS",
@@ -263,13 +341,49 @@ function ResponsabilidadCivilFormContent() {
     goToStep(4);
   };
 
-  // Step 6: Summary and submission
+  // En ResponsabilidadCivilForm.tsx, modifica la función handleSubmit
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
+      // Forzar el uso de sessionId desde localStorage si está disponible
+      // o crear uno nuevo si es necesario
+      const tempSessionId =
+        localStorage.getItem("smart_advice_temp_session_id") || "";
+      const permanentSessionId =
+        localStorage.getItem("smart_advice_session_id") || "";
+      const sessionId =
+        permanentSessionId || tempSessionId || crypto.randomUUID();
+
+      console.log("Usando session_id para enviar formulario:", sessionId);
+      console.log("===== DEBUG LOCALSTORAGE =====");
+      console.log(
+        "smart_advice_session_id:",
+        localStorage.getItem("smart_advice_session_id")
+      );
+      console.log(
+        "smart_advice_temp_session_id:",
+        localStorage.getItem("smart_advice_temp_session_id")
+      );
+      console.log(
+        "last_used_session_id:",
+        localStorage.getItem("last_used_session_id")
+      );
+      console.log(
+        "last_used_form_session_id:",
+        localStorage.getItem("last_used_form_session_id")
+      );
+      console.log("session_id:", localStorage.getItem("session_id"));
+      console.log("formData:", localStorage.getItem("formData"));
+      console.log("===== END DEBUG LOCALSTORAGE =====");
       console.log("Iniciando envío del formulario...");
       const result = await submitForm();
       console.log("Formulario enviado exitosamente:", result);
+
+      // Forzar el uso del mismo session_id para la redirección
+      console.log("Usando session_id para redirección:", sessionId);
+
+      // Guardar este session_id en localStorage con una clave específica para este propósito
+      localStorage.setItem("last_used_form_session_id", sessionId);
 
       toast({
         title: "Formulario enviado",
@@ -277,9 +391,12 @@ function ResponsabilidadCivilFormContent() {
         duration: 2000,
       });
 
-      // Redirect to recommendations page with the form type parameter
+      // Redirect to recommendations page with EXPLICIT session_id
       setTimeout(() => {
-        router.push(`/recomendaciones?tipo=responsabilidad_civil`);
+        // Forzar el uso del mismo session_id en la redirección
+        const redirectUrl = `/recomendaciones?tipo=responsabilidad_civil&session_id=${sessionId}`;
+        console.log("Redirigiendo a:", redirectUrl);
+        router.push(redirectUrl);
       }, 2000);
     } catch (error) {
       console.error("Error al enviar formulario:", error);
@@ -541,7 +658,6 @@ function ResponsabilidadCivilFormContent() {
   );
 }
 
-// Main component that wraps with context
 export default function ResponsabilidadCivilForm() {
   return (
     <FormProvider>

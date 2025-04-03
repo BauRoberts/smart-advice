@@ -68,7 +68,7 @@ export default function SiniestralidadStep({
       totalSteps={8}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}
-      isLastStep={true}
+      isLastStep={false}
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

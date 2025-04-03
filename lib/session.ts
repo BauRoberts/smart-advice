@@ -5,6 +5,7 @@ const isBrowser = typeof window !== "undefined";
 // Session token keys in localStorage
 const SESSION_TOKEN_KEY = "smart_advice_session_id"; // For permanent server-side sessions
 const TEMP_SESSION_TOKEN_KEY = "smart_advice_temp_session_id"; // For temporary client-side sessions
+const LAST_USED_SESSION_KEY = "last_used_session_id"; // Para la última sesión utilizada
 
 // Session data interface with expiration
 interface SessionData {
@@ -216,24 +217,44 @@ export function getAnySessionId(): string | null {
  * creating a temporary one if none exists
  */
 export function getEffectiveSessionId(): string {
-  // First try to get a permanent session ID
+  if (!isBrowser) return generateTempSessionId(); // Fallback para SSR
+
+  console.log("Getting effective session ID...");
+
+  // 1. Primero intentamos obtener la última sesión usada (para consistencia entre formulario y recomendaciones)
+  const lastUsedId = localStorage.getItem(LAST_USED_SESSION_KEY);
+  if (lastUsedId) {
+    console.log("Using last used session ID:", lastUsedId);
+    return lastUsedId;
+  }
+
+  // 2. Luego intentamos obtener una sesión permanente
   const permanentId = getSessionId();
   if (permanentId) {
     console.log("Using permanent session ID for API call:", permanentId);
+    // Guardar como última sesión usada para mantener consistencia
+    localStorage.setItem(LAST_USED_SESSION_KEY, permanentId);
     return permanentId;
   }
 
-  // Fall back to temporary session ID
+  // 3. Finalmente, usamos una sesión temporal
   const tempId = getTempSessionId();
   if (tempId) {
     console.log("Using temporary session ID for API call:", tempId);
+    // Guardar como última sesión usada para mantener consistencia
+    localStorage.setItem(LAST_USED_SESSION_KEY, tempId);
     return tempId;
   }
 
+  // 4. Si no hay ninguna sesión, creamos una nueva
   console.log("No session ID found - creating a new temporary session");
-  return getOrCreateTempSession();
+  const newTempId = getOrCreateTempSession();
+  // Guardar como última sesión usada para mantener consistencia
+  localStorage.setItem(LAST_USED_SESSION_KEY, newTempId);
+  return newTempId;
 }
 
+// Modificar la función clearAllSessions para incluir la limpieza de LAST_USED_SESSION_KEY
 /**
  * Clear all session data from localStorage
  */
@@ -241,6 +262,7 @@ export function clearAllSessions(): void {
   if (!isBrowser) return;
   localStorage.removeItem(SESSION_TOKEN_KEY);
   localStorage.removeItem(TEMP_SESSION_TOKEN_KEY);
+  localStorage.removeItem(LAST_USED_SESSION_KEY); // También limpiar la última sesión usada
   console.log("All session data cleared from localStorage");
 }
 

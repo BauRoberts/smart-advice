@@ -12,6 +12,7 @@ import { PreguntasGeneralesFormData } from "@/lib/schemas"; // Importar desde sc
 import { AdditionalCoverageData } from "@/components/forms/steps/AdditionalCoverageStep";
 import { InformacionGeneralData } from "@/components/forms/steps/InformacionGeneralStep";
 import { CapitalesYCoberturasData } from "@/components/forms/steps/CapitalesYCoberturasStep"; // Importar el nuevo tipo
+import { getEffectiveSessionId } from "@/lib/session"; // Importamos getEffectiveSessionId
 
 export interface FormData {
   form_type: string;
@@ -262,16 +263,42 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
   }, [formData]);
 
   // Función para enviar el formulario
+  // En FormContext.tsx, modificar submitForm
+
   const submitForm = async () => {
     try {
       const apiUrl = `/api/forms/${formData.form_type}`;
+
+      // Intentar obtener consistentemente el mismo session_id
+      const tempSessionId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("smart_advice_temp_session_id")
+          : null;
+      const permanentSessionId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("smart_advice_session_id")
+          : null;
+      const lastUsedSessionId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("last_used_form_session_id")
+          : null;
+
+      // Priorizar: session_id guardado específicamente > permanente > temporal > getEffectiveSessionId
+      const sessionId =
+        lastUsedSessionId ||
+        permanentSessionId ||
+        tempSessionId ||
+        getEffectiveSessionId();
+
+      console.log("Enviando formulario con session_id:", sessionId);
+
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          session_id: getSessionId(),
+          session_id: sessionId,
           form_data: formData,
         }),
       });
@@ -280,22 +307,27 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
         throw new Error(`Error: ${response.status} ${response.statusText}`);
       }
 
-      return await response.json();
+      const result = await response.json();
+
+      // Guardar el session_id usado para este formulario específicamente
+      if (typeof window !== "undefined") {
+        localStorage.setItem("last_used_form_session_id", sessionId);
+        console.log(
+          "Session ID guardado en last_used_form_session_id:",
+          sessionId
+        );
+      }
+
+      // Añadir el session_id al resultado si no está presente
+      if (!result.session_id) {
+        result.session_id = sessionId;
+      }
+
+      return result;
     } catch (error) {
       console.error("Error submitting form:", error);
       throw error;
     }
-  };
-
-  // Función auxiliar para obtener el ID de sesión
-  const getSessionId = () => {
-    if (typeof window !== "undefined") {
-      return (
-        localStorage.getItem("session_id") ||
-        localStorage.getItem("smart_advice_session_id")
-      );
-    }
-    return null;
   };
 
   return (

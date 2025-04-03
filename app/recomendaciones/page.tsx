@@ -76,19 +76,66 @@ function RecomendacionesContent() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const tipo = searchParams.get("tipo");
-
+  const urlSessionId = searchParams.get("session_id");
   useEffect(() => {
+    // Debug de localStorage
+    if (typeof window !== "undefined") {
+      console.log("===== DEBUG LOCALSTORAGE EN RECOMENDACIONES =====");
+      console.log(
+        "smart_advice_session_id:",
+        localStorage.getItem("smart_advice_session_id")
+      );
+      console.log(
+        "smart_advice_temp_session_id:",
+        localStorage.getItem("smart_advice_temp_session_id")
+      );
+      console.log(
+        "last_used_session_id:",
+        localStorage.getItem("last_used_session_id")
+      );
+      console.log(
+        "last_used_form_session_id:",
+        localStorage.getItem("last_used_form_session_id")
+      );
+      console.log("session_id:", localStorage.getItem("session_id"));
+      console.log("formData:", localStorage.getItem("formData"));
+      console.log("===== END DEBUG LOCALSTORAGE EN RECOMENDACIONES =====");
+    }
+
     async function fetchData() {
       try {
         setLoading(true);
-        const sessionId = getEffectiveSessionId();
+
+        // Obtener el session_id de los parámetros de URL
+        const urlSessionId = searchParams.get("session_id");
+
+        // Intentar obtener session_id guardado específicamente del formulario
+        const lastFormSessionId =
+          typeof window !== "undefined"
+            ? localStorage.getItem("last_used_form_session_id")
+            : null;
+
+        // Intentar obtener cualquier session_id disponible como último recurso
+        const effectiveSessionId = getEffectiveSessionId();
+
+        // Priorizar URL > formulario guardado > session_id efectivo
+        const sessionId =
+          urlSessionId || lastFormSessionId || effectiveSessionId;
 
         console.log("===== RECOMENDACIONES PAGE DEBUG =====");
-        console.log("Session ID:", sessionId);
+        console.log("Session ID from URL:", urlSessionId);
+        console.log("Session ID from last form:", lastFormSessionId);
+        console.log("Effective Session ID:", effectiveSessionId);
+        console.log("Final Session ID used:", sessionId);
         console.log("Form Type:", tipo);
 
         if (!sessionId) {
           throw new Error("No session ID found");
+        }
+
+        // Si tenemos un session_id, guardarlo para mantener consistencia
+        if (typeof window !== "undefined") {
+          localStorage.setItem("last_used_form_session_id", sessionId);
         }
 
         // Fetch coverages
@@ -100,6 +147,8 @@ function RecomendacionesContent() {
             tipo ? `&form_type=${tipo}` : ""
           }`
         );
+
+        // [Resto del código sin cambios]
 
         if (!coveragesResponse.ok) {
           console.error(
@@ -146,7 +195,7 @@ function RecomendacionesContent() {
     }
 
     fetchData();
-  }, [tipo]);
+  }, [tipo, urlSessionId]);
 
   // Formatear el número con separador de miles
   const formatNumber = (num?: number) => {

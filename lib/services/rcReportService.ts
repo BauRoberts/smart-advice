@@ -438,7 +438,15 @@ export const generateRCInsuranceReport = async (
     }
 
     // Responsabilidad civil por unión y mezcla (si es producto intermedio)
-    if (recommendation.actividad?.manufactura?.producto_intermedio_final) {
+    // Responsabilidad civil por unión y mezcla (si es producto intermedio)
+    // Responsabilidad civil por unión y mezcla (si es producto intermedio)
+    if (
+      recommendation.actividad?.manufactura?.producto_intermedio_final ===
+        "intermedio" ||
+      (recommendation.actividad?.manufactura &&
+        recommendation.actividad.manufactura.producto_intermedio_final ===
+          "intermedio")
+    ) {
       garantias.push({
         name: "Responsabilidad civil por unión y mezcla",
         condition: "Límite sugerido: entre 100.000€ a 600.000€",
@@ -448,7 +456,12 @@ export const generateRCInsuranceReport = async (
     }
 
     // Gastos de retirada (si es consumo humano)
-    if (recommendation.actividad?.manufactura?.producto_consumo_humano) {
+    // Gastos de retirada (si es consumo humano)
+    if (
+      recommendation.actividad?.manufactura?.producto_consumo_humano === true ||
+      (recommendation.actividad?.manufactura &&
+        recommendation.actividad.manufactura.producto_consumo_humano === true)
+    ) {
       garantias.push({
         name: "Gastos de retirada",
         condition: "Límite sugerido: entre 100.000€ y 600.000€",
@@ -603,55 +616,106 @@ export const generateRCInsuranceReport = async (
       });
     }
 
-    // Generar tabla de garantías
-    for (const garantia of garantias) {
-      const garantiaTable = {
-        head: [] as string[][],
-        body: [
-          [
-            `${garantia.name}${
-              garantia.limit ? ` con límite de ${garantia.limit}` : ""
-            }${
-              garantia.sublimit
-                ? ` y sublímite de víctima patronal por ${garantia.sublimit}`
-                : ""
-            }${garantia.condition ? ". " + garantia.condition : ""}`,
-          ],
-        ] as string[][],
-      };
+    // Generar tabla compacta de garantías
+    // Generar tabla compacta de garantías
+    console.log(`Se encontraron ${garantias.length} garantías para mostrar`);
+    console.log(
+      "Garantías: ",
+      garantias.map((g) => g.name)
+    );
 
-      autoTable(doc, {
-        startY: currentY,
-        head: garantiaTable.head,
-        body: garantiaTable.body,
-        theme: "plain",
-        styles: {
-          fontSize: 11,
-          cellPadding: { top: 4, right: 5, bottom: 4, left: 5 },
-          textColor: COLORS.primary as Color,
-          fontStyle: "bold" as FontStyle,
-        },
-        headStyles: {
-          fillColor: COLORS.lightGray as Color,
-        },
+    // Ahora, crear datos para la tabla de garantías
+    const garantiasTableData: [string, string][] = [];
+
+    // Si hay coberturas en la recomendación original, usarlas directamente
+    if (recommendation.coverages && recommendation.coverages.length > 0) {
+      console.log(
+        `Detectadas ${recommendation.coverages.length} coberturas en la API`
+      );
+
+      // Recorrer las coberturas y añadirlas a la tabla
+      recommendation.coverages.forEach((coverage: any) => {
+        // Construir la descripción
+        let descripcion =
+          "Proporciona cobertura para riesgos específicos relacionados con tu actividad empresarial";
+        let limitesInfo = "";
+
+        // Buscar información más detallada si está disponible
+        const garantiaInfo = garantias.find((g) => g.name === coverage.name);
+        if (garantiaInfo) {
+          descripcion = garantiaInfo.description;
+
+          // Añadir ejemplo si existe, pero evitando duplicación de "Ejemplo:"
+          if (
+            garantiaInfo.example &&
+            !descripcion.includes(garantiaInfo.example)
+          ) {
+            const exampleText = garantiaInfo.example.startsWith("Ejemplo:")
+              ? garantiaInfo.example
+              : `Ejemplo: ${garantiaInfo.example}`;
+            descripcion += ` ${exampleText}`;
+          }
+        }
+
+        // Preparar información de límites
+        if (coverage.limit) {
+          limitesInfo = `Límite: ${coverage.limit}`;
+        }
+        if (coverage.sublimit) {
+          limitesInfo += limitesInfo
+            ? `, Sublímite: ${coverage.sublimit}`
+            : `Sublímite: ${coverage.sublimit}`;
+        }
+        if (coverage.condition && !limitesInfo.includes(coverage.condition)) {
+          limitesInfo += limitesInfo
+            ? `. ${coverage.condition}`
+            : `${coverage.condition}`;
+        }
+
+        // Añadir a la tabla con formato
+        garantiasTableData.push([
+          coverage.name,
+          descripcion + (limitesInfo ? `\n\n${limitesInfo}` : ""),
+        ]);
       });
 
-      currentY = (doc.lastAutoTable?.finalY || currentY) + 5;
+      // Crear la tabla
+      autoTable(doc, {
+        startY: currentY,
+        head: [["Garantía", "Descripción"]],
+        body: garantiasTableData,
+        theme: "striped",
+        styles: {
+          fontSize: 10,
+          cellPadding: { top: 6, right: 5, bottom: 6, left: 5 },
+        },
+        headStyles: {
+          fillColor: COLORS.primary as Color,
+          textColor: [255, 255, 255] as Color,
+          fontStyle: "bold" as FontStyle,
+        },
+        columnStyles: {
+          0: {
+            cellWidth: 80,
+            fontStyle: "bold" as FontStyle,
+            textColor: COLORS.primary as Color,
+          },
+          1: {
+            cellWidth: "auto",
+          },
+        },
+        alternateRowStyles: {
+          fillColor: [245, 247, 250] as Color,
+        },
+        // Garantizar que la tabla entre bien en la página
+        margin: { left: leftMargin, right: leftMargin },
+      });
 
-      // Descripción de la garantía
-      addText(garantia.description);
-
-      // Ejemplo si existe
-      if (garantia.example) {
-        addText(garantia.example);
-      }
-
-      // Nota importante si existe
-      if (garantia.important) {
-        addImportantNote(garantia.important);
-      } else {
-        currentY += 10; // Agregar espacio entre garantías
-      }
+      // Actualizar posición vertical
+      currentY = (doc.lastAutoTable?.finalY || currentY) + 15;
+    } else {
+      // Mostrar mensaje si no hay garantías
+      addText("No se han identificado garantías específicas para tu perfil.");
     }
 
     // Ámbito geográfico

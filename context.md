@@ -76,35 +76,54 @@ CREATE INDEX IF NOT EXISTS idx_contact_info_privacy_policy ON contact_info(priva
 Estructura del Proyecto
 
 autistaroberts@Bautistas-MacBook-Air smart-advice % tree -I "node_modules|.next|.git|package-lock.json|yarn.lock"
-── README.md
+├── **tests**
+│ └── integration
+│ └── responsabilidadCivil.test.ts
 ├── app
 │ ├── api
 │ │ ├── companies
 │ │ │ └── route.ts
 │ │ ├── contact
 │ │ │ └── route.ts
+│ │ ├── contact-message
+│ │ │ └── route.ts
+│ │ ├── email
+│ │ │ └── route.ts
 │ │ ├── forms
 │ │ │ ├── danos-materiales
 │ │ │ │ └── route.ts
-│ │ │ └── responsabilidad_civil
+│ │ │ ├── responsabilidad_civil
+│ │ │ │ └── route.ts
 │ │ │ └── route.ts
 │ │ ├── recomendaciones
 │ │ │ ├── coberturas
 │ │ │ │ └── route.ts
+│ │ │ ├── danos-materiales
+│ │ │ │ └── route.ts
+│ │ │ ├── email
+│ │ │ │ └── route.ts
+│ │ │ ├── productos
+│ │ │ │ └── route.ts
 │ │ │ └── route.ts
 │ │ ├── session
+│ │ │ ├── convert
+│ │ │ │ └── route.ts
 │ │ │ └── route.ts
 │ │ └── test-data
 │ │ └── route.ts
+│ ├── contacto
+│ │ └── page.tsx
 │ ├── danos-materiales
 │ │ └── page.tsx
-│ ├── favicon.png
-│ ├── globals.css
-│ ├── layout.tsx
-│ ├── page.tsx
+│ ├── politica-cookies
+│ │ └── page.tsx
 │ ├── politica-privacidad
 │ │ └── page.tsx
+│ ├── reclamacion-tercero
+│ │ └── page.tsx
 │ ├── recomendaciones
+│ │ ├── danos-materiales
+│ │ │ └── page.tsx
 │ │ └── page.tsx
 │ ├── responsabilidad-civil
 │ │ └── page.tsx
@@ -112,83 +131,116 @@ autistaroberts@Bautistas-MacBook-Air smart-advice % tree -I "node_modules|.next|
 │ │ └── page.tsx
 │ ├── seguros
 │ │ └── page.tsx
-│ └── servicios
+│ ├── servicios
+│ │ └── page.tsx
+│ ├── siniestros
+│ │ └── page.tsx
+│ ├── siniestros-form
+│ │ └── page.tsx
+│ ├── favicon.png
+│ ├── globals.css
+│ ├── layout.tsx
 │ └── page.tsx
 ├── components
-│ ├── CnaeSearch.tsx
-│ ├── CombinedCoverageRecommendations.tsx
-│ ├── Footer.tsx
-│ ├── Navbar.tsx
 │ ├── forms
+│ │ ├── steps
+│ │ │ ├── AdditionalCoverageStep.tsx
+│ │ │ ├── CapitalesStep.tsx
+│ │ │ ├── CapitalesYCoberturasStep.tsx
+│ │ │ ├── CoberturasFormStep.tsx
+│ │ │ ├── CompanyFormStep.tsx
+│ │ │ ├── ConstruccionStep.tsx
+│ │ │ ├── ContactFormStep.tsx
+│ │ │ ├── DanosResumenStep.tsx
+│ │ │ ├── FabricacionFormStep.tsx
+│ │ │ ├── FormSummaryStep.tsx
+│ │ │ ├── InformacionGeneralStep.tsx
+│ │ │ ├── ManufacturaFormStep.tsx
+│ │ │ ├── PreguntasGeneralesStep.tsx
+│ │ │ ├── ProteccionIncendiosStep.tsx
+│ │ │ ├── ProteccionRoboStep.tsx
+│ │ │ ├── ServicesFormStep.tsx
+│ │ │ ├── ServiciosFormStep.tsx
+│ │ │ └── SiniestralidadStep.tsx
 │ │ ├── DanosMaterialesForm.tsx
 │ │ ├── MultiStepForm.tsx
-│ │ ├── ResponsabilidadCivilForm.tsx
-│ │ └── steps
-│ │ ├── CapitalesStep.tsx
-│ │ ├── CoberturasFormStep.tsx
-│ │ ├── CompanyFormStep.tsx
-│ │ ├── ConstruccionStep.tsx
-│ │ ├── ContactFormStep.tsx
-│ │ ├── DanosResumenStep.tsx
-│ │ ├── FormSummaryStep.tsx
-│ │ ├── ManufacturaFormStep.tsx
-│ │ ├── ProteccionIncendiosStep.tsx
-│ │ ├── ProteccionRoboStep.tsx
-│ │ ├── ServiciosFormStep.tsx
-│ │ └── SiniestralidadStep.tsx
+│ │ └── ResponsabilidadCivilForm.tsx
 │ ├── layout
 │ │ └── FormLayout.tsx
 │ ├── providers
 │ │ └── ToastProvider.tsx
-│ └── ui
-│ ├── InfoTooltip.tsx
-│ ├── LoadingScreen.tsx
-│ ├── button.tsx
-│ ├── checkbox.tsx
-│ ├── command.tsx
-│ ├── dialog.tsx
-│ ├── form.tsx
-│ ├── input.tsx
-│ ├── label.tsx
-│ ├── popover.tsx
-│ ├── radio-group.tsx
-│ ├── select.tsx
-│ ├── textarea.tsx
-│ ├── toast.tsx
-│ └── tooltip.tsx
-├── components.json
-├── context.md
+│ ├── ui
+│ │ ├── InfoTooltip.tsx
+│ │ ├── LoadingScreen.tsx
+│ │ ├── SuccessDialog.tsx
+│ │ ├── button.tsx
+│ │ ├── checkbox.tsx
+│ │ ├── command.tsx
+│ │ ├── dialog.tsx
+│ │ ├── form.tsx
+│ │ ├── input.tsx
+│ │ ├── label.tsx
+│ │ ├── popover.tsx
+│ │ ├── radio-group.tsx
+│ │ ├── select.tsx
+│ │ ├── textarea.tsx
+│ │ ├── toast.tsx
+│ │ ├── tooltip.tsx
+│ │ └── use-toast.ts
+│ ├── CnaeSearch.tsx
+│ ├── CombinedCoverageRecommendations.tsx
+│ ├── ContactForm.tsx
+│ ├── DanosRecomendacionesContent.tsx
+│ ├── EmailRecommendations.tsx
+│ ├── Footer.tsx
+│ └── Navbar.tsx
 ├── contexts
 │ ├── DanosFormContext.tsx
 │ └── FormContext.tsx
 ├── lib
-│ ├── schemas.ts
 │ ├── services
-│ │ └── cnaeService.ts
+│ │ ├── cnaeService.ts
+│ │ ├── emailService.ts
+│ │ ├── pdfGenerator.ts
+│ │ ├── rcEmailService.ts
+│ │ └── rcReportService.ts
+│ ├── email.ts
+│ ├── schemas.ts
 │ ├── session.ts
 │ ├── supabase.ts
 │ └── utils.ts
-├── next-env.d.ts
-├── next.config.js
-├── package.json
-├── postcss.config.js
-├── postcss.config.mjs
 ├── public
-│ ├── favicon.png
+│ ├── documents
+│ │ └── Declaracion-Amistosa-de-parte.pdf
 │ ├── favicons
 │ │ └── smart-advice-logo.png
-│ ├── file.svg
-│ ├── globe.svg
 │ ├── images
 │ │ ├── legal-pattern.png
 │ │ └── smart-advice-logo.png
+│ ├── favicon.png
+│ ├── file.svg
+│ ├── globe.svg
 │ ├── next.svg
 │ ├── vercel.svg
 │ └── window.svg
+├── types
+│ └── index.ts
+├── # Code Citations.md
+├── README.md
+├── components.json
+├── context.md
+├── jest.config.js
+├── jest.setup.js
+├── next-env.d.ts
+├── next.config.js
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── postcss.config.mjs
+├── recomendacionesRC.md
+├── run-tests.sh
 ├── tailwind.config.js
-├── tsconfig.json
-└── types
-└── index.ts
+└── tsconfig.json
 
 Flujo de Datos
 Inicio:
@@ -291,4 +343,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-Quiero hacer que todos los inputs de numeros que usemos en los formularios tengan separadores de miles! Como podemos hacer esto ?
+Quiero cambiar el resumen que te da cuando terminas los forms. Ahora estamos usando el mismo para los dos formularios, pero deberiamos usar uno diferente para cada uno.

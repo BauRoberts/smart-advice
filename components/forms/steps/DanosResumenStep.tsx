@@ -1,8 +1,8 @@
-// components/forms/steps/DanosResumenStep.tsx
 "use client";
 
-import FormLayout from "@/components/layout/FormLayout";
-import { useFormContext } from "@/contexts/FormContext";
+import FormSummaryStep from "./FormSummaryStep";
+import { useDanosFormContext } from "@/contexts/DanosFormContext";
+import { FormData } from "@/contexts/FormContext"; // Importamos el tipo FormData del contexto general
 
 interface DanosResumenStepProps {
   onSubmit: () => void;
@@ -15,390 +15,149 @@ export default function DanosResumenStep({
   onBack,
   isSubmitting,
 }: DanosResumenStepProps) {
-  const { formData } = useFormContext();
+  // Utilizamos el contexto de formulario de daños para acceder a los datos
+  const { formData: danosFormData } = useDanosFormContext();
 
-  // Función para formatear valores monetarios
-  const formatCurrency = (value?: number) => {
-    if (value === undefined || value === 0) return "No especificado";
-    return new Intl.NumberFormat("es-ES", {
-      style: "currency",
-      currency: "EUR",
-    }).format(value);
+  // Creamos un adaptador que convierta danosFormData al formato esperado por FormSummaryStep
+  const adaptedFormData: FormData = {
+    // Campos básicos requeridos por FormData
+    form_type: "danos-materiales",
+    step: danosFormData.step || 1,
+
+    // Adaptar contacto a contact
+    contact: {
+      name: danosFormData.contacto?.name || "",
+      email: danosFormData.contacto?.email || "",
+      phone: danosFormData.contacto?.phone || "",
+    },
+
+    // Adaptar empresa a company
+    company: {
+      name: danosFormData.empresa?.actividad || "",
+      cnae_code: danosFormData.empresa?.cnae_code || "",
+      activity: danosFormData.empresa?.actividad || "",
+      employees_number: danosFormData.empresa?.num_trabajadores || 0,
+      billing: danosFormData.empresa?.facturacion || 0,
+      online_invoice: danosFormData.empresa?.facturacion_online || false,
+      online_invoice_percentage:
+        danosFormData.empresa?.facturacion_online_porcentaje || 0,
+      m2_installations: danosFormData.empresa?.metros_cuadrados || 0,
+    },
+
+    // Información general (puede estar vacío para daños, pero necesitamos tenerlo)
+    informacion_general: {
+      name: danosFormData.empresa?.actividad || "",
+      activity: danosFormData.empresa?.actividad || "",
+      cnae_code: danosFormData.empresa?.cnae_code || "",
+      employees_number: danosFormData.empresa?.num_trabajadores || 0,
+      billing: danosFormData.empresa?.facturacion || 0,
+      online_invoice: danosFormData.empresa?.facturacion_online || false,
+      online_invoice_percentage:
+        danosFormData.empresa?.facturacion_online_porcentaje || 0,
+      m2_installations: danosFormData.empresa?.metros_cuadrados || 0,
+    },
+
+    // Valores por defecto para campos RC que no aplican a daños
+    empresaTipo: null,
+    actividad: { manufactura: {}, servicios: {} },
+    preguntas_generales: {},
+    ambito_territorial: "",
+
+    // Adaptar capitales
+    capitales_y_coberturas: {
+      valor_edificio: danosFormData.capitales?.valor_edificio || 0,
+      valor_ajuar: danosFormData.capitales?.valor_ajuar || 0,
+      valor_existencias: danosFormData.capitales?.valor_existencias || 0,
+      valor_equipo_electronico:
+        danosFormData.capitales?.valor_equipo_electronico || 0,
+      margen_bruto_anual: danosFormData.capitales?.margen_bruto_anual || 0,
+      existencias_terceros:
+        danosFormData.capitales?.existencias_terceros || false,
+      existencias_propias_terceros:
+        danosFormData.capitales?.existencias_propias_terceros || false,
+      responsabilidad_civil: true, // Indicar que tiene RC en daños materiales
+      coberturas_rc: {
+        explotacion: true,
+        patronal: true,
+        productos: false,
+        inmobiliaria: true,
+        locativa: true,
+      },
+    },
+
+    // Adaptar construcción
+    construccion: {
+      tipo_construccion: "Completa", // Valor por defecto
+      material_estructuras: danosFormData.construccion?.estructura || "",
+      material_cubierta: danosFormData.construccion?.cubierta || "",
+      material_cerramientos_ext: danosFormData.construccion?.cerramientos || "",
+      falsos_techos: false,
+      material_falsos_techos: "",
+    },
+
+    // Adaptar protección incendios
+    proteccion_incendios: {
+      extintores: danosFormData.proteccion_incendios?.extintores || false,
+      bocas_incendio:
+        danosFormData.proteccion_incendios?.bocas_incendio || false,
+      deposito_bombeo:
+        danosFormData.proteccion_incendios?.deposito_bombeo || false,
+      cobertura_total:
+        danosFormData.proteccion_incendios?.cobertura_total || false,
+      columnas_hidrantes:
+        danosFormData.proteccion_incendios?.columnas_hidrantes || false,
+      columnas_hidrantes_tipo:
+        danosFormData.proteccion_incendios?.columnas_hidrantes_tipo ||
+        undefined,
+      deteccion_automatica:
+        danosFormData.proteccion_incendios?.deteccion_automatica || false,
+      deteccion_zona: danosFormData.proteccion_incendios?.deteccion_zona || [],
+      rociadores: danosFormData.proteccion_incendios?.rociadores || false,
+      rociadores_zona:
+        danosFormData.proteccion_incendios?.rociadores_zona || [],
+      suministro_agua:
+        danosFormData.proteccion_incendios?.suministro_agua || "",
+    },
+
+    // Adaptar protección robo
+    proteccion_robo: {
+      protecciones_fisicas:
+        danosFormData.proteccion_robo?.protecciones_fisicas || false,
+      vigilancia_propia:
+        danosFormData.proteccion_robo?.vigilancia_propia || false,
+      alarma_conectada:
+        danosFormData.proteccion_robo?.alarma_conectada || false,
+      camaras_circuito:
+        danosFormData.proteccion_robo?.camaras_circuito || false,
+    },
+
+    // Adaptar siniestralidad
+    siniestralidad: {
+      has_siniestros:
+        danosFormData.siniestralidad?.siniestros_ultimos_3_anos || false,
+      numero_siniestros: 0,
+      importe_total: 0,
+      causa_siniestros: danosFormData.siniestralidad?.siniestros_detalles || "",
+    },
+
+    // Coberturas solicitadas (estructura requerida por FormData)
+    coberturas_solicitadas: {
+      exploitation: true,
+      patronal: true,
+      productos: false,
+      trabajos: false,
+      profesional: false,
+    },
   };
 
-  // Función para dar formato de texto a valores booleanos
-  const formatBoolean = (value?: boolean) => (value ? "Sí" : "No");
-
-  // Obtener tipo de suministro de agua como texto
-  const getSuministroAgua = () => {
-    const suministro = formData.proteccion_incendios?.suministro_agua;
-    if (!suministro) return "No especificado";
-
-    const labels: Record<string, string> = {
-      red_publica: "Red pública",
-      sistema_privado: "Sistema privado con grupo de bombeo y depósito propio",
-      no_tiene: "No tiene",
-    };
-
-    return labels[suministro] || suministro;
-  };
-
+  // Utilizamos el componente FormSummaryStep con el tipo "danos"
   return (
-    <FormLayout
-      title="Resumen del formulario"
-      subtitle="Revisa la información antes de enviar"
-      currentStep={7}
-      totalSteps={7}
-      onNext={onSubmit}
+    <FormSummaryStep
+      onSubmit={onSubmit}
       onBack={onBack}
+      formData={adaptedFormData}
       isSubmitting={isSubmitting}
-      isLastStep={true}
-    >
-      <div className="space-y-6">
-        {/* Datos de contacto */}
-        <div className="border-b pb-4">
-          <h3 className="text-lg font-medium mb-2">Datos de contacto</h3>
-          <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Nombre</dt>
-              <dd>{formData.contact?.name}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Email</dt>
-              <dd>{formData.contact?.email}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Teléfono</dt>
-              <dd>{formData.contact?.phone}</dd>
-            </div>
-          </dl>
-        </div>
-
-        {/* Datos de empresa */}
-        <div className="border-b pb-4">
-          <h3 className="text-lg font-medium mb-2">Datos de la empresa</h3>
-          <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Actividad (CNAE)
-              </dt>
-              <dd>
-                {formData.company?.cnae_code} - {formData.company?.activity}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Facturación anual
-              </dt>
-              <dd>{formatCurrency(formData.company?.billing)}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Número de empleados
-              </dt>
-              <dd>{formData.company?.employees_number}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Facturación online
-              </dt>
-              <dd>
-                {formData.company?.online_invoice
-                  ? `Sí (${formData.company.online_invoice_percentage}%)`
-                  : "No"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Tipo de instalaciones
-              </dt>
-              <dd>{formData.company?.installations_type}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Metros cuadrados
-              </dt>
-              <dd>{formData.company?.m2_installations} m²</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Almacena bienes de terceros
-              </dt>
-              <dd>
-                {formatBoolean(formData.company?.almacena_bienes_terceros)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Vehículos de terceros aparcados
-              </dt>
-              <dd>
-                {formatBoolean(formData.company?.vehiculos_terceros_aparcados)}
-              </dd>
-            </div>
-          </dl>
-        </div>
-
-        {/* Capitales a asegurar */}
-        <div className="border-b pb-4">
-          <h3 className="text-lg font-medium mb-2">Capitales a asegurar</h3>
-          <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Valor del edificio
-              </dt>
-              <dd>{formatCurrency(formData.capitales?.valor_edificio)}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Valor del ajuar
-              </dt>
-              <dd>{formatCurrency(formData.capitales?.valor_ajuar)}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Valor de existencias
-              </dt>
-              <dd>{formatCurrency(formData.capitales?.valor_existencias)}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Existencias de terceros
-              </dt>
-              <dd>{formatBoolean(formData.capitales?.existencias_terceros)}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Existencias propias en instalaciones de terceros
-              </dt>
-              <dd>
-                {formatBoolean(
-                  formData.capitales?.existencias_propias_terceros
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Valor equipo electrónico
-              </dt>
-              <dd>
-                {formatCurrency(formData.capitales?.valor_equipo_electronico)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Margen bruto anual
-              </dt>
-              <dd>{formatCurrency(formData.capitales?.margen_bruto_anual)}</dd>
-            </div>
-          </dl>
-        </div>
-
-        {/* Características constructivas */}
-        <div className="border-b pb-4">
-          <h3 className="text-lg font-medium mb-2">
-            Características constructivas
-          </h3>
-          <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Cubierta</dt>
-              <dd>{formData.construccion?.cubierta}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Cerramientos
-              </dt>
-              <dd>{formData.construccion?.cerramientos}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Estructura</dt>
-              <dd>{formData.construccion?.estructura}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Cámaras frigoríficas
-              </dt>
-              <dd>
-                {formatBoolean(formData.construccion?.camaras_frigorificas)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Placas solares
-              </dt>
-              <dd>{formatBoolean(formData.construccion?.placas_solares)}</dd>
-            </div>
-            {formData.construccion?.placas_solares && (
-              <div>
-                <dt className="text-sm font-medium text-gray-500">
-                  Valor placas solares
-                </dt>
-                <dd>
-                  {formatCurrency(formData.construccion?.valor_placas_solares)}
-                </dd>
-              </div>
-            )}
-          </dl>
-        </div>
-
-        {/* Protección contra incendios */}
-        <div className="border-b pb-4">
-          <h3 className="text-lg font-medium mb-2">
-            Protección contra incendios
-          </h3>
-          <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Extintores</dt>
-              <dd>
-                {formatBoolean(formData.proteccion_incendios?.extintores)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Bocas de incendio
-              </dt>
-              <dd>
-                {formatBoolean(formData.proteccion_incendios?.bocas_incendio)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Depósito propio y grupo de bombeo
-              </dt>
-              <dd>
-                {formatBoolean(formData.proteccion_incendios?.deposito_bombeo)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Cobertura total
-              </dt>
-              <dd>
-                {formatBoolean(formData.proteccion_incendios?.cobertura_total)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Columnas hidrantes
-              </dt>
-              <dd>
-                {formatBoolean(
-                  formData.proteccion_incendios?.columnas_hidrantes
-                )}
-              </dd>
-            </div>
-            {formData.proteccion_incendios?.columnas_hidrantes && (
-              <div>
-                <dt className="text-sm font-medium text-gray-500">
-                  Tipo de columnas hidrantes
-                </dt>
-                <dd>
-                  {formData.proteccion_incendios?.columnas_hidrantes_tipo ===
-                  "publico"
-                    ? "Público"
-                    : "Privado"}
-                </dd>
-              </div>
-            )}
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Detección automática
-              </dt>
-              <dd>
-                {formatBoolean(
-                  formData.proteccion_incendios?.deteccion_automatica
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Rociadores</dt>
-              <dd>
-                {formatBoolean(formData.proteccion_incendios?.rociadores)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Suministro de agua
-              </dt>
-              <dd>{getSuministroAgua()}</dd>
-            </div>
-          </dl>
-        </div>
-
-        {/* Protección contra robo */}
-        <div className="border-b pb-4">
-          <h3 className="text-lg font-medium mb-2">Protección contra robo</h3>
-          <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Protecciones físicas
-              </dt>
-              <dd>
-                {formatBoolean(formData.proteccion_robo?.protecciones_fisicas)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Vigilancia propia
-              </dt>
-              <dd>
-                {formatBoolean(formData.proteccion_robo?.vigilancia_propia)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Alarma conectada
-              </dt>
-              <dd>
-                {formatBoolean(formData.proteccion_robo?.alarma_conectada)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Cámaras de circuito cerrado
-              </dt>
-              <dd>
-                {formatBoolean(formData.proteccion_robo?.camaras_circuito)}
-              </dd>
-            </div>
-          </dl>
-        </div>
-
-        {/* Siniestralidad */}
-        <div>
-          <h3 className="text-lg font-medium mb-2">Siniestralidad</h3>
-          <dl className="grid grid-cols-1 gap-y-2">
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Siniestros en los últimos 3 años
-              </dt>
-              <dd>
-                {formatBoolean(
-                  formData.siniestralidad?.siniestros_ultimos_3_anos
-                )}
-              </dd>
-            </div>
-            {formData.siniestralidad?.siniestros_ultimos_3_anos &&
-              formData.siniestralidad?.siniestros_detalles && (
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">
-                    Detalles de siniestros
-                  </dt>
-                  <dd className="whitespace-pre-line">
-                    {formData.siniestralidad.siniestros_detalles}
-                  </dd>
-                </div>
-              )}
-          </dl>
-        </div>
-
-        <div className="pt-4 bg-blue-50 p-4 rounded-md">
-          <p className="text-sm text-blue-800">
-            Al hacer clic en &quot;Enviar&quot;, recibirás tus recomendaciones
-            personalizadas de seguros basadas en la información proporcionada.
-          </p>
-        </div>
-      </div>
-    </FormLayout>
+      formType="danos"
+    />
   );
 }

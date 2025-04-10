@@ -1,3 +1,5 @@
+///Users/bautistaroberts/smart-advice/ __tests__/integration/responsabilidadCivil.test.ts
+
 import { describe, it, expect, beforeEach, jest } from "@jest/globals";
 import { NextRequest, NextResponse } from "next/server";
 

@@ -1,3 +1,5 @@
+///Users/bautistaroberts/smart-advice/components/DanosRecomendacionesContent.tsx
+
 "use client";
 
 import { useEffect, useState } from "react";

@@ -17,7 +17,8 @@ import AdditionalCoverageStep, {
 import ServicesFormStep from "@/components/forms/steps/ServicesFormStep";
 import PreguntasGeneralesStep from "@/components/forms/steps/PreguntasGeneralesStep";
 import CoberturasFormStep from "@/components/forms/steps/CoberturasFormStep";
-import FormSummaryStep from "@/components/forms/steps/FormSummaryStep";
+import RCResumenStep from "@/components/forms/steps/RCResumenStep";
+
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { useToast } from "@/components/ui/use-toast";
 import { getOrCreateTempSession, getEffectiveSessionId } from "@/lib/session";
@@ -631,10 +632,9 @@ function ResponsabilidadCivilFormContent() {
         );
       case 6:
         return (
-          <FormSummaryStep
+          <RCResumenStep
             onSubmit={handleSubmit}
             onBack={handleSummaryBack}
-            formData={formData}
             isSubmitting={isSubmitting}
           />
         );

@@ -8,6 +8,7 @@ interface FormSummaryStepProps {
   onBack: () => void;
   formData: FormData;
   isSubmitting: boolean;
+  formType: "rc" | "danos"; // Nueva prop para distinguir el tipo de formulario
 }
 
 export default function FormSummaryStep({
@@ -15,6 +16,7 @@ export default function FormSummaryStep({
   onBack,
   formData,
   isSubmitting,
+  formType,
 }: FormSummaryStepProps) {
   // Crear una lista de regiones de distribución para mostrar
   const getDistribucionLabels = () => {
@@ -59,7 +61,7 @@ export default function FormSummaryStep({
       .map(([key, _]) => labels[key] || key);
   };
 
-  // Nueva función para obtener las coberturas RC de Daños Materiales
+  // Función para obtener las coberturas RC de Daños Materiales
   const getCoberturasRCDanos = () => {
     const capitalesYCoberturas = formData.capitales_y_coberturas || {};
     const coberturas = capitalesYCoberturas.coberturas_rc || {};
@@ -89,7 +91,7 @@ export default function FormSummaryStep({
       isLastStep={true}
     >
       <div className="space-y-6">
-        {/* Datos de contacto */}
+        {/* Datos de contacto - común para ambos formularios */}
         <div className="border-b pb-4">
           <h3 className="text-lg font-medium mb-2">Datos de contacto</h3>
           <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
@@ -108,7 +110,7 @@ export default function FormSummaryStep({
           </dl>
         </div>
 
-        {/* Información General (antes Datos de empresa) */}
+        {/* Información General - común para ambos formularios */}
         <div className="border-b pb-4">
           <h3 className="text-lg font-medium mb-2">Información General</h3>
           <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
@@ -179,37 +181,43 @@ export default function FormSummaryStep({
                   : "No"}
               </dd>
             </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Propiedad de instalaciones
-              </dt>
-              <dd>
-                {formData.informacion_general?.es_propietario === "si"
-                  ? "Propietario"
-                  : formData.informacion_general?.es_propietario === "no"
-                  ? `Arrendatario (Propietario: ${
-                      formData.informacion_general?.propietario_nombre || "-"
-                    })`
-                  : "-"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                M² de instalaciones
-              </dt>
-              <dd>
-                {formData.informacion_general?.m2_installations
-                  ? `${formData.informacion_general.m2_installations} m²`
-                  : formData.company.m2_installations
-                  ? `${formData.company.m2_installations} m²`
-                  : "-"}
-              </dd>
-            </div>
+            {/* Solo mostrar para el formulario de daños materiales */}
+            {formType === "danos" && (
+              <div>
+                <dt className="text-sm font-medium text-gray-500">
+                  Propiedad de instalaciones
+                </dt>
+                <dd>
+                  {formData.informacion_general?.es_propietario === "si"
+                    ? "Propietario"
+                    : formData.informacion_general?.es_propietario === "no"
+                    ? `Arrendatario (Propietario: ${
+                        formData.informacion_general?.propietario_nombre || "-"
+                      })`
+                    : "-"}
+                </dd>
+              </div>
+            )}
+            {/* Solo mostrar para el formulario de daños materiales */}
+            {formType === "danos" && (
+              <div>
+                <dt className="text-sm font-medium text-gray-500">
+                  M² de instalaciones
+                </dt>
+                <dd>
+                  {formData.informacion_general?.m2_installations
+                    ? `${formData.informacion_general.m2_installations} m²`
+                    : formData.company.m2_installations
+                    ? `${formData.company.m2_installations} m²`
+                    : "-"}
+                </dd>
+              </div>
+            )}
           </dl>
         </div>
 
-        {/* Información de instalaciones (antes Características constructivas) */}
-        {formData.construccion && (
+        {/* Información de instalaciones (antes Características constructivas) - Solo para Daños Materiales */}
+        {formType === "danos" && formData.construccion && (
           <div className="border-b pb-4">
             <h3 className="text-lg font-medium mb-2">
               Información de las Instalaciones
@@ -259,8 +267,8 @@ export default function FormSummaryStep({
           </div>
         )}
 
-        {/* Protecciones contra incendios */}
-        {formData.proteccion_incendios && (
+        {/* Protecciones contra incendios - Solo para Daños Materiales */}
+        {formType === "danos" && formData.proteccion_incendios && (
           <div className="border-b pb-4">
             <h3 className="text-lg font-medium mb-2">
               Protecciones contra Incendio
@@ -392,8 +400,8 @@ export default function FormSummaryStep({
           </div>
         )}
 
-        {/* Protecciones contra robo */}
-        {formData.proteccion_robo && (
+        {/* Protecciones contra robo - Solo para Daños Materiales */}
+        {formType === "danos" && formData.proteccion_robo && (
           <div className="border-b pb-4">
             <h3 className="text-lg font-medium mb-2">
               Protecciones contra Robo
@@ -435,8 +443,8 @@ export default function FormSummaryStep({
           </div>
         )}
 
-        {/* Capitales y Coberturas (nueva sección combinada) */}
-        {formData.capitales_y_coberturas && (
+        {/* Capitales y Coberturas - Solo para Daños Materiales */}
+        {formType === "danos" && formData.capitales_y_coberturas && (
           <div className="border-b pb-4">
             <h3 className="text-lg font-medium mb-2">
               Capitales a asegurar y Coberturas
@@ -711,7 +719,7 @@ export default function FormSummaryStep({
           </div>
         )}
 
-        {/* Siniestralidad */}
+        {/* Siniestralidad - Común para ambos formularios */}
         {formData.siniestralidad && (
           <div className="border-b pb-4">
             <h3 className="text-lg font-medium mb-2">Siniestralidad</h3>
@@ -758,8 +766,8 @@ export default function FormSummaryStep({
           </div>
         )}
 
-        {/* Si hay actividad de manufactura o servicios */}
-        {formData.empresaTipo && (
+        {/* Información específica de RC - Solo para formulario RC */}
+        {formType === "rc" && formData.empresaTipo && (
           <div className="border-b pb-4">
             <h3 className="text-lg font-medium mb-2">
               Información de{" "}
@@ -875,34 +883,35 @@ export default function FormSummaryStep({
           </div>
         )}
 
-        {/* Datos de coberturas */}
-        {Object.keys(formData.coberturas_solicitadas || {}).length > 0 && (
-          <div>
-            <h3 className="text-lg font-medium mb-2">
-              Ámbito territorial y coberturas
-            </h3>
-            <dl className="grid grid-cols-1 gap-y-2">
-              <div>
-                <dt className="text-sm font-medium text-gray-500">
-                  Ámbito territorial
-                </dt>
-                <dd>{formData.ambito_territorial}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">
-                  Coberturas solicitadas
-                </dt>
-                <dd>
-                  <ul className="list-disc list-inside">
-                    {getCoberturasSeleccionadas().map((cobertura, index) => (
-                      <li key={index}>{cobertura}</li>
-                    ))}
-                  </ul>
-                </dd>
-              </div>
-            </dl>
-          </div>
-        )}
+        {/* Datos de coberturas para RC */}
+        {formType === "rc" &&
+          Object.keys(formData.coberturas_solicitadas || {}).length > 0 && (
+            <div>
+              <h3 className="text-lg font-medium mb-2">
+                Ámbito territorial y coberturas
+              </h3>
+              <dl className="grid grid-cols-1 gap-y-2">
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">
+                    Ámbito territorial
+                  </dt>
+                  <dd>{formData.ambito_territorial}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">
+                    Coberturas solicitadas
+                  </dt>
+                  <dd>
+                    <ul className="list-disc list-inside">
+                      {getCoberturasSeleccionadas().map((cobertura, index) => (
+                        <li key={index}>{cobertura}</li>
+                      ))}
+                    </ul>
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          )}
 
         <div className="pt-4 bg-blue-50 p-4 rounded-md">
           <p className="text-sm text-blue-800">

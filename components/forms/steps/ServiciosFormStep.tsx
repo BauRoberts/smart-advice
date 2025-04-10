@@ -25,15 +25,23 @@ const serviciosSchema = z.object({
 export type ServiciosFormData = z.infer<typeof serviciosSchema>;
 
 interface ServiciosFormStepProps {
-  onNext: () => void;
+  onNext: (data: ServiciosFormData) => void;
   onBack: () => void;
   defaultValues?: Partial<ServiciosFormData>;
+  currentStep?: number; // Añadir esta propiedad
+  totalSteps?: number; // Añadir esta propiedad
+  subStep?: number; // Opcional para subpasos
+  totalSubSteps?: number; // Opcional para subpasos
 }
 
 export default function ServiciosFormStep({
   onNext,
   onBack,
   defaultValues = {},
+  currentStep = 3, // Valor predeterminado por si no se proporciona
+  totalSteps = 6, // Valor predeterminado
+  subStep,
+  totalSubSteps,
 }: ServiciosFormStepProps) {
   const { dispatch } = useFormContext();
 
@@ -86,8 +94,7 @@ export default function ServiciosFormStep({
 
   // Manejar el envío del formulario
   function onSubmit(data: ServiciosFormData) {
-    dispatch({ type: "SET_ACTIVIDAD_SERVICIOS", payload: data });
-    onNext();
+    onNext(data);
   }
 
   // Verificar si hay trabajos fuera de instalaciones
@@ -95,10 +102,14 @@ export default function ServiciosFormStep({
 
   return (
     <FormLayout
-      title="Información de servicios"
+      title={
+        subStep
+          ? `Información de servicios (Paso ${subStep} de ${totalSubSteps})`
+          : "Información de servicios"
+      }
       subtitle="Detalles sobre el tipo de servicios que ofrece tu empresa"
-      currentStep={4}
-      totalSteps={6}
+      currentStep={currentStep}
+      totalSteps={totalSteps}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}
     >

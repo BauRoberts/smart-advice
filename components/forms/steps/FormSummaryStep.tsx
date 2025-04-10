@@ -6,17 +6,20 @@ import FormLayout from "@/components/layout/FormLayout";
 interface FormSummaryStepProps {
   onSubmit: () => void;
   onBack: () => void;
-  formData: FormData;
+  formData: any;
   isSubmitting: boolean;
-  formType: "rc" | "danos"; // Nueva prop para distinguir el tipo de formulario
+  formType: string;
+  currentStep?: number; // Añadir esta propiedad
+  totalSteps?: number; // Añadir esta propiedad
 }
-
 export default function FormSummaryStep({
   onSubmit,
   onBack,
   formData,
   isSubmitting,
   formType,
+  currentStep = 5, // Valor por defecto
+  totalSteps = 5, // Valor por defecto
 }: FormSummaryStepProps) {
   // Crear una lista de regiones de distribución para mostrar
   const getDistribucionLabels = () => {
@@ -28,7 +31,7 @@ export default function FormSummaryStep({
       "mundial-con-usa": "Todo el mundo incluido USA y Canadá",
     };
 
-    return distribucion.map((id) => labels[id] || id).join(", ");
+    return distribucion.map((id: string) => labels[id] || id).join(", ");
   };
 
   // Crear una lista de filiales para mostrar
@@ -41,7 +44,7 @@ export default function FormSummaryStep({
     };
 
     return filiales.length > 0
-      ? filiales.map((id) => labels[id] || id).join(", ")
+      ? filiales.map((id: string) => labels[id] || id).join(", ")
       : "No tiene filiales";
   };
 
@@ -79,12 +82,17 @@ export default function FormSummaryStep({
       .map(([key, _]) => labels[key] || key);
   };
 
+  // Get the title based on form type
+  const getTitle = () => {
+    return formType === "danos" ? "Resumen Daños Materiales" : "Resumen RC";
+  };
+
   return (
     <FormLayout
-      title="Resumen del formulario"
+      title={getTitle()}
       subtitle="Revisa la información antes de enviar"
-      currentStep={8}
-      totalSteps={8}
+      currentStep={currentStep}
+      totalSteps={totalSteps}
       onNext={onSubmit}
       onBack={onBack}
       isSubmitting={isSubmitting}

@@ -1,6 +1,6 @@
 // components/forms/ResponsabilidadCivilForm.tsx
 "use client";
-
+import React from "react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FormProvider, useFormContext } from "@/contexts/FormContext";
@@ -45,6 +45,47 @@ interface ManufacturaData {
   afecta_edificios_vecinos?: boolean;
   afecta_instalaciones_subterraneas?: boolean;
   trabajos_bienes_preexistentes?: boolean;
+}
+function calculateTotalSteps(formData: any): number {
+  // Pasos base: Empresa, Coberturas adicionales, Siniestralidad, Contacto, Resumen
+  let totalSteps = 5;
+
+  // Verificar si debemos incluir el paso de actividad
+  const hasActivityOptions =
+    formData.company?.manufactures ||
+    formData.company?.markets ||
+    formData.company?.diseno ||
+    formData.company?.almacenamiento ||
+    formData.company?.provides_services;
+
+  if (hasActivityOptions) {
+    totalSteps += 1; // Añadir paso de Actividad
+  }
+
+  return totalSteps;
+}
+
+/**
+ * Convierte el paso interno (formData.step) a un número de paso visible para el usuario
+ */
+function getUserVisibleStep(formData: any): number {
+  const internalStep = formData.step;
+
+  // Verificar si el paso 3 debería ser visible basado en selecciones de la empresa
+  const hasActivityOptions =
+    formData.company?.manufactures ||
+    formData.company?.markets ||
+    formData.company?.diseno ||
+    formData.company?.almacenamiento ||
+    formData.company?.provides_services;
+
+  // Si estamos en un paso posterior al 3 y no hay actividades seleccionadas
+  // necesitamos ajustar el número de paso visible
+  if (internalStep > 3 && !hasActivityOptions) {
+    return internalStep - 1;
+  }
+
+  return internalStep;
 }
 
 function ResponsabilidadCivilFormContent() {
@@ -591,7 +632,14 @@ function ResponsabilidadCivilFormContent() {
   };
 
   // Render the current form step
+  // Reemplazar la función renderStep() en ResponsabilidadCivilForm.tsx con esta versión actualizada
+
+  // Render the current form step
   const renderStep = () => {
+    // Calcular el paso visible para el usuario y el total de pasos dinámicamente
+    const visibleStep = getUserVisibleStep(formData);
+    const totalSteps = calculateTotalSteps(formData);
+
     switch (formData.step) {
       case 1:
         return (
@@ -599,6 +647,8 @@ function ResponsabilidadCivilFormContent() {
             onNext={handleCompanyNext}
             onBack={() => router.push("/seguros")}
             defaultValues={formData.company}
+            currentStep={visibleStep}
+            totalSteps={totalSteps}
           />
         );
       case 2:
@@ -610,16 +660,43 @@ function ResponsabilidadCivilFormContent() {
               formData.coberturas_solicitadas?.coberturas_adicionales
             }
             formType={formData.form_type}
+            currentStep={visibleStep}
+            totalSteps={totalSteps}
           />
         );
       case 3:
-        return getStep3Component();
+        const step3Component = getStep3Component();
+
+        if (
+          formData.company?.provides_services &&
+          (formData.company?.manufactures ||
+            formData.company?.markets ||
+            formData.company?.diseno ||
+            formData.company?.almacenamiento)
+        ) {
+          // Es un componente con subpasos
+          return React.cloneElement(step3Component, {
+            currentStep: visibleStep,
+            totalSteps: totalSteps,
+            subStep: subStep,
+            totalSubSteps: 2,
+          });
+        }
+
+        // Componente normal
+        return React.cloneElement(step3Component, {
+          currentStep: visibleStep,
+          totalSteps: totalSteps,
+        });
+
       case 4:
         return (
           <SiniestralidadStep
             onNext={handleSiniestralidadNext}
             onBack={handleSiniestralidadBack}
             defaultValues={formData.siniestralidad}
+            currentStep={visibleStep}
+            totalSteps={totalSteps}
           />
         );
       case 5:
@@ -628,6 +705,8 @@ function ResponsabilidadCivilFormContent() {
             onNext={handleContactNext}
             onBack={handleContactBack}
             defaultValues={formData.contact}
+            currentStep={visibleStep}
+            totalSteps={totalSteps}
           />
         );
       case 6:
@@ -636,6 +715,8 @@ function ResponsabilidadCivilFormContent() {
             onSubmit={handleSubmit}
             onBack={handleSummaryBack}
             isSubmitting={isSubmitting}
+            currentStep={visibleStep}
+            totalSteps={totalSteps}
           />
         );
       default:

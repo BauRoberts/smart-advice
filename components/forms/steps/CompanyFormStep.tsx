@@ -94,12 +94,16 @@ interface CompanyFormStepProps {
   onNext: (data: CompanyFormData, empresaTipo: EmpresaTipo) => void;
   onBack: () => void;
   defaultValues?: Partial<CompanyFormData>;
+  currentStep?: number;
+  totalSteps?: number;
 }
 
 export default function CompanyFormStep({
   onNext,
   onBack,
   defaultValues = {},
+  currentStep = 1,
+  totalSteps = 5,
 }: CompanyFormStepProps) {
   const { formData, dispatch } = useFormContext();
   const [selectedCnaeActivity, setSelectedCnaeActivity] =
@@ -208,13 +212,12 @@ export default function CompanyFormStep({
   }
 
   // Calcular el número de pasos según el tipo de formulario
-  const totalSteps = isDanosMateriales ? 7 : 5;
 
   return (
     <FormLayout
       title="Datos de la empresa"
       subtitle="Información sobre tu negocio para personalizar las recomendaciones"
-      currentStep={1}
+      currentStep={currentStep}
       totalSteps={totalSteps}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}

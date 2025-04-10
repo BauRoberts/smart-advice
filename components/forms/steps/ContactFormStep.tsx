@@ -42,19 +42,25 @@ interface ContactFormStepProps {
   onNext: (data: ContactFormData) => void;
   onBack: () => void;
   defaultValues?: Partial<ContactFormData>;
+  currentStep?: number;
+  totalSteps?: number;
 }
 
 export default function ContactFormStep({
   onNext,
   onBack,
   defaultValues = { name: "", email: "", phone: "", privacyPolicy: false },
+  currentStep,
+  totalSteps,
 }: ContactFormStepProps) {
   const formContext = useFormContext();
   const { formData } = formContext;
 
-  // Determine which step number to show based on form type
-  const currentStep = formData.form_type === "responsabilidad_civil" ? 4 : 7;
-  const totalSteps = formData.form_type === "responsabilidad_civil" ? 5 : 8;
+  // Usar los valores de props si se proporcionan, de lo contrario calcularlos del contexto
+  const calculatedCurrentStep =
+    currentStep || (formData.form_type === "responsabilidad_civil" ? 4 : 7);
+  const calculatedTotalSteps =
+    totalSteps || (formData.form_type === "responsabilidad_civil" ? 5 : 8);
 
   // Inicializar el formulario con React Hook Form
   const form = useForm<ContactFormData>({
@@ -71,8 +77,8 @@ export default function ContactFormStep({
     <FormLayout
       title="Datos de contacto"
       subtitle="Para poder enviarte las recomendaciones y ofrecerte el mejor servicio"
-      currentStep={currentStep}
-      totalSteps={totalSteps}
+      currentStep={calculatedCurrentStep}
+      totalSteps={calculatedTotalSteps}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}
     >

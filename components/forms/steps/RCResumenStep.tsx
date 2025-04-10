@@ -7,18 +7,20 @@ interface RCResumenStepProps {
   onSubmit: () => void;
   onBack: () => void;
   isSubmitting: boolean;
+  currentStep?: number;
+  totalSteps?: number;
 }
 
 export default function RCResumenStep({
   onSubmit,
   onBack,
   isSubmitting,
+  currentStep = 5,
+  totalSteps = 5,
 }: RCResumenStepProps) {
   // Utilizamos el contexto de formulario para acceder a los datos
   const { formData } = useFormContext();
 
-  // No necesitamos adaptación para RC, ya que FormSummaryStep ya espera este formato
-  // Solo aseguramos que el formType sea "rc"
   return (
     <FormSummaryStep
       onSubmit={onSubmit}
@@ -26,6 +28,8 @@ export default function RCResumenStep({
       formData={formData}
       isSubmitting={isSubmitting}
       formType="rc"
+      currentStep={currentStep}
+      totalSteps={totalSteps}
     />
   );
 }

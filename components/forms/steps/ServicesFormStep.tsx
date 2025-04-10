@@ -34,6 +34,10 @@ interface ServiciosStepProps {
   onBack: () => void;
   defaultValues?: Partial<ServiciosData>;
   formType?: string;
+  currentStep?: number;
+  totalSteps?: number;
+  subStep?: number;
+  totalSubSteps?: number;
 }
 
 export default function ServiciosFormStep({
@@ -41,8 +45,13 @@ export default function ServiciosFormStep({
   onBack,
   defaultValues = {},
   formType = "responsabilidad_civil",
+  currentStep = 3,
+  totalSteps,
+  subStep,
+  totalSubSteps,
 }: ServiciosStepProps) {
-  const totalSteps = formType === "danos_materiales" ? 7 : 5;
+  const calculatedTotalSteps =
+    totalSteps || (formType === "danos_materiales" ? 7 : 5);
 
   const form = useForm<ServiciosData>({
     resolver: zodResolver(serviciosSchema),
@@ -63,10 +72,14 @@ export default function ServiciosFormStep({
 
   return (
     <FormLayout
-      title="Sección de Prestación de Servicios"
+      title={
+        subStep
+          ? `Sección de Prestación de Servicios (Paso ${subStep} de ${totalSubSteps})`
+          : "Sección de Prestación de Servicios"
+      }
       subtitle="Información sobre los servicios que ofreces"
-      currentStep={3}
-      totalSteps={totalSteps}
+      currentStep={currentStep}
+      totalSteps={calculatedTotalSteps}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}
     >

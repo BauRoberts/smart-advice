@@ -49,6 +49,8 @@ interface AdditionalCoverageStepProps {
   onBack: () => void;
   defaultValues?: Partial<AdditionalCoverageData>;
   formType?: string;
+  currentStep?: number;
+  totalSteps?: number;
 }
 
 export default function AdditionalCoverageStep({
@@ -56,9 +58,11 @@ export default function AdditionalCoverageStep({
   onBack,
   defaultValues = {},
   formType = "responsabilidad_civil",
+  currentStep = 2,
+  totalSteps,
 }: AdditionalCoverageStepProps) {
   const isDanosMateriales = formType === "danos_materiales";
-  const totalSteps = isDanosMateriales ? 7 : 5;
+  const calculatedTotalSteps = totalSteps || (isDanosMateriales ? 7 : 5);
 
   const form = useForm<AdditionalCoverageData>({
     resolver: zodResolver(additionalCoverageSchema),
@@ -88,8 +92,8 @@ export default function AdditionalCoverageStep({
     <FormLayout
       title="Coberturas adicionales"
       subtitle="Información adicional para personalizar tu seguro"
-      currentStep={2}
-      totalSteps={totalSteps}
+      currentStep={currentStep}
+      totalSteps={calculatedTotalSteps}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}
     >

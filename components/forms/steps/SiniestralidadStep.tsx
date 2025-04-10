@@ -32,12 +32,16 @@ interface SiniestralidadStepProps {
   onNext: (data: SiniestralidadFormData) => void;
   onBack: () => void;
   defaultValues?: Partial<SiniestralidadFormData>;
+  currentStep?: number;
+  totalSteps?: number;
 }
 
 export default function SiniestralidadStep({
   onNext,
   onBack,
   defaultValues = {},
+  currentStep = 4,
+  totalSteps = 6,
 }: SiniestralidadStepProps) {
   const { dispatch } = useFormContext();
   const [hasSiniestros, setHasSiniestros] = useState(
@@ -64,8 +68,8 @@ export default function SiniestralidadStep({
     <FormLayout
       title="Siniestralidad"
       subtitle="Información sobre los siniestros ocurridos en los últimos años"
-      currentStep={6}
-      totalSteps={8}
+      currentStep={currentStep}
+      totalSteps={totalSteps}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}
       isLastStep={false}

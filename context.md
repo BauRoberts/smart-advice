@@ -343,4 +343,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-Quiero cambiar el resumen que te da cuando terminas los forms. Ahora estamos usando el mismo para los dos formularios, pero deberiamos usar uno diferente para cada uno.
+EStamos mostrando el paso en el cual estamos del formulario con cada uno de los pasos! Lo que pasa es que estos pasos se muestren mal y diferentes. A veces el total cambia y el paso en el que estamos tambien esta mal! Empecemos a ver que puede pasar con el formulario de RC! Me ayudas ?

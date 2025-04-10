@@ -47,12 +47,20 @@ interface FabricacionStepProps {
   onBack: () => void;
   defaultValues?: Partial<FabricacionData>;
   formType?: string;
+  currentStep?: number;
+  totalSteps?: number;
+  subStep?: number;
+  totalSubSteps?: number;
 }
 
 export default function FabricacionFormStep({
   onNext,
   onBack,
   defaultValues = {},
+  currentStep = 3,
+  totalSteps = 6,
+  subStep,
+  totalSubSteps,
 }: FabricacionStepProps) {
   console.log("DEBUG - FabricacionFormStep - defaultValues:", defaultValues);
 
@@ -141,10 +149,14 @@ export default function FabricacionFormStep({
 
   return (
     <FormLayout
-      title="Fabricación y Diseño"
+      title={
+        subStep
+          ? `Fabricación y Diseño (Paso ${subStep} de ${totalSubSteps})`
+          : "Fabricación y Diseño"
+      }
       subtitle="Información sobre tus productos y alcance geográfico"
-      currentStep={3}
-      totalSteps={6}
+      currentStep={currentStep}
+      totalSteps={totalSteps}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}
     >

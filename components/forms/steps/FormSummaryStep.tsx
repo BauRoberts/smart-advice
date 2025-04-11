@@ -9,18 +9,25 @@ interface FormSummaryStepProps {
   formData: any;
   isSubmitting: boolean;
   formType: string;
-  currentStep?: number; // Añadir esta propiedad
-  totalSteps?: number; // Añadir esta propiedad
+  currentStep?: number;
+  totalSteps?: number;
 }
+
 export default function FormSummaryStep({
   onSubmit,
   onBack,
   formData,
   isSubmitting,
   formType,
-  currentStep = 5, // Valor por defecto
-  totalSteps = 5, // Valor por defecto
+  currentStep = 5,
+  totalSteps = 5,
 }: FormSummaryStepProps) {
+  // Mover la función getTitle dentro del componente
+  const title =
+    formType === "rc"
+      ? "Resumen de Responsabilidad Civil"
+      : "Resumen de Daños Materiales";
+
   // Crear una lista de regiones de distribución para mostrar
   const getDistribucionLabels = () => {
     const distribucion = formData.actividad.manufactura?.distribucion || [];

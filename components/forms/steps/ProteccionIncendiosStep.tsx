@@ -66,12 +66,16 @@ interface ProteccionIncendiosStepProps {
   onNext: (data: ProteccionIncendiosFormData) => void;
   onBack: () => void;
   defaultValues?: Partial<ProteccionIncendiosFormData>;
+  currentStep?: number;
+  totalSteps?: number;
 }
 
 export default function ProteccionIncendiosStep({
   onNext,
   onBack,
   defaultValues = {},
+  currentStep = 3,
+  totalSteps = 8,
 }: ProteccionIncendiosStepProps) {
   const { dispatch } = useFormContext();
 
@@ -135,8 +139,8 @@ export default function ProteccionIncendiosStep({
     <FormLayout
       title="Protecciones contra Incendio"
       subtitle="Información sobre las medidas de protección contra incendios"
-      currentStep={3}
-      totalSteps={8}
+      currentStep={currentStep}
+      totalSteps={totalSteps}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}
     >

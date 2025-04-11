@@ -32,12 +32,16 @@ interface ProteccionRoboStepProps {
   onNext: (data: ProteccionRoboFormData) => void;
   onBack: () => void;
   defaultValues?: Partial<ProteccionRoboFormData>;
+  currentStep?: number;
+  totalSteps?: number;
 }
 
 export default function ProteccionRoboStep({
   onNext,
   onBack,
   defaultValues = {},
+  currentStep = 4,
+  totalSteps = 8,
 }: ProteccionRoboStepProps) {
   const { dispatch } = useFormContext();
 
@@ -63,8 +67,8 @@ export default function ProteccionRoboStep({
     <FormLayout
       title="Protecciones contra Robo"
       subtitle="Información sobre las medidas de protección contra robo"
-      currentStep={4}
-      totalSteps={8}
+      currentStep={currentStep}
+      totalSteps={totalSteps}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}
     >

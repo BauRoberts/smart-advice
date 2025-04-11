@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FormProvider, useFormContext } from "@/contexts/FormContext";
@@ -217,8 +218,23 @@ function DanosMaterialesFormContent() {
     window.location.href = "/danos-materiales";
   };
 
+  function calculateTotalSteps(formData: any): number {
+    // Para el formulario de Daños Materiales, el número de pasos es fijo: 8
+    return 8;
+  }
+
+  function getUserVisibleStep(formData: any): number {
+    // En el formulario de Daños Materiales no hay pasos que se salten,
+    // así que simplemente devolvemos el paso actual
+    return formData.step;
+  }
+
   // Render the current form step
   const renderStep = () => {
+    // Calcular el paso visible para el usuario y el total de pasos dinámicamente
+    const visibleStep = getUserVisibleStep(formData);
+    const totalSteps = calculateTotalSteps(formData);
+
     switch (formData.step) {
       case 1:
         return (
@@ -226,6 +242,8 @@ function DanosMaterialesFormContent() {
             onNext={handleInformacionGeneralNext}
             onBack={() => router.push("/seguros")}
             defaultValues={formData.informacion_general}
+            currentStep={visibleStep}
+            totalSteps={totalSteps}
           />
         );
       case 2:
@@ -234,6 +252,8 @@ function DanosMaterialesFormContent() {
             onNext={handleConstruccionNext}
             onBack={handleConstruccionBack}
             defaultValues={formData.construccion}
+            currentStep={visibleStep}
+            totalSteps={totalSteps}
           />
         );
       case 3:
@@ -246,6 +266,8 @@ function DanosMaterialesFormContent() {
               columnas_hidrantes_tipo: formData.proteccion_incendios
                 ?.columnas_hidrantes_tipo as "publico" | "privado" | undefined,
             }}
+            currentStep={visibleStep}
+            totalSteps={totalSteps}
           />
         );
       case 4:
@@ -254,6 +276,8 @@ function DanosMaterialesFormContent() {
             onNext={handleProteccionRoboNext}
             onBack={handleProteccionRoboBack}
             defaultValues={formData.proteccion_robo}
+            currentStep={visibleStep}
+            totalSteps={totalSteps}
           />
         );
       case 5:
@@ -262,6 +286,8 @@ function DanosMaterialesFormContent() {
             onNext={handleCapitalesYCoberturasNext}
             onBack={handleCapitalesYCoberturasBack}
             defaultValues={formData.capitales_y_coberturas}
+            currentStep={visibleStep}
+            totalSteps={totalSteps}
           />
         );
       case 6:
@@ -270,6 +296,8 @@ function DanosMaterialesFormContent() {
             onNext={handleSiniestralidadNext}
             onBack={handleSiniestralidadBack}
             defaultValues={formData.siniestralidad}
+            currentStep={visibleStep}
+            totalSteps={totalSteps}
           />
         );
       case 7:
@@ -278,6 +306,8 @@ function DanosMaterialesFormContent() {
             onNext={handleContactNext}
             onBack={handleContactBack}
             defaultValues={formData.contact}
+            currentStep={visibleStep}
+            totalSteps={totalSteps}
           />
         );
       case 8:
@@ -286,6 +316,8 @@ function DanosMaterialesFormContent() {
             onSubmit={handleSubmit}
             onBack={handleResumenBack}
             isSubmitting={isSubmitting}
+            currentStep={visibleStep}
+            totalSteps={totalSteps}
           />
         );
       default:
@@ -308,7 +340,7 @@ function DanosMaterialesFormContent() {
   );
 }
 
-// Main component that wraps with context
+// Modifica el componente principal para usar FormProvider en lugar de DanosFormProvider
 export default function DanosMaterialesForm() {
   return (
     <FormProvider>

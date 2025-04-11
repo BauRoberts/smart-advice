@@ -102,12 +102,16 @@ interface CapitalesYCoberturasStepProps {
   onNext: (data: CapitalesYCoberturasData) => void;
   onBack: () => void;
   defaultValues?: Partial<CapitalesYCoberturasData>;
+  currentStep?: number;
+  totalSteps?: number;
 }
 
 export default function CapitalesYCoberturasStep({
   onNext,
   onBack,
   defaultValues = {},
+  currentStep = 5,
+  totalSteps = 8,
 }: CapitalesYCoberturasStepProps) {
   const { dispatch } = useFormContext();
 
@@ -210,8 +214,8 @@ export default function CapitalesYCoberturasStep({
     <FormLayout
       title="Capitales a asegurar y coberturas"
       subtitle="Información sobre los valores a asegurar y las coberturas que necesitas"
-      currentStep={5}
-      totalSteps={8}
+      currentStep={currentStep}
+      totalSteps={totalSteps}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}
     >

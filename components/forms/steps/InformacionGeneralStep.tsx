@@ -75,12 +75,16 @@ interface InformacionGeneralStepProps {
   onNext: (data: InformacionGeneralData) => void;
   onBack: () => void;
   defaultValues?: Partial<InformacionGeneralData>;
+  currentStep?: number;
+  totalSteps?: number;
 }
 
 export default function InformacionGeneralStep({
   onNext,
   onBack,
   defaultValues = {},
+  currentStep = 1,
+  totalSteps = 8,
 }: InformacionGeneralStepProps) {
   const { formData } = useFormContext();
   const [selectedCnaeActivity, setSelectedCnaeActivity] =
@@ -123,8 +127,8 @@ export default function InformacionGeneralStep({
     <FormLayout
       title="Información General"
       subtitle="Completa los datos básicos de tu empresa para personalizar las recomendaciones"
-      currentStep={1}
-      totalSteps={8}
+      currentStep={currentStep}
+      totalSteps={totalSteps}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}
     >

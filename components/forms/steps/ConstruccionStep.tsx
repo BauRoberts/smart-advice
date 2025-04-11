@@ -45,12 +45,16 @@ interface ConstruccionStepProps {
   onNext: (data: ConstruccionFormData) => void;
   onBack: () => void;
   defaultValues?: Partial<ConstruccionFormData>;
+  currentStep?: number;
+  totalSteps?: number;
 }
 
 export default function ConstruccionStep({
   onNext,
   onBack,
   defaultValues = {},
+  currentStep = 2,
+  totalSteps = 8,
 }: ConstruccionStepProps) {
   const { dispatch } = useFormContext();
 
@@ -78,8 +82,8 @@ export default function ConstruccionStep({
     <FormLayout
       title="Información de las Instalaciones"
       subtitle="Información sobre las características de la nave o edificio"
-      currentStep={2}
-      totalSteps={8}
+      currentStep={currentStep}
+      totalSteps={totalSteps}
       onNext={form.handleSubmit(onSubmit)}
       onBack={onBack}
     >

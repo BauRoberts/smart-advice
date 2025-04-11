@@ -1762,8 +1762,853 @@ const CNAE_CODES: CnaeOption[] = [
   },
 ];
 
+const CNAE_CODES_FALTANTES: CnaeOption[] = [
+  // SECCIÓN A - AGRICULTURA, GANADERÍA, SILVICULTURA Y PESCA
+  // División 03: Pesca y acuicultura
+  {
+    code: "0311",
+    description: "Pesca marina",
+    section: "A",
+    tipo: "servicios",
+  },
+  {
+    code: "0312",
+    description: "Pesca en agua dulce",
+    section: "A",
+    tipo: "servicios",
+  },
+  {
+    code: "0321",
+    description: "Acuicultura marina",
+    section: "A",
+    tipo: "servicios",
+  },
+  {
+    code: "0322",
+    description: "Acuicultura en agua dulce",
+    section: "A",
+    tipo: "servicios",
+  },
+
+  // SECCIÓN B - INDUSTRIAS EXTRACTIVAS
+  // División 05: Extracción de antracita, hulla y lignito
+  {
+    code: "0510",
+    description: "Extracción de antracita y hulla",
+    section: "B",
+    tipo: "servicios",
+  },
+  {
+    code: "0520",
+    description: "Extracción de lignito",
+    section: "B",
+    tipo: "servicios",
+  },
+
+  // División 06: Extracción de crudo de petróleo y gas natural
+  {
+    code: "0610",
+    description: "Extracción de crudo de petróleo",
+    section: "B",
+    tipo: "servicios",
+  },
+  {
+    code: "0620",
+    description: "Extracción de gas natural",
+    section: "B",
+    tipo: "servicios",
+  },
+
+  // División 07: Extracción de minerales metálicos
+  {
+    code: "0710",
+    description: "Extracción de minerales de hierro",
+    section: "B",
+    tipo: "servicios",
+  },
+  {
+    code: "0721",
+    description: "Extracción de minerales de uranio y torio",
+    section: "B",
+    tipo: "servicios",
+  },
+  {
+    code: "0729",
+    description: "Extracción de otros minerales metálicos no férreos",
+    section: "B",
+    tipo: "servicios",
+  },
+
+  // División 08: Otras industrias extractivas
+  {
+    code: "0811",
+    description:
+      "Extracción de piedra ornamental y para la construcción, piedra caliza, yeso, creta y pizarra",
+    section: "B",
+    tipo: "servicios",
+  },
+  {
+    code: "0812",
+    description:
+      "Extracción de gravas y arenas; extracción de arcilla y caolín",
+    section: "B",
+    tipo: "servicios",
+  },
+  {
+    code: "0891",
+    description:
+      "Extracción de minerales para productos químicos y fertilizantes",
+    section: "B",
+    tipo: "servicios",
+  },
+  {
+    code: "0892",
+    description: "Extracción de turba",
+    section: "B",
+    tipo: "servicios",
+  },
+  {
+    code: "0893",
+    description: "Extracción de sal",
+    section: "B",
+    tipo: "servicios",
+  },
+  {
+    code: "0899",
+    description: "Otras industrias extractivas n.c.o.p.",
+    section: "B",
+    tipo: "servicios",
+  },
+
+  // División 09: Actividades de apoyo a las industrias extractivas
+  {
+    code: "0910",
+    description:
+      "Actividades de apoyo a la extracción de petróleo y gas natural",
+    section: "B",
+    tipo: "servicios",
+  },
+  {
+    code: "0990",
+    description: "Actividades de apoyo a otras industrias extractivas",
+    section: "B",
+    tipo: "servicios",
+  },
+
+  // SECCIÓN C - INDUSTRIA MANUFACTURERA
+  // División 12: Industria del tabaco
+  {
+    code: "1200",
+    description: "Industria del tabaco",
+    section: "C",
+    tipo: "manufactura",
+  },
+
+  // División 19: Coquerías y refino de petróleo
+  {
+    code: "1910",
+    description: "Coquerías",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "1920",
+    description: "Refino de petróleo",
+    section: "C",
+    tipo: "manufactura",
+  },
+
+  // División 21: Fabricación de productos farmacéuticos
+  {
+    code: "2110",
+    description: "Fabricación de productos farmacéuticos de base",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2120",
+    description: "Fabricación de especialidades farmacéuticas",
+    section: "C",
+    tipo: "manufactura",
+  },
+
+  // División 23: Fabricación de otros productos minerales no metálicos
+  {
+    code: "2311",
+    description: "Fabricación de vidrio plano",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2312",
+    description: "Manipulado y transformación de vidrio plano",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2313",
+    description: "Fabricación de vidrio hueco",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2314",
+    description: "Fabricación de fibra de vidrio",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2319",
+    description:
+      "Fabricación y manipulado de otro vidrio, incluido el vidrio técnico",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2320",
+    description: "Fabricación de productos cerámicos refractarios",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2331",
+    description: "Fabricación de azulejos y baldosas de cerámica",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2332",
+    description:
+      "Fabricación de ladrillos, tejas y productos de tierras cocidas para la construcción",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2341",
+    description:
+      "Fabricación de artículos cerámicos de uso doméstico y ornamental",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2342",
+    description: "Fabricación de aparatos sanitarios cerámicos",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2343",
+    description:
+      "Fabricación de aisladores y piezas aislantes de material cerámico",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2344",
+    description: "Fabricación de otros productos cerámicos de uso técnico",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2349",
+    description: "Fabricación de otros productos cerámicos",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2351",
+    description: "Fabricación de cemento",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2352",
+    description: "Fabricación de cal y yeso",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2361",
+    description: "Fabricación de elementos de hormigón para la construcción",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2362",
+    description: "Fabricación de elementos de yeso para la construcción",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2363",
+    description: "Fabricación de hormigón fresco",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2364",
+    description: "Fabricación de mortero",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2365",
+    description: "Fabricación de fibrocemento",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2369",
+    description: "Fabricación de otros productos de hormigón, yeso y cemento",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2370",
+    description: "Corte, tallado y acabado de la piedra",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2391",
+    description: "Fabricación de productos abrasivos",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2399",
+    description:
+      "Fabricación de otros productos minerales no metálicos n.c.o.p.",
+    section: "C",
+    tipo: "manufactura",
+  },
+
+  // División 24: Metalurgia; fabricación de productos de hierro, acero y ferroaleaciones
+  {
+    code: "2410",
+    description:
+      "Fabricación de productos básicos de hierro, acero y ferroaleaciones",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2420",
+    description:
+      "Fabricación de tubos, tuberías, perfiles huecos y sus accesorios, de acero",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2431",
+    description: "Estirado en frío",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2432",
+    description: "Laminación en frío",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2433",
+    description: "Producción de perfiles en frío por conformación con plegado",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2434",
+    description: "Trefilado en frío",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2441",
+    description: "Producción de metales preciosos",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2442",
+    description: "Producción de aluminio",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2443",
+    description: "Producción de plomo, zinc y estaño",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2444",
+    description: "Producción de cobre",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2445",
+    description: "Producción de otros metales no férreos",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2446",
+    description: "Procesamiento de combustibles nucleares",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2451",
+    description: "Fundición de hierro",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2452",
+    description: "Fundición de acero",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2453",
+    description: "Fundición de metales ligeros",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2454",
+    description: "Fundición de otros metales no férreos",
+    section: "C",
+    tipo: "manufactura",
+  },
+
+  // División 28: Fabricación de maquinaria y equipo n.c.o.p.
+  {
+    code: "2811",
+    description:
+      "Fabricación de motores y turbinas, excepto los destinados a aeronaves, vehículos y ciclomotores",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2812",
+    description: "Fabricación de equipos de transmisión hidráulica y neumática",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2813",
+    description: "Fabricación de otras bombas y compresores",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2814",
+    description: "Fabricación de otra grifería y válvulas",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2815",
+    description:
+      "Fabricación de cojinetes, engranajes y órganos mecánicos de transmisión",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2821",
+    description: "Fabricación de hornos y quemadores",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2822",
+    description: "Fabricación de maquinaria de elevación y manipulación",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2823",
+    description:
+      "Fabricación de máquinas y equipos de oficina, excepto equipos informáticos",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2824",
+    description: "Fabricación de herramientas eléctricas manuales",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2825",
+    description:
+      "Fabricación de maquinaria de ventilación y refrigeración no doméstica",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2829",
+    description: "Fabricación de otra maquinaria de uso general n.c.o.p.",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2830",
+    description: "Fabricación de maquinaria agraria y forestal",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2841",
+    description: "Fabricación de máquinas herramienta para trabajar el metal",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2849",
+    description: "Fabricación de otras máquinas herramienta",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2891",
+    description: "Fabricación de maquinaria para la industria metalúrgica",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2892",
+    description:
+      "Fabricación de maquinaria para las industrias extractivas y de la construcción",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2893",
+    description:
+      "Fabricación de maquinaria para la industria de la alimentación, bebidas y tabaco",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2894",
+    description:
+      "Fabricación de maquinaria para las industrias textil, de la confección y del cuero",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2895",
+    description:
+      "Fabricación de maquinaria para la industria del papel y del cartón",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2896",
+    description:
+      "Fabricación de maquinaria para la industria del plástico y el caucho",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "2899",
+    description:
+      "Fabricación de otra maquinaria para usos específicos n.c.o.p.",
+    section: "C",
+    tipo: "manufactura",
+  },
+
+  // División 30: Fabricación de otro material de transporte
+  {
+    code: "3011",
+    description: "Construcción de barcos y estructuras flotantes",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3012",
+    description: "Construcción de embarcaciones de recreo y deporte",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3020",
+    description: "Fabricación de locomotoras y material ferroviario",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3030",
+    description: "Construcción aeronáutica y espacial y su maquinaria",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3040",
+    description: "Fabricación de vehículos militares de combate",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3091",
+    description: "Fabricación de motocicletas",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3092",
+    description:
+      "Fabricación de bicicletas y de vehículos para personas con discapacidad",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3099",
+    description: "Fabricación de otro material de transporte n.c.o.p.",
+    section: "C",
+    tipo: "manufactura",
+  },
+
+  // División 32: Otras industrias manufactureras
+  {
+    code: "3211",
+    description: "Fabricación de monedas",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3212",
+    description: "Fabricación de artículos de joyería y artículos similares",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3213",
+    description: "Fabricación de artículos de bisutería y artículos similares",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3220",
+    description: "Fabricación de instrumentos musicales",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3230",
+    description: "Fabricación de artículos de deporte",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3240",
+    description: "Fabricación de juegos y juguetes",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3250",
+    description:
+      "Fabricación de instrumentos y suministros médicos y odontológicos",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3291",
+    description: "Fabricación de escobas, brochas y cepillos",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3299",
+    description: "Otras industrias manufactureras n.c.o.p.",
+    section: "C",
+    tipo: "manufactura",
+  },
+
+  // División 33: Reparación e instalación de maquinaria y equipo
+  {
+    code: "3311",
+    description: "Reparación de productos metálicos",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3312",
+    description: "Reparación de maquinaria",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3313",
+    description: "Reparación de equipos electrónicos y ópticos",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3314",
+    description: "Reparación de equipos eléctricos",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3315",
+    description: "Reparación y mantenimiento naval",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3316",
+    description: "Reparación y mantenimiento aeronáutico y espacial",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3317",
+    description: "Reparación y mantenimiento de otro material de transporte",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3319",
+    description: "Reparación de otros equipos",
+    section: "C",
+    tipo: "manufactura",
+  },
+  {
+    code: "3320",
+    description: "Instalación de máquinas y equipos industriales",
+    section: "C",
+    tipo: "manufactura",
+  },
+
+  // SECCIÓN E - SUMINISTRO DE AGUA, ACTIVIDADES DE SANEAMIENTO, GESTIÓN DE RESIDUOS Y DESCONTAMINACIÓN
+  // División 37: Recogida y tratamiento de aguas residuales
+  {
+    code: "3700",
+    description: "Recogida y tratamiento de aguas residuales",
+    section: "E",
+    tipo: "servicios",
+  },
+
+  // SECCIÓN N - ACTIVIDADES ADMINISTRATIVAS Y SERVICIOS AUXILIARES
+  // División 79: Actividades de agencias de viajes, operadores turísticos, servicios de reservas
+  {
+    code: "7911",
+    description: "Actividades de las agencias de viajes",
+    section: "N",
+    tipo: "servicios",
+  },
+  {
+    code: "7912",
+    description: "Actividades de los operadores turísticos",
+    section: "N",
+    tipo: "servicios",
+  },
+  {
+    code: "7990",
+    description:
+      "Otros servicios de reservas y actividades relacionadas con los mismos",
+    section: "N",
+    tipo: "servicios",
+  },
+
+  // SECCIÓN O - ADMINISTRACIÓN PÚBLICA Y DEFENSA; SEGURIDAD SOCIAL OBLIGATORIA
+  {
+    code: "8411",
+    description: "Actividades generales de la Administración Pública",
+    section: "O",
+    tipo: "servicios",
+  },
+  {
+    code: "8412",
+    description:
+      "Regulación de las actividades sanitarias, educativas y culturales y otros servicios sociales, excepto Seguridad Social",
+    section: "O",
+    tipo: "servicios",
+  },
+  {
+    code: "8413",
+    description:
+      "Regulación de la actividad económica y contribución a su mayor eficiencia",
+    section: "O",
+    tipo: "servicios",
+  },
+  {
+    code: "8421",
+    description: "Asuntos exteriores",
+    section: "O",
+    tipo: "servicios",
+  },
+  {
+    code: "8422",
+    description: "Defensa",
+    section: "O",
+    tipo: "servicios",
+  },
+  {
+    code: "8423",
+    description: "Justicia",
+    section: "O",
+    tipo: "servicios",
+  },
+  {
+    code: "8424",
+    description: "Orden público y seguridad",
+    section: "O",
+    tipo: "servicios",
+  },
+  {
+    code: "8425",
+    description: "Protección civil",
+    section: "O",
+    tipo: "servicios",
+  },
+  {
+    code: "8430",
+    description: "Seguridad Social obligatoria",
+    section: "O",
+    tipo: "servicios",
+  },
+
+  // SECCIÓN T - ACTIVIDADES DE LOS HOGARES COMO EMPLEADORES DE PERSONAL DOMÉSTICO
+  {
+    code: "9700",
+    description:
+      "Actividades de los hogares como empleadores de personal doméstico",
+    section: "T",
+    tipo: "servicios",
+  },
+  {
+    code: "9810",
+    description:
+      "Actividades no diferenciadas de producción de bienes por los hogares para uso propio",
+    section: "T",
+    tipo: "servicios",
+  },
+  {
+    code: "9820",
+    description:
+      "Actividades no diferenciadas de producción de servicios por los hogares para uso propio",
+    section: "T",
+    tipo: "servicios",
+  },
+
+  // SECCIÓN U - ACTIVIDADES DE ORGANIZACIONES Y ORGANISMOS EXTRATERRITORIALES
+  {
+    code: "9900",
+    description:
+      "Actividades de organizaciones y organismos extraterritoriales",
+    section: "U",
+    tipo: "servicios",
+  },
+];
+
 // Lista completa de códigos CNAE (puedes expandir esta lista según sea necesario)
-const cnaeOptions = CNAE_CODES;
+const cnaeOptions = [...CNAE_CODES, ...CNAE_CODES_FALTANTES];
 
 // Función para obtener todos los códigos CNAE
 export function getAllCnaeCodes(): CnaeOption[] {
@@ -1773,7 +2618,7 @@ export function getAllCnaeCodes(): CnaeOption[] {
 // Función para buscar códigos CNAE que coincidan con un término de búsqueda
 export function searchCnaeCodes(query: string): CnaeOption[] {
   const searchTerm = query.toLowerCase();
-  return CNAE_CODES.filter(
+  return cnaeOptions.filter(
     (option) =>
       option.code.includes(searchTerm) ||
       option.description.toLowerCase().includes(searchTerm)

@@ -343,4 +343,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-Cuando enviamos el mail nos da ese error en la consola y no nos llega nunca el mail!
+TEngo que chequear que todos los servicios de CNAE esten en la lista que usamos de dropdown cuando agregamos!

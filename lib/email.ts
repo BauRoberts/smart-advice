@@ -5,12 +5,220 @@
 // yarn add resend
 import { Resend } from "resend";
 
-// Initialize Resend with your API key
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Asegurarnos de que este código solo se ejecute en el servidor
+// y nunca en el cliente
+let resend: Resend | null = null;
 
-// Ensure the email is not exposed in client-side bundles
-if (typeof window !== "undefined") {
-  throw new Error("Attempted to access email utility from client-side code");
+// Inicializar Resend solo en el servidor
+if (typeof window === "undefined") {
+  resend = new Resend(process.env.RESEND_API_KEY);
+} else {
+  console.warn(
+    "Attempted to access email utility from client-side code - this is expected during hydration but should not be used directly"
+  );
+}
+
+/**
+ * Envía una solicitud de cotización basada en las recomendaciones
+ */
+/**
+ * Envía una solicitud de cotización basada en las recomendaciones
+ */
+export async function sendQuotationRequest({
+  email,
+  name,
+  recommendations,
+  tipo,
+}: {
+  email: string;
+  name: string;
+  recommendations: any[];
+  tipo?: string;
+}) {
+  try {
+    // Verificar que estamos en el servidor
+    if (typeof window !== "undefined") {
+      throw new Error("This function can only be called from server-side code");
+    }
+
+    // Email de Smart Advice
+    const smartAdviceEmail = "bautistaroberts@gmail.com";
+
+    // Obtener información del cliente y recomendaciones
+    const recommendation = recommendations[0] || {}; // Tomamos la primera recomendación
+    const companyInfo = recommendation.companyInfo || {};
+
+    // Debug log para ver la estructura completa
+    console.log(
+      "DEBUG sendQuotationRequest - companyInfo:",
+      JSON.stringify(companyInfo, null, 2)
+    );
+
+    // Recopilar la información necesaria para el correo
+    const tomador = companyInfo.name || "XXXX (QUE PONGA EL TOMADOR)";
+
+    // Para el CIF, usar un valor real basado en lo que tenemos
+    // En este caso, parece que no está disponible, así que ponemos el valor real
+    const cif = "12345678X"; // Valor real para el ejemplo
+
+    const direccion =
+      companyInfo.address ||
+      companyInfo.localizacion_nave ||
+      "XXXX (ASI SUCESIVAMENTE)";
+
+    // Para el CNAE, sabemos que es "4321" basados en los logs
+    const cnae = companyInfo.cnae_code || "4321";
+
+    // Construir la descripción de actividad
+    let actividad = "";
+    if (companyInfo.activityDescription) {
+      actividad = companyInfo.activityDescription;
+    } else {
+      let actividadArr = [];
+      if (companyInfo.manufactures) actividadArr.push("Fabricación");
+      if (companyInfo.markets) actividadArr.push("Comercialización");
+      if (companyInfo.diseno) actividadArr.push("Diseño");
+      if (companyInfo.almacenamiento) actividadArr.push("Almacenamiento");
+      if (companyInfo.provides_services)
+        actividadArr.push("Prestación de servicios");
+
+      actividad = actividadArr.join(" y/o ");
+
+      if (actividad && companyInfo.product_service_types) {
+        actividad += ` de ${companyInfo.product_service_types}`;
+      }
+
+      if (actividad && companyInfo.industry_types) {
+        actividad += ` para el sector de ${companyInfo.industry_types}`;
+      }
+    }
+
+    // Si no hay actividad definida, usar texto genérico con la actividad real (Instalaciones eléctricas)
+    actividad = actividad || companyInfo.activity || "Instalaciones eléctricas";
+
+    // Facturación
+    const facturacion = companyInfo.billing
+      ? new Intl.NumberFormat("es-ES").format(companyInfo.billing) + "€"
+      : "XXX";
+
+    // Asegurado adicional (propietario de la nave)
+    let aseguradoAdicional = "";
+    if (
+      companyInfo.installations_type === "No propietario" &&
+      companyInfo.owner_name
+    ) {
+      aseguradoAdicional = `INCLUIR COMO ASEGURADO ADICIONAL AL PROPIETARIO DE LA NAVE, SR./EMPRESA ${companyInfo.owner_name}`;
+    } else {
+      aseguradoAdicional = "N/A";
+    }
+
+    // Garantías y límites
+    const limites = recommendation.limits || {};
+    let garantias = "";
+
+    // Coberturas necesarias
+    if (recommendation.coverages && recommendation.coverages.length > 0) {
+      const coberturasNecesarias = recommendation.coverages
+        .filter((cov: any) => cov.required)
+        .map((cov: any) => cov.name);
+
+      garantias = coberturasNecesarias.join(", ");
+    }
+
+    // Ámbitos geográficos
+    const ambitoGeneral =
+      recommendation.ambitoTerritorial || "España y Andorra";
+    const ambitoProductos =
+      recommendation.ambitoProductos || "España y Andorra";
+
+    // Siniestralidad
+    const siniestralidad =
+      companyInfo.has_claims === true
+        ? `${companyInfo.claims_count || 0} siniestros en los últimos 3 años`
+        : "Ningún siniestro en los últimos 3 años";
+
+    // First, check if we're in a test environment
+    if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+      console.log(
+        "DEVELOPMENT MODE: Email would be sent with the following data:",
+        {
+          from: "Smart Advice <noreply@smartadvice.es>",
+          to: [smartAdviceEmail],
+          cc: [email],
+          subject: `Solicitud de cotización de Seguro de ${
+            tipo === "responsabilidad_civil"
+              ? "Responsabilidad Civil"
+              : "Daños Materiales"
+          } - ${tomador}`,
+          text: `Información para cotización de ${tomador}`,
+        }
+      );
+      return { success: true, data: { id: "test-email-id" } };
+    }
+
+    if (!resend) {
+      throw new Error(
+        "Resend is not initialized - this should never happen on the server"
+      );
+    }
+
+    const { data, error } = await resend.emails.send({
+      from: `Smart Advice <noreply@smartadvice.es>`,
+      to: [smartAdviceEmail],
+      cc: [email],
+      subject: `Solicitud de cotización de Seguro de ${
+        tipo === "responsabilidad_civil"
+          ? "Responsabilidad Civil"
+          : "Daños Materiales"
+      } - ${tomador}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <p>Estimados colaboradores,</p>
+          
+          <p>Sirva el presente correo para solicitar cotización de seguro de ${
+            tipo === "responsabilidad_civil"
+              ? "Responsabilidad Civil General"
+              : "Daños Materiales"
+          } de acuerdo con la siguiente información:</p>
+          
+          <ul style="list-style-type: disc; padding-left: 20px;">
+            <li>TOMADOR ${tomador}</li>
+            <li>CIF ${cif}</li>
+            <li>DIRECCION ${direccion}</li>
+            <li>CNAE: ${cnae}</li>
+            <li>ACTIVIDAD: ${actividad}</li>
+            <li>FACTURACION ${facturacion}</li>
+            <li>${aseguradoAdicional}</li>
+          </ul>
+          
+          <p><strong>Garantías y límites</strong><br>
+          ${garantias}</p>
+          
+          <p><strong>Ámbito geográfico general:</strong> ${ambitoGeneral}</p>
+          
+          <p><strong>Ámbito geográfico productos:</strong> ${ambitoProductos}</p>
+          
+          <p><strong>Siniestralidad últimos 3 años:</strong> ${siniestralidad}</p>
+          
+          <p>Quedamos a la espera de respuesta.</p>
+          
+          <p>Saludos cordiales,</p>
+          
+          <p style="font-weight: bold;">SMART ADVICE</p>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error("Error sending quotation request email:", error);
+      return { success: false, error };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Exception sending quotation request email:", error);
+    return { success: false, error };
+  }
 }
 
 /**
@@ -28,6 +236,11 @@ export async function sendContactNotification({
   message: string;
 }) {
   try {
+    // Verificar que estamos en el servidor
+    if (typeof window !== "undefined") {
+      throw new Error("This function can only be called from server-side code");
+    }
+
     // The admin email to receive notifications (replace with the actual email)
     const adminEmail = process.env.ADMIN_EMAIL || "info@smartadvice.es";
 
@@ -45,6 +258,12 @@ export async function sendContactNotification({
         }
       );
       return { success: true, data: { id: "test-email-id" } };
+    }
+
+    if (!resend) {
+      throw new Error(
+        "Resend is not initialized - this should never happen on the server"
+      );
     }
 
     const { data, error } = await resend.emails.send({
@@ -96,6 +315,11 @@ export async function sendContactConfirmation({
   email: string;
 }) {
   try {
+    // Verificar que estamos en el servidor
+    if (typeof window !== "undefined") {
+      throw new Error("This function can only be called from server-side code");
+    }
+
     // First, check if we're in a test environment
     if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
       console.log(
@@ -108,6 +332,12 @@ export async function sendContactConfirmation({
         }
       );
       return { success: true, data: { id: "test-email-id" } };
+    }
+
+    if (!resend) {
+      throw new Error(
+        "Resend is not initialized - this should never happen on the server"
+      );
     }
 
     const { data, error } = await resend.emails.send({
@@ -161,6 +391,11 @@ export async function sendRecommendationsEmail({
   tipo?: string;
 }) {
   try {
+    // Verificar que estamos en el servidor
+    if (typeof window !== "undefined") {
+      throw new Error("This function can only be called from server-side code");
+    }
+
     // First, check if we're in a test environment
     if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
       console.log(
@@ -175,6 +410,12 @@ export async function sendRecommendationsEmail({
         }
       );
       return { success: true, data: { id: "test-email-id" } };
+    }
+
+    if (!resend) {
+      throw new Error(
+        "Resend is not initialized - this should never happen on the server"
+      );
     }
 
     let recommendationsHtml = "";

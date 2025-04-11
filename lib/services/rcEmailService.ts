@@ -1,58 +1,59 @@
 // lib/services/rcEmailService.ts
 import { generateRCInsuranceReport } from "./rcReportService";
 
-interface EmailConfig {
-  to: string[];
-  cc?: string[];
-  bcc?: string[];
-  subject: string;
-  template: string;
-  data: any;
-  attachment?: any;
-}
-
-// Función principal para enviar emails
-async function sendEmail(config: EmailConfig) {
+// Función para enviar email de RC usando la API de email
+export async function sendRCRecommendationEmail(
+  recommendation: any,
+  contactEmail: string,
+  contactName: string
+) {
   try {
-    console.log("Enviando email con configuración:", {
-      to: config.to,
-      subject: config.subject,
-      template: config.template,
-    });
+    console.log("Enviando solicitud de cotización de RC a:", contactEmail);
 
-    const response = await fetch("/api/email", {
+    // Preparar los datos necesarios para la solicitud
+    const emailData = {
+      email: contactEmail,
+      name: contactName || recommendation.companyInfo.name || "",
+      recommendations: [recommendation],
+      tipo: "responsabilidad_civil",
+    };
+
+    // Hacer una solicitud a nuestra API interna en lugar de importar directamente
+    // la función sendQuotationRequest para evitar errores de hidratación
+    const response = await fetch("/api/recomendaciones/email", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(config),
+      body: JSON.stringify({
+        email: contactEmail,
+        name: contactName,
+        session_id:
+          typeof localStorage !== "undefined"
+            ? localStorage.getItem("smart_advice_session_id") || ""
+            : "",
+        form_type: "responsabilidad_civil",
+      }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Error respuesta API email:", response.status, errorText);
       throw new Error(
         `Error al enviar el email: ${response.statusText} - ${errorText}`
       );
     }
 
     const result = await response.json();
-    console.log("Respuesta de la API de email:", result);
-    return result;
+    console.log("Respuesta del servidor de email:", result);
+
+    return {
+      success: true,
+      emailResponse: result,
+    };
   } catch (error) {
-    console.error("Error en sendEmail:", error);
+    console.error("Error al enviar email de RC:", error);
     throw error;
   }
-}
-
-// Función para convertir un Blob a Base64
-async function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
 }
 
 // Formatea un número como moneda
@@ -117,72 +118,6 @@ export function generateRCExactEmailContent(recommendation: any): string {
     
     <p><strong>SMART ADVICE</strong></p>
   `;
-}
-
-// Función para enviar email de RC con PDF adjunto
-export async function sendRCRecommendationEmail(
-  recommendation: any,
-  contactEmail: string,
-  contactName: string
-) {
-  try {
-    console.log("Enviando email de RC a:", contactEmail);
-
-    // Generar el PDF para adjuntar
-    let attachmentData = null;
-
-    try {
-      const pdfBlob = await generateRCInsuranceReport(recommendation, false);
-      if (pdfBlob) {
-        const base64 = await blobToBase64(pdfBlob);
-        attachmentData = {
-          filename: `Informe_Seguro_RC_${
-            recommendation.companyInfo.name || "Cliente"
-          }.pdf`,
-          content: base64.split(",")[1], // Eliminar el prefijo "data:application/pdf;base64,"
-          encoding: "base64",
-          type: "application/pdf",
-        };
-      }
-    } catch (pdfError) {
-      console.error("Error al generar el PDF para el email:", pdfError);
-      // Continuamos sin adjunto si hay error
-    }
-
-    // Preparamos los datos para personalizar el email
-    const emailData = {
-      clientName: contactName,
-      clientEmail: contactEmail,
-      recommendation: recommendation,
-      companyName: recommendation.companyInfo.name || "tu empresa",
-      activityDescription:
-        recommendation.companyInfo.activity || "tu actividad",
-      billing: formatCurrency(recommendation.companyInfo.billing || 0),
-      year: new Date().getFullYear(),
-    };
-
-    // Crear el asunto del email
-    const subject = `Solicitud de Cotización de Seguro de Responsabilidad Civil - ${
-      recommendation.companyInfo.name || contactName
-    }`;
-
-    // Enviar el email
-    const emailResponse = await sendEmail({
-      to: [contactEmail],
-      subject: subject,
-      template: "rc-client-enhanced", // Este template debe existir en la API de email
-      data: emailData,
-      attachment: attachmentData,
-    });
-
-    return {
-      success: true,
-      emailResponse,
-    };
-  } catch (error) {
-    console.error("Error al enviar email de RC:", error);
-    throw error;
-  }
 }
 
 // HTML del template mejorado para el email al cliente
@@ -279,15 +214,7 @@ export function generateRCClientEmailTemplate(data: any): string {
             </ul>
           </div>
           
-          <p>Nos pondremos en contacto contigo a la mayor brevedad con una propuesta personalizada para tu empresa. Se ha adjuntado a este email un informe con el detalle de coberturas recomendadas para tu seguro.</p>
-          
-          <p>Este informe incluye:</p>
-          <ul>
-            <li>Información general sobre el seguro de responsabilidad civil</li>
-            <li>Las garantías recomendadas para tu actividad</li>
-            <li>Explicaciones sobre cada cobertura y ejemplos prácticos</li>
-            <li>Recomendaciones para una adecuada protección de tu negocio</li>
-          </ul>
+          <p>Nos pondremos en contacto contigo a la mayor brevedad con una propuesta personalizada para tu empresa.</p>
           
           <p>Si tienes alguna duda o quieres añadir información adicional a tu solicitud, puedes responder directamente a este correo.</p>
           

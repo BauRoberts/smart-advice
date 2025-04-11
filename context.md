@@ -343,4 +343,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-Tenemos que hacer cambios en el pdf que estamos generando! Tiene que ser exactamente igual al que nos paso el cliente como ejemplo! Con todas las descripciones que tiene. Todo esto para el formulario RC!
+Cuando enviamos el mail nos da ese error en la consola y no nos llega nunca el mail!

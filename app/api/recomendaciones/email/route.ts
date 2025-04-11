@@ -1,7 +1,7 @@
 // app/api/recomendaciones/email/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { sendRecommendationsEmail } from "@/lib/email";
+import { sendRecommendationsEmail, sendQuotationRequest } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
           session_id,
           email,
           name,
-          type: "recommendations",
+          type: "quotation_request", // Cambiado de "recommendations" a "quotation_request"
           form_type: form_type || null,
           status: "pending",
           created_at: new Date().toISOString(),
@@ -72,8 +72,8 @@ export async function POST(request: NextRequest) {
       // Continue execution even if logging fails
     }
 
-    // Send the email with recommendations
-    const emailResult = await sendRecommendationsEmail({
+    // Enviar la cotización en lugar del email de recomendaciones
+    const emailResult = await sendQuotationRequest({
       email,
       name,
       recommendations: coveragesData.recommendations,
@@ -95,26 +95,32 @@ export async function POST(request: NextRequest) {
     }
 
     if (!emailResult.success) {
-      console.error("Failed to send recommendations email:", emailResult.error);
+      console.error(
+        "Error al enviar la solicitud de cotización:",
+        emailResult.error
+      );
       return NextResponse.json(
-        { success: false, error: "Failed to send email" },
+        {
+          success: false,
+          error: "Error al enviar el email: " + emailResult.error,
+        },
         { status: 500 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: "Recommendations sent successfully",
+      message: "Solicitud de cotización enviada correctamente",
     });
   } catch (error) {
-    console.error("Error sending recommendations email:", error);
+    console.error("Error al enviar la solicitud de cotización:", error);
     return NextResponse.json(
       {
         success: false,
         error:
           error instanceof Error
             ? error.message
-            : "Error sending recommendations email",
+            : "Error al enviar la solicitud de cotización",
       },
       { status: 500 }
     );

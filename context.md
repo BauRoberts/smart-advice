@@ -343,4 +343,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-EStamos mostrando el paso en el cual estamos del formulario con cada uno de los pasos! Lo que pasa es que estos pasos se muestren mal y diferentes. A veces el total cambia y el paso en el que estamos tambien esta mal! Empecemos a ver que puede pasar con el formulario de RC! Me ayudas ?
+Hace unos dias hicimos unos cambios en el formulario RC para que muestre separador de miles el input de numeros de facturacion! Tenemos que ver bien que hicimos ahi y empezar a implementarlo para diferentes campos en el formulario de danos! Que te parece si me ayudas a identificar que hicmos y luego vemos en donde y lo adaptamos para el formulario de danos! ?

@@ -343,4 +343,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-Hace unos dias hicimos unos cambios en el formulario RC para que muestre separador de miles el input de numeros de facturacion! Tenemos que ver bien que hicimos ahi y empezar a implementarlo para diferentes campos en el formulario de danos! Que te parece si me ayudas a identificar que hicmos y luego vemos en donde y lo adaptamos para el formulario de danos! ?
+Tenemos que hacer cambios en el pdf que estamos generando! Tiene que ser exactamente igual al que nos paso el cliente como ejemplo! Con todas las descripciones que tiene. Todo esto para el formulario RC!

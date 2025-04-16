@@ -55,8 +55,160 @@ function determineLimitsRC(billingAmount?: number): {
   }
 }
 
-// Función para cargar la imagen del logo
-// Función para añadir el logo a cada página
+// Función para obtener la descripción de una cobertura
+function getCoverageDescription(coverageName: string): {
+  description: string;
+  example?: string;
+  additionalInfo?: string;
+} {
+  const descriptions: Record<
+    string,
+    { description: string; example?: string; additionalInfo?: string }
+  > = {
+    "Responsabilidad Civil por Explotación": {
+      description:
+        "Cubre los daños que puedas causar a terceros en el desarrollo y explotación de tu actividad empresarial.",
+      example: "Un incendio en la nave daña a la propiedad de los colindantes.",
+    },
+    "Responsabilidad Civil Patronal": {
+      description:
+        "Cubre la responsabilidad del asegurado frente a reclamaciones por accidentes laborales sufridos por sus empleados.",
+      example:
+        "Un trabajador cae de una escalera en una obra y demanda a la empresa.",
+    },
+    "Responsabilidad Civil por Contaminación Accidental": {
+      description:
+        "Cubre daños a terceros por contaminación imprevista generada por la actividad asegurada.",
+      example: "Un derrame de productos químicos contamina un río.",
+      additionalInfo:
+        "No se cubre la contaminación gradual y progresiva. Para ello, deberás contratar una póliza medioambiental.",
+    },
+    "Responsabilidad Civil Inmobiliaria": {
+      description:
+        "Protege contra los daños causados a terceros debido a la propiedad o uso de inmuebles.",
+      example:
+        "Un desprendimiento de fachada de un edificio asegurado daña un coche estacionado.",
+    },
+    "Responsabilidad Civil Locativa": {
+      description:
+        "Cubre los daños que el asegurado pueda causar al inmueble que ocupa en régimen de arrendamiento.",
+      example:
+        "Un incendio en la oficina alquilada daña las instalaciones del propietario.",
+    },
+    "Responsabilidad Civil Cruzada y Subsidiaria": {
+      description:
+        "Subsidiaria: Protege al asegurado si un tercero (subcontratista, autónomo, etc.) causa daños y no puede responder por insolvencia o falta de seguro.\nCruzada: Protege al asegurado en caso de daños personales entre empleados de diferentes contratistas o subcontratistas en una misma obra o proyecto.",
+      example:
+        "Un subcontratista de limpieza causa daños en una oficina y no tiene seguro y no puede pagar el daño que ha causado.",
+    },
+    "Responsabilidad Civil por Productos y Post-trabajos": {
+      description:
+        "Cubre daños causados por productos defectuosos o trabajos ya finalizados.",
+      example:
+        "Un electrodoméstico vendido por la empresa provoca un cortocircuito y quema una casa.",
+    },
+    "Responsabilidad Civil por Unión y Mezcla": {
+      description:
+        "La cobertura de Unión y Mezcla protege al asegurado frente a reclamaciones por daños ocasionados cuando su producto se incorpora, mezcla o transforma en otro bien, y posteriormente se detecta un defecto que afecta al producto final.",
+    },
+    "Gastos de Retirada": {
+      description:
+        "Cubre al asegurado los costes de retirada de productos defectuosos del mercado.",
+      example:
+        "Una empresa debe retirar del mercado una partida de alimentos contaminados.",
+      additionalInfo:
+        "Muchas compañías exigen que para que la cobertura sea operativa, exista una orden de la autoridad de aplicación de retirada del producto por riesgo a la seguridad o sanidad. Sin embargo, otras compañías pagan estos costes sin que exista tal orden gubernamental, pero se debe probar que el producto era riesgoso para la salud o la seguridad de las personas.\nLa cobertura no cubre los extra-costes de producción que tengas, sólo los costes de recogida del producto y en su caso, de destrucción.",
+    },
+    "Responsabilidad Civil de Técnicos en Plantilla": {
+      description:
+        "Cubre la responsabilidad profesional de técnicos y profesionales empleados por la empresa.",
+      example:
+        "Un ingeniero en plantilla comete un error en un cálculo estructural y causa daños.",
+    },
+    "Responsabilidad Civil Daños a Conducciones": {
+      description:
+        "Cubre daños accidentales a tuberías, cables o infraestructuras subterráneas/aéreas.",
+      example: "Una excavadora rompe una tubería de gas.",
+    },
+    "Daños a Colindantes": {
+      description:
+        "Cubre daños accidentales causados a propiedades vecinas por la actividad asegurada.",
+      example:
+        "Un edificio vecino sufre grietas debido a excavaciones en una obra.",
+    },
+    "Responsabilidad Civil Daños a Objetos Confiados y/o Custodiados": {
+      description:
+        "Cubre daños a bienes de terceros que el asegurado tiene en su poder para reparación o almacenamiento.",
+      example:
+        "Un taller de reparación daña accidentalmente un ordenador de un cliente.",
+    },
+    "Cobertura de Responsabilidad sobre Ferias y Exposiciones": {
+      description:
+        "Cubre los daños a terceros durante la participación del asegurado en eventos y exposiciones.",
+      example:
+        "Un stand de la empresa se derrumba y lesiona a un visitante en una feria comercial.",
+      additionalInfo:
+        "Esta cobertura no cubre los bienes que llevas a la feria, ni el transporte ni el montaje y desmontaje de ellos. Si quieres cubrir estos bienes, debes recurrir a una o más pólizas específicas (ej. póliza de transportes, de montaje, etc.).",
+    },
+    "Daños a Bienes Preexistentes": {
+      description:
+        "La cobertura de Daños a Bienes Preexistentes protege al asegurado frente a reclamaciones por daños accidentales causados a estructuras, instalaciones o bienes que ya existían antes del inicio de su actividad en un proyecto o trabajo.",
+      additionalInfo:
+        "No se cubren los daños ocasionados al propio bien trabajado o sobre el cual recaen los trabajos.",
+    },
+    "Responsabilidad Civil Daños a Vehículos de Terceros dentro de Instalaciones":
+      {
+        description:
+          "Protege en caso de daños a coches de clientes o visitantes dentro del recinto asegurado.",
+        example:
+          "Un portón automático de un parking daña un coche estacionado.",
+      },
+    "Responsabilidad Civil Daños al Receptor de la Energía": {
+      description:
+        "Esta cobertura protege al asegurado frente a reclamaciones por daños materiales y perjuicios consecuenciales sufridos por los clientes o usuarios que reciben energía suministrada por él.",
+      additionalInfo:
+        "Si la energía suministrada por el asegurado (ya sea eléctrica, térmica, solar, etc.) falla, se altera o se interrumpe y esto causa daños en equipos, instalaciones o pérdidas económicas, la cobertura responde ante dichas reclamaciones.",
+    },
+    "Daños a Bienes de Empleados": {
+      description:
+        "Cubre daños a pertenencias de los empleados dentro del lugar de trabajo.",
+      example:
+        "Un incendio en la oficina destruye los ordenadores personales de los empleados.",
+    },
+    "Perjuicios Patrimoniales Puros": {
+      description:
+        "Cubre pérdidas económicas directas sufridas por terceros sin que haya un daño material o personal previo.",
+      example:
+        "Un fallo eléctrico en una fábrica impide su producción y genera pérdidas.",
+    },
+  };
+
+  // Buscar la cobertura de forma más flexible
+  const coverageKey = Object.keys(descriptions).find(
+    (key) =>
+      coverageName.toLowerCase().includes(key.toLowerCase()) ||
+      key.toLowerCase().includes(coverageName.toLowerCase())
+  );
+
+  return coverageKey
+    ? descriptions[coverageKey]
+    : {
+        description:
+          "Cubre los daños relacionados con esta responsabilidad específica.",
+      };
+}
+
+// Función para determinar si una cobertura está incluida basada en el nombre
+function hasCoverage(
+  coverage: string,
+  recommendationCoverages: any[]
+): boolean {
+  return recommendationCoverages.some(
+    (cov) =>
+      cov.name.toLowerCase().includes(coverage.toLowerCase()) ||
+      coverage.toLowerCase().includes(cov.name.toLowerCase())
+  );
+}
 
 export const generateRCInsuranceReport = async (
   recommendation: any,
@@ -71,7 +223,6 @@ export const generateRCInsuranceReport = async (
     const rightMargin = pageWidth - leftMargin;
 
     // Función para añadir el logo a cada página
-    // Función para añadir el logo a cada página (dentro de generateRCInsuranceReport)
     const addLogoToPage = () => {
       try {
         // En Next.js, las rutas públicas se acceden sin el prefijo "/public"
@@ -125,7 +276,6 @@ export const generateRCInsuranceReport = async (
     };
 
     // Añadir logo a la primera página
-    // Añadir logo a la primera página
     await addLogoToPage();
 
     // Funciones helper
@@ -138,8 +288,8 @@ export const generateRCInsuranceReport = async (
       currentY += 8;
     };
 
-    const addText = (text: string, fontSize = 10) => {
-      doc.setFont("helvetica", "normal");
+    const addText = (text: string, fontSize = 10, bold = false) => {
+      doc.setFont("helvetica", bold ? "bold" : "normal");
       doc.setFontSize(fontSize);
       doc.setTextColor(...COLORS.text);
       const splitText = doc.splitTextToSize(text, pageWidth - 40);
@@ -154,7 +304,7 @@ export const generateRCInsuranceReport = async (
       doc.setTextColor(...COLORS.text);
 
       // Crear el punto de la lista
-      doc.text("●", leftMargin, currentY);
+      doc.text("•", leftMargin, currentY);
 
       // Texto con un poco de sangría
       const bulletIndent = 5;
@@ -175,14 +325,10 @@ export const generateRCInsuranceReport = async (
       doc.setFontSize(10);
       doc.setTextColor(...COLORS.primary);
 
-      // Crear un pequeño círculo amarillo en lugar del emoji de bombilla
-      doc.setFillColor(255, 204, 0); // Color amarillo para el círculo
-      doc.circle(leftMargin + 2, currentY - 2, 2, "F");
-
-      // Añadir el texto importante con sangría
+      // Texto "Importante:" con sangría
       const noteIndent = 7;
       const maxWidth = pageWidth - 40 - noteIndent;
-      doc.text("Importante:", leftMargin + noteIndent, currentY);
+      doc.text("Importante:", leftMargin, currentY);
 
       // Cambiar a texto normal para el contenido
       doc.setFont("helvetica", "normal");
@@ -190,7 +336,7 @@ export const generateRCInsuranceReport = async (
 
       const splitText = doc.splitTextToSize(text, maxWidth);
       currentY += 6; // Espacio después de "Importante:"
-      doc.text(splitText, leftMargin + noteIndent, currentY);
+      doc.text(splitText, leftMargin, currentY);
       currentY += splitText.length * 6 + 4; // Añadir espacio después de la nota
     };
 
@@ -246,50 +392,13 @@ export const generateRCInsuranceReport = async (
     // DATOS GENERALES DEL SEGURO
     addTitle("Datos generales de tu seguro", 12);
 
-    // Preparar los datos de la empresa
+    // Usar directamente los datos de la recomendación
     const companyName = recommendation.companyInfo.name || "";
     const companyAddress = recommendation.companyInfo.address || "";
-    const companyCIF = recommendation.companyInfo.cif || "";
-
-    // Preparar actividad
-    let actividadDescripcion = "";
-    if (recommendation.companyInfo.manufactures)
-      actividadDescripcion += "Fabricación";
-    if (recommendation.companyInfo.markets) {
-      if (actividadDescripcion) actividadDescripcion += " y/o ";
-      actividadDescripcion += "Comercialización";
-    }
-    if (recommendation.companyInfo.diseno) {
-      if (actividadDescripcion) actividadDescripcion += " y/o ";
-      actividadDescripcion += "Diseño";
-    }
-    if (recommendation.companyInfo.almacenamiento) {
-      if (actividadDescripcion) actividadDescripcion += " y/o ";
-      actividadDescripcion += "Almacenamiento";
-    }
-    if (recommendation.companyInfo.provides_services) {
-      if (actividadDescripcion) actividadDescripcion += " y/o ";
-      actividadDescripcion += "Prestación de servicios";
-    }
-
-    if (
-      actividadDescripcion &&
-      recommendation.companyInfo.product_service_types
-    ) {
-      actividadDescripcion += ` de ${recommendation.companyInfo.product_service_types}`;
-    }
-
-    if (actividadDescripcion && recommendation.companyInfo.industry_types) {
-      actividadDescripcion += ` para el sector de ${recommendation.companyInfo.industry_types}`;
-    }
-
-    // Si no se ha construido una descripción específica, usar la descripción general
-    if (!actividadDescripcion) {
-      actividadDescripcion =
-        recommendation.companyInfo.activityDescription ||
-        recommendation.companyInfo.activity ||
-        "";
-    }
+    const actividadDescripcion =
+      recommendation.companyInfo.activityDescription ||
+      recommendation.companyInfo.activity ||
+      "";
 
     // Añadir datos de la empresa
     addText(`Tomador: ${companyName}`);
@@ -372,317 +481,64 @@ export const generateRCInsuranceReport = async (
       recommendation.companyInfo.billing
     );
 
-    // Responsabilidad civil por explotación (siempre incluida)
-    addText(
-      `Responsabilidad civil por explotación con límite de ${generalLimit}`
-    );
-    addText(
-      "Cubre los daños que puedas causar a terceros en el desarrollo y explotación de tu actividad empresarial."
-    );
-    addText(
-      "Ejemplo: un incendio en la nave daña a la propiedad de los colindantes."
-    );
-    currentY += 4;
+    // Procesar cada cobertura recomendada
+    for (const coverage of recommendation.coverages) {
+      if (!coverage.required) continue; // Saltarse las coberturas no requeridas
 
-    // Responsabilidad civil Patronal (si tiene empleados)
-    if (recommendation.companyInfo.employees_number > 1) {
-      addText(
-        `Responsabilidad civil Patronal con límite de ${generalLimit} y sublímite de víctima patronal por ${victimSubLimit}`
-      );
-      addText(
-        "Cubre la responsabilidad del asegurado frente a reclamaciones por accidentes laborales sufridos por sus empleados."
-      );
-      addImportantNote(
-        "procura tener límites y sublímites altos de cobertura para accidentes de trabajo, ya que la jurisprudencia viene incrementando de manera muy significativa el importe de las indemnizaciones a pagar."
-      );
-      addText(
-        "Ejemplo: Un trabajador cae de una escalera en una obra y demanda a la empresa."
-      );
-      currentY += 4;
-    }
+      // Obtener el nombre de la cobertura y su información adicional
+      const coverageName = coverage.name;
+      const { description, example, additionalInfo } =
+        getCoverageDescription(coverageName);
 
-    // Responsabilidad civil por contaminación Accidental
-    if (
-      recommendation.coberturas_solicitadas?.coberturas_adicionales
-        ?.cover_accidental_contamination
-    ) {
-      addText(
-        `Responsabilidad civil por contaminación Accidental con límite de ${generalLimit}`
-      );
-      addText(
-        "Cubre daños a terceros por contaminación imprevista generada por la actividad asegurada."
-      );
-      addText("Ejemplo: Un derrame de productos químicos contamina un río.");
-      addText(
-        "No se cubre la contaminación gradual y progresiva. Para ello, deberás contratar una póliza medioambiental."
-      );
-      addImportantNote(
-        "debes tener en cuenta que en materia de daños ambientales existen numerosas leyes que exigen a las empresas constituir una Garantía Financiera Obligatoria (GFO) para poder responder ante los daños que se causen. Una de las formas de dar cumplimiento a esta obligación legal es a través de la contratación de un seguro."
-      );
-      currentY += 4;
-    }
+      // Añadir el título con el límite o condición si está disponible
+      let coverageTitle = coverageName;
+      if (coverage.limit) {
+        coverageTitle += ` con límite de ${coverage.limit}`;
+      } else if (coverage.condition) {
+        coverageTitle += `. ${coverage.condition}`;
+      } else if (coverage.sublimit) {
+        coverageTitle += ` con sublímite de ${coverage.sublimit}`;
+      }
 
-    // Responsabilidad civil Inmobiliaria (si es propietario)
-    if (recommendation.companyInfo.installations_type === "Propietario") {
-      addText(
-        `Responsabilidad civil Inmobiliaria con límite de ${generalLimit}`
-      );
-      addText(
-        "Protege contra los daños causados a terceros debido a la propiedad o uso de inmuebles."
-      );
-      addText(
-        "Ejemplo: Un desprendimiento de fachada de un edificio asegurado daña un coche estacionado."
-      );
-      currentY += 4;
-    }
+      addText(coverageTitle, 10, true); // Añadir el título en negrita
 
-    // Responsabilidad civil Locativa (si no es propietario)
-    if (recommendation.companyInfo.installations_type === "No propietario") {
-      addText(
-        "Responsabilidad civil Locativa. Sublimite sugerido: de 300.000€ a 1.200.000€ dependiendo el valor del inmueble alquilado."
-      );
-      addText(
-        "Cubre los daños que el asegurado pueda causar al inmueble que ocupa en régimen de arrendamiento."
-      );
-      addText(
-        "Ejemplo: Un incendio en la oficina alquilada daña las instalaciones del propietario."
-      );
-      currentY += 4;
-    }
+      // Añadir la descripción
+      if (description) {
+        addText(description);
+      }
 
-    // Responsabilidad civil cruzada y subsidiaria (si subcontrata)
-    if (recommendation.actividad?.servicios?.subcontrata_personal) {
-      addText("Responsabilidad civil cruzada y subsidiaria. Incluida.");
-      addText(
-        "Subsidiaria: Protege al asegurado si un tercero (subcontratista, autónomo, etc.) causa daños y no puede responder por insolvencia o falta de seguro."
-      );
-      addText(
-        "Ejemplo: Un subcontratista de limpieza causa daños en una oficina y no tiene seguro y no puede pagar el daño que ha causado."
-      );
-      addText(
-        "Cruzada: Protege al asegurado en caso de daños personales entre empleados de diferentes contratistas o subcontratistas en una misma obra o proyecto."
-      );
-      addText(
-        "Ejemplo: Un empleado de una empresa eléctrica se lesiona debido a la negligencia de una empresa de andamios en la misma obra."
-      );
-      currentY += 4;
-    }
+      // Añadir el ejemplo si existe
+      if (example) {
+        addText(`Ejemplo: ${example}`);
+      }
 
-    // Responsabilidad civil por productos (si fabrica, diseña, comercializa o almacena)
-    if (
-      recommendation.companyInfo.manufactures ||
-      recommendation.companyInfo.markets ||
-      recommendation.companyInfo.diseno ||
-      recommendation.companyInfo.almacenamiento
-    ) {
-      addText(
-        `Responsabilidad civil por productos y post-trabajos con límite de ${generalLimit}`
-      );
-      addText(
-        "Cubre daños causados por productos defectuosos o trabajos ya finalizados."
-      );
-      addText(
-        "Ejemplo: Un electrodoméstico vendido por la empresa provoca un cortocircuito y quema una casa."
-      );
-      currentY += 4;
-    }
+      // Añadir información adicional si existe
+      if (additionalInfo) {
+        addText(additionalInfo);
+      }
 
-    // Responsabilidad civil por unión y mezcla (si es producto intermedio)
-    if (
-      recommendation.actividad?.manufactura?.producto_intermedio_final ===
-        "intermedio" ||
-      (recommendation.actividad?.manufactura &&
-        recommendation.actividad.manufactura.producto_intermedio_final ===
-          "intermedio")
-    ) {
-      addText(
-        "Responsabilidad civil por unión y mezcla. Limite Sugerido: entre 100.000€ a 600.000€."
-      );
-      addText(
-        "La cobertura de Unión y Mezcla protege al asegurado frente a reclamaciones por daños ocasionados cuando su producto se incorpora, mezcla o transforma en otro bien, y posteriormente se detecta un defecto que afecta al producto final."
-      );
-      currentY += 4;
-    }
+      // Si la cobertura es RC Patronal, añadir una nota importante específica
+      if (coverageName.toLowerCase().includes("patronal")) {
+        addImportantNote(
+          "procura tener límites y sublímites altos de cobertura para accidentes de trabajo, ya que la jurisprudencia viene incrementando de manera muy significativa el importe de las indemnizaciones a pagar."
+        );
+      }
 
-    // Gastos de retirada (si es consumo humano)
-    if (
-      recommendation.actividad?.manufactura?.producto_consumo_humano === true ||
-      (recommendation.actividad?.manufactura &&
-        recommendation.actividad.manufactura.producto_consumo_humano === true)
-    ) {
-      addText("Gastos de retirada. Límite sugerido entre 100.000€ y 600.000€");
-      addText(
-        "Cubre al asegurado los costes de retirada de productos defectuosos del mercado."
-      );
-      addText(
-        "Ejemplo: Una empresa debe retirar del mercado una partida de alimentos contaminados."
-      );
-      addText(
-        "Muchas compañías exigen que para que la cobertura sea operativa, exista una orden de la autoridad de aplicación de retirada del producto por riesgo a la seguridad o sanidad. Sin embargo, otras compañías pagan estos costes sin que exista tal orden gubernamental, pero se debe probar que el producto era riesgoso para la salud o la seguridad de las personas."
-      );
-      addText(
-        "La cobertura no cubre los extra-costes de producción que tengas, sólo los costes de recogida del producto y en su caso, de destrucción."
-      );
-      addImportantNote(
-        "revisa esta cobertura en tu póliza y presta atención a estos dos puntos indicados."
-      );
-      currentY += 4;
-    }
+      // Si la cobertura es de contaminación, añadir una nota importante específica
+      if (coverageName.toLowerCase().includes("contaminación")) {
+        addImportantNote(
+          "debes tener en cuenta que en materia de daños ambientales existen numerosas leyes que exigen a las empresas constituir una Garantía Financiera Obligatoria (GFO) para poder responder ante los daños que se causen. Una de las formas de dar cumplimiento a esta obligación legal es a través de la contratación de un seguro."
+        );
+      }
 
-    // Responsabilidad civil de técnicos en plantilla
-    if (
-      recommendation.coberturas_solicitadas?.coberturas_adicionales
-        ?.has_contracted_professionals
-    ) {
-      addText(
-        `Responsabilidad civil de técnicos en plantilla con límite de ${generalLimit}`
-      );
-      addText(
-        "Cubre la responsabilidad profesional de técnicos y profesionales empleados por la empresa."
-      );
-      addText(
-        "Ejemplo: Un ingeniero en plantilla comete un error en un cálculo estructural y causa daños."
-      );
-      currentY += 4;
-    }
+      // Si la cobertura es de Gastos de Retirada, añadir una nota importante específica
+      if (coverageName.toLowerCase().includes("gastos de retirada")) {
+        addImportantNote(
+          "revisa esta cobertura en tu póliza y presta atención a estos dos puntos indicados."
+        );
+      }
 
-    // Responsabilidad Civil Daños a conducciones
-    if (
-      recommendation.actividad?.servicios?.trabajos_afectan_infraestructuras
-    ) {
-      addText(
-        `Responsabilidad Civil Daños a conducciones con límite de ${generalLimit}`
-      );
-      addText(
-        "Cubre daños accidentales a tuberías, cables o infraestructuras subterráneas/aéreas."
-      );
-      addText("Ejemplo: Una excavadora rompe una tubería de gas.");
-      currentY += 4;
-    }
-
-    // Daños a Colindantes
-    if (recommendation.actividad?.servicios?.trabajos_afectan_edificios) {
-      addText(`Daños a Colindantes con límite de ${generalLimit}`);
-      addText(
-        "Cubre daños accidentales causados a propiedades vecinas por la actividad asegurada."
-      );
-      addText(
-        "Ejemplo: Un edificio vecino sufre grietas debido a excavaciones en una obra."
-      );
-      currentY += 4;
-    }
-
-    // Responsabilidad Civil Daños a Objetos Confiados
-    if (
-      recommendation.coberturas_solicitadas?.coberturas_adicionales
-        ?.stores_third_party_goods
-    ) {
-      addText(
-        "Responsabilidad Civil Daños a Objetos Confiados y/o Custodiados. Limite sugerido: entre 150.000€ a 600.000€ dependiendo del valor de los bienes custodiados"
-      );
-      addText(
-        "Cubre daños a bienes de terceros que el asegurado tiene en su poder para reparación o almacenamiento."
-      );
-      addText(
-        "Ejemplo: Un taller de reparación daña accidentalmente un ordenador de un cliente."
-      );
-      currentY += 4;
-    }
-
-    // Cobertura de ferias
-    if (
-      recommendation.coberturas_solicitadas?.coberturas_adicionales
-        ?.participates_in_fairs
-    ) {
-      addText(
-        "Cobertura de responsabilidad sobre ferias y exposiciones. Incluida."
-      );
-      addText(
-        "Cubre los daños a terceros durante la participación del asegurado en eventos y exposiciones."
-      );
-      addText(
-        "Ejemplo: Un stand de la empresa se derrumba y lesiona a un visitante en una feria comercial."
-      );
-      addImportantNote(
-        "esta cobertura no cubre los bienes que llevas a la feria, ni el transporte ni el montaje y desmontaje de ellos. Si quieres cubrir estos bienes, debes recurrir a una o más pólizas específicas (ej. póliza de transportes, de montaje, etc.)."
-      );
-      currentY += 4;
-    }
-
-    // Daños a bienes Preexistentes
-    if (recommendation.actividad?.servicios?.cubre_preexistencias) {
-      addText(
-        `Daños a bienes Preexistentes con límite de ${generalLimit}. Excluyéndose en cualquier caso los daños a aquella parte específica dónde trabaja el asegurado`
-      );
-      addText(
-        "La cobertura de Daños a Bienes Preexistentes protege al asegurado frente a reclamaciones por daños accidentales causados a estructuras, instalaciones o bienes que ya existían antes del inicio de su actividad en un proyecto o trabajo."
-      );
-      addText(
-        "No se cubren los daños ocasionados al propio bien trabajado o sobre el cual recaen los trabajos."
-      );
-      currentY += 4;
-    }
-
-    // Responsabilidad Civil Daños a vehículos
-    if (
-      recommendation.coberturas_solicitadas?.coberturas_adicionales
-        ?.third_party_vehicles_parked
-    ) {
-      addText(
-        "Responsabilidad Civil Daños a vehículos de terceros dentro de instalaciones. Incluida."
-      );
-      addText(
-        "Protege en caso de daños a coches de clientes o visitantes dentro del recinto asegurado."
-      );
-      addText(
-        "Ejemplo: Un portón automático de un parking daña un coche estacionado."
-      );
-      currentY += 4;
-    }
-
-    // Daños al receptor de energía
-    if (recommendation.companyInfo.placas_venta_red) {
-      addText(`Daños al receptor de la energía con límite de ${generalLimit}`);
-      addText(
-        "Esta cobertura protege al asegurado frente a reclamaciones por daños materiales y perjuicios consecuenciales sufridos por los clientes o usuarios que reciben energía suministrada por él."
-      );
-      addText(
-        "Si la energía suministrada por el asegurado (ya sea eléctrica, térmica, solar, etc.) falla, se altera o se interrumpe y esto causa daños en equipos, instalaciones o pérdidas económicas, la cobertura responde ante dichas reclamaciones."
-      );
-      currentY += 4;
-    }
-
-    // Daños a bienes de empleados
-    if (
-      recommendation.coberturas_solicitadas?.coberturas_adicionales
-        ?.cover_employee_damages
-    ) {
-      addText(
-        "Daños a bienes de empleados. Limite sugerido: entre 30.000€ a 150.000€."
-      );
-      addText(
-        "Cubre daños a pertenencias de los empleados dentro del lugar de trabajo."
-      );
-      addText(
-        "Ejemplo: Un incendio en la oficina destruye los ordenadores personales de los empleados."
-      );
-      currentY += 4;
-    }
-
-    // Perjuicios patrimoniales puros
-    if (
-      recommendation.coberturas_solicitadas?.coberturas_adicionales
-        ?.cover_material_damages
-    ) {
-      addText(
-        "Perjuicios patrimoniales puros. Límite sugerido 100.000€ a 300.000€"
-      );
-      addText(
-        "Cubre pérdidas económicas directas sufridas por terceros sin que haya un daño material o personal previo."
-      );
-      addText(
-        "Ejemplo: Un fallo eléctrico en una fábrica impide su producción y genera pérdidas."
-      );
+      // Añadir espacio después de cada cobertura
       currentY += 4;
     }
 
@@ -717,15 +573,9 @@ export const generateRCInsuranceReport = async (
     );
 
     // Añadir ámbito de productos si corresponde
-    if (
-      recommendation.companyInfo.manufactures ||
-      recommendation.companyInfo.markets ||
-      recommendation.companyInfo.diseno
-    ) {
+    if (recommendation.ambitoProductos) {
       addText(
-        `Ámbito geográfico para productos: ${
-          recommendation.ambitoProductos || "España y Andorra"
-        }`
+        `Ámbito geográfico para productos: ${recommendation.ambitoProductos}`
       );
     }
     currentY += 10;
@@ -744,7 +594,7 @@ export const generateRCInsuranceReport = async (
     doc.setFontSize(10);
     doc.setTextColor(255, 255, 255); // Texto en blanco
     doc.text(
-      "Contáctanos si necesitas que te ayudemos con tu seguro correo@correo.com",
+      "Contáctanos si necesitas que te ayudemos con tu seguro rodrigo@smartadvice.es",
       pageWidth / 2,
       contactBoxY + 6,
       { align: "center" }

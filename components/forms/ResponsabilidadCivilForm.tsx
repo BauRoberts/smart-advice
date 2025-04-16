@@ -15,8 +15,6 @@ import AdditionalCoverageStep, {
   AdditionalCoverageData,
 } from "@/components/forms/steps/AdditionalCoverageStep";
 import ServicesFormStep from "@/components/forms/steps/ServicesFormStep";
-import PreguntasGeneralesStep from "@/components/forms/steps/PreguntasGeneralesStep";
-import CoberturasFormStep from "@/components/forms/steps/CoberturasFormStep";
 import RCResumenStep from "@/components/forms/steps/RCResumenStep";
 
 import LoadingScreen from "@/components/ui/LoadingScreen";

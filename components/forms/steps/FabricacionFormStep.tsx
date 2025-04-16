@@ -15,7 +15,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import FormLayout from "@/components/layout/FormLayout";
-import { InfoTooltip } from "@/components/ui/InfoTooltip";
+import { Input } from "@/components/ui/input";
 
 // Schema for Fabricación Step
 const fabricacionSchema = z.object({
@@ -340,14 +340,17 @@ export default function FabricacionFormStep({
                           España y Andorra
                         </FormLabel>
                         <FormControl>
-                          <input
+                          <Input
                             type="number"
+                            formatNumber={true}
                             min="0"
-                            className="w-32 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            className="w-32"
                             placeholder="0€"
-                            {...field}
+                            value={field.value || ""}
                             onChange={(e) =>
-                              field.onChange(e.target.valueAsNumber || 0)
+                              field.onChange(
+                                e.target.value ? Number(e.target.value) : 0
+                              )
                             }
                           />
                         </FormControl>
@@ -371,14 +374,17 @@ export default function FabricacionFormStep({
                             Unión Europea
                           </FormLabel>
                           <FormControl>
-                            <input
+                            <Input
                               type="number"
+                              formatNumber={true}
                               min="0"
-                              className="w-32 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                              className="w-32"
                               placeholder="0€"
-                              {...field}
+                              value={field.value || ""}
                               onChange={(e) =>
-                                field.onChange(e.target.valueAsNumber || 0)
+                                field.onChange(
+                                  e.target.value ? Number(e.target.value) : 0
+                                )
                               }
                             />
                           </FormControl>
@@ -402,14 +408,17 @@ export default function FabricacionFormStep({
                             Reino Unido
                           </FormLabel>
                           <FormControl>
-                            <input
+                            <Input
                               type="number"
+                              formatNumber={true}
                               min="0"
-                              className="w-32 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                              className="w-32"
                               placeholder="0€"
-                              {...field}
+                              value={field.value || ""}
                               onChange={(e) =>
-                                field.onChange(e.target.valueAsNumber || 0)
+                                field.onChange(
+                                  e.target.value ? Number(e.target.value) : 0
+                                )
                               }
                             />
                           </FormControl>
@@ -432,14 +441,17 @@ export default function FabricacionFormStep({
                             Resto del mundo (excepto USA y Canadá)
                           </FormLabel>
                           <FormControl>
-                            <input
+                            <Input
                               type="number"
+                              formatNumber={true}
                               min="0"
-                              className="w-32 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                              className="w-32"
                               placeholder="0€"
-                              {...field}
+                              value={field.value || ""}
                               onChange={(e) =>
-                                field.onChange(e.target.valueAsNumber || 0)
+                                field.onChange(
+                                  e.target.value ? Number(e.target.value) : 0
+                                )
                               }
                             />
                           </FormControl>
@@ -461,14 +473,17 @@ export default function FabricacionFormStep({
                             USA y Canadá
                           </FormLabel>
                           <FormControl>
-                            <input
+                            <Input
                               type="number"
+                              formatNumber={true}
                               min="0"
-                              className="w-32 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                              className="w-32"
                               placeholder="0€"
-                              {...field}
+                              value={field.value || ""}
                               onChange={(e) =>
-                                field.onChange(e.target.valueAsNumber || 0)
+                                field.onChange(
+                                  e.target.value ? Number(e.target.value) : 0
+                                )
                               }
                             />
                           </FormControl>

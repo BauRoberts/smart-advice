@@ -503,6 +503,7 @@ export default function CompanyFormStep({
                     <div className="relative">
                       <Input
                         type="number"
+                        formatNumber={true}
                         placeholder="m² de instalaciones"
                         value={field.value || ""}
                         onChange={(e) =>
@@ -668,6 +669,7 @@ export default function CompanyFormStep({
                   <FormControl>
                     <Input
                       type="number"
+                      formatNumber={true}
                       placeholder="Número de empleados"
                       value={field.value || ""}
                       onChange={(e) =>
@@ -766,6 +768,7 @@ export default function CompanyFormStep({
                       <div className="relative">
                         <Input
                           type="number"
+                          formatNumber={true}
                           placeholder="Cantidad"
                           value={field.value || ""}
                           onChange={(e) =>

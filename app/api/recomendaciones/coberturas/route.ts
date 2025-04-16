@@ -193,6 +193,15 @@ function buildActivityDescription(formData: any): string {
     }
   }
 
+  // Añadir la descripción manual si existe
+  if (formData?.company?.activity_description) {
+    if (activityDescription) {
+      activityDescription += ". " + formData.company.activity_description;
+    } else {
+      activityDescription = formData.company.activity_description;
+    }
+  }
+
   return activityDescription;
 }
 
@@ -214,7 +223,7 @@ function generateRCCoverages(
 
   // Preparamos la información de la empresa
   const companyInfo = {
-    name: contactData?.name || formData?.company?.name || "",
+    name: formData?.company?.name || contactData?.name || "",
     address: formData?.company?.localizacion_nave || "",
     activity: formData?.company?.activity || "",
     activityDescription: buildActivityDescription(formData),
@@ -360,7 +369,8 @@ function generateRCCoverages(
     coverages.push({
       name: "Responsabilidad Civil por Unión y Mezcla",
       required: true,
-      limit: "Límite sugerido: entre 100.000€ a 600.000€",
+      // Eliminar la línea de limit:
+      // limit: "Límite sugerido: entre 100.000€ a 600.000€",
     });
   }
 
@@ -542,11 +552,12 @@ function generateRCCoverages(
       limit: generalLimit,
     });
 
-    coverages.push({
-      name: "Daños al Receptor de Energía",
-      required: true,
-      condition: "Incluida",
-    });
+    // Eliminar esta entrada duplicada:
+    // coverages.push({
+    //   name: "Daños al Receptor de Energía",
+    //   required: true,
+    //   condition: "Incluida",
+    // });
   }
 
   // Daños a bienes de empleados

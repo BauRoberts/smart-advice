@@ -343,4 +343,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-TEngo que chequear que todos los servicios de CNAE esten en la lista que usamos de dropdown cuando agregamos!
+Vamos a empezar a armar todas las correcciones de los formularios RC! Para eso vamos ir paso a paso juntos. Yo te paso la correccion, el arvchvio que tenemos que corregir y vos lo corregis, no generas ningun archivo nuevo, tampoco agregas cosas, solo corregis!

@@ -33,8 +33,8 @@ const contactSchema = z.object({
   privacyPolicy: z.boolean().refine((val) => val === true, {
     message: "Debes aceptar la política de privacidad para continuar",
   }),
+  marketingConsent: z.boolean().default(false),
 });
-
 // Tipo para los datos de contacto
 export type ContactFormData = z.infer<typeof contactSchema>;
 
@@ -49,7 +49,13 @@ interface ContactFormStepProps {
 export default function ContactFormStep({
   onNext,
   onBack,
-  defaultValues = { name: "", email: "", phone: "", privacyPolicy: false },
+  defaultValues = {
+    name: "",
+    email: "",
+    phone: "",
+    privacyPolicy: false,
+    marketingConsent: false,
+  },
   currentStep,
   totalSteps,
 }: ContactFormStepProps) {
@@ -155,6 +161,30 @@ export default function ContactFormStep({
                   <FormDescription>
                     Tus datos serán tratados según nuestra política de
                     privacidad para ofrecerte asesoramiento personalizado.
+                  </FormDescription>
+                </div>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="marketingConsent"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>
+                    Acepto recibir comunicaciones comerciales de Smart Advice
+                  </FormLabel>
+                  <FormDescription>
+                    Podrás recibir ofertas, promociones y novedades relacionadas
+                    con nuestros servicios. Puedes darte de baja en cualquier
+                    momento.
                   </FormDescription>
                 </div>
               </FormItem>

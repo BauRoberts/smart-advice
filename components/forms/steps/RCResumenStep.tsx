@@ -11,6 +11,33 @@ interface RCResumenStepProps {
   totalSteps?: number;
 }
 
+// Definir interfaces para las estructuras de datos
+interface ServiciosData {
+  subcontrata_personal?: boolean;
+  trabajos_corte_soldadura?: boolean;
+  trabajos_afectan_edificios?: boolean;
+  trabajos_afectan_infraestructuras?: boolean;
+  trabajos_instalaciones_terceros?: boolean;
+  cubre_preexistencias?: boolean;
+}
+
+interface ManufacturaData {
+  producto_consumo_humano?: boolean;
+  producto_contacto_humano?: boolean;
+  tiene_empleados_tecnicos?: boolean;
+  producto_final_o_intermedio?: string;
+  distribucion?: string[];
+  matriz_en_espana?: boolean;
+  filiales?: string[];
+  considerar_gastos_retirada?: boolean;
+  facturacion_por_region?: Record<string, number>;
+}
+
+interface ActividadData {
+  servicios?: ServiciosData;
+  manufactura?: ManufacturaData;
+}
+
 export default function RCResumenStep({
   onSubmit,
   onBack,
@@ -502,11 +529,32 @@ export default function RCResumenStep({
                     Distribución
                   </dt>
                   <dd className="mt-1 text-sm text-gray-900">
-                    {formData.actividad.manufactura.distribucion
-                      ? formData.actividad.manufactura.distribucion
+                    {(() => {
+                      // Solo intentar usar distribucion ya que es la única propiedad que existe en el tipo
+                      const distribArray =
+                        formData.actividad?.manufactura?.distribucion;
+                      if (
+                        distribArray &&
+                        Array.isArray(distribArray) &&
+                        distribArray.length > 0
+                      ) {
+                        return distribArray
                           .map((region) => getDistribucionLabel(region))
-                          .join(", ")
-                      : "-"}
+                          .join(", ");
+                      }
+
+                      // Si distribucion no funciona, podemos acceder a la propiedad usando notación indexada
+                      // que evita el checking de tipos de TypeScript
+                      const manufactura = formData.actividad
+                        ?.manufactura as any;
+                      if (manufactura && manufactura["alcance_geografico"]) {
+                        return getDistribucionLabel(
+                          manufactura["alcance_geografico"]
+                        );
+                      }
+
+                      return "-";
+                    })()}
                   </dd>
                 </div>
               </dl>
@@ -523,10 +571,11 @@ export default function RCResumenStep({
               <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
                 <div>
                   <dt className="text-sm font-medium text-gray-500">
-                    Trabajos fuera de instalaciones
+                    Subcontrata personal
                   </dt>
                   <dd className="mt-1 text-sm text-gray-900">
-                    {formData.actividad.servicios.trabajos_fuera_instalaciones
+                    {(formData.actividad.servicios as ServiciosData)
+                      .subcontrata_personal
                       ? "Sí"
                       : "No"}
                   </dd>
@@ -537,16 +586,8 @@ export default function RCResumenStep({
                     Trabajos de corte y soldadura
                   </dt>
                   <dd className="mt-1 text-sm text-gray-900">
-                    {formData.actividad.servicios.corte_soldadura ? "Sí" : "No"}
-                  </dd>
-                </div>
-
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">
-                    Trabajo con equipos electrónicos
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {formData.actividad.servicios.trabajo_equipos_electronicos
+                    {(formData.actividad.servicios as ServiciosData)
+                      .trabajos_corte_soldadura
                       ? "Sí"
                       : "No"}
                   </dd>
@@ -554,10 +595,11 @@ export default function RCResumenStep({
 
                 <div>
                   <dt className="text-sm font-medium text-gray-500">
-                    Empleados técnicos/profesionales
+                    Trabajos que afectan a edificios
                   </dt>
                   <dd className="mt-1 text-sm text-gray-900">
-                    {formData.actividad.servicios.empleados_tecnicos
+                    {(formData.actividad.servicios as ServiciosData)
+                      .trabajos_afectan_edificios
                       ? "Sí"
                       : "No"}
                   </dd>
@@ -565,10 +607,11 @@ export default function RCResumenStep({
 
                 <div>
                   <dt className="text-sm font-medium text-gray-500">
-                    Trabajos con subcontratistas
+                    Trabajos que afectan a infraestructuras
                   </dt>
                   <dd className="mt-1 text-sm text-gray-900">
-                    {formData.actividad.servicios.trabajos_subcontratistas
+                    {(formData.actividad.servicios as ServiciosData)
+                      .trabajos_afectan_infraestructuras
                       ? "Sí"
                       : "No"}
                   </dd>
@@ -576,10 +619,23 @@ export default function RCResumenStep({
 
                 <div>
                   <dt className="text-sm font-medium text-gray-500">
-                    Trabajos que afectan a edificios vecinos
+                    Trabajos en instalaciones de terceros
                   </dt>
                   <dd className="mt-1 text-sm text-gray-900">
-                    {formData.actividad.servicios.afecta_edificios_vecinos
+                    {(formData.actividad.servicios as ServiciosData)
+                      .trabajos_instalaciones_terceros
+                      ? "Sí"
+                      : "No"}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">
+                    Cubre bienes preexistentes
+                  </dt>
+                  <dd className="mt-1 text-sm text-gray-900">
+                    {(formData.actividad.servicios as ServiciosData)
+                      .cubre_preexistencias
                       ? "Sí"
                       : "No"}
                   </dd>
@@ -646,11 +702,11 @@ function getAmbitoTerritorialLabel(scope?: string): string {
 
 function getDistribucionLabel(region: string): string {
   const labels: Record<string, string> = {
-    espana: "España + Andorra",
-    ue: "Unión Europea",
-    europa_uk: "Unión Europea y Reino Unido",
-    "mundial-sin-usa": "Todo el mundo excepto USA y Canadá",
-    "mundial-con-usa": "Todo el mundo incluido USA y Canadá",
+    espana_andorra: "España + Andorra",
+    union_europea: "Unión Europea",
+    europa_reino_unido: "Unión Europea y Reino Unido",
+    mundial_excepto_usa_canada: "Todo el mundo excepto USA y Canadá",
+    mundial_incluyendo_usa_canada: "Todo el mundo incluido USA y Canadá",
   };
 
   return labels[region] || region;

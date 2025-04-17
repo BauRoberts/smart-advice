@@ -69,54 +69,93 @@ function formatCurrency(value?: number): string {
 
 // Función para generar el contenido del email para el template de RC exacto
 export function generateRCExactEmailContent(recommendation: any): string {
-  // Generar un contenido simple pero completo
+  // Generar un listado de coberturas formateado
+  let coveragesHTML = "";
+
+  if (recommendation.coverages && recommendation.coverages.length > 0) {
+    coveragesHTML =
+      '<h3 style="color: #062A5A; margin-top: 25px;">Garantías y Límites Solicitados</h3><ul>';
+
+    // Añadir cada cobertura como un elemento de lista
+    recommendation.coverages.forEach((coverage: any) => {
+      if (coverage.required) {
+        // Determinar qué mostrar después del nombre de la cobertura
+        let limitText = "";
+        if (coverage.limit) {
+          limitText = ` - <span style="color: #FB2E25;">${coverage.limit}</span>`;
+        } else if (coverage.condition) {
+          limitText = ` - <span style="color: #FB2E25;">${coverage.condition}</span>`;
+        } else if (coverage.sublimit) {
+          limitText = ` - <span style="color: #FB2E25;">Sublímite: ${coverage.sublimit}</span>`;
+        }
+
+        coveragesHTML += `<li><strong>${coverage.name}</strong>${limitText}</li>`;
+      }
+    });
+
+    coveragesHTML += "</ul>";
+  }
+
+  // Generar un contenido completo y bien formateado con elementos básicos
   return `
     <p>Estimados colaboradores,</p>
     
     <p>Sirva el presente correo para solicitar cotización de seguro de Responsabilidad Civil General de acuerdo con la siguiente información:</p>
     
+    <h3 style="color: #062A5A;">Datos del Tomador</h3>
     <ul>
-      <li>TOMADOR: ${recommendation.companyInfo.name || "XXXX"}</li>
-      <li>CIF: ${recommendation.companyInfo.cif || "XXXX"}</li>
-      <li>DIRECCIÓN: ${recommendation.companyInfo.address || "XXXX"}</li>
-      <li>CNAE: ${recommendation.companyInfo.cnae_code || "XXXXXX"}</li>
-      <li>ACTIVIDAD: ${recommendation.companyInfo.activity || "XXXXXX"}</li>
-      <li>FACTURACIÓN: ${formatCurrency(
+      <li><strong>TOMADOR:</strong> ${
+        recommendation.companyInfo.name || "XXXX"
+      }</li>
+      <li><strong>CIF:</strong> ${recommendation.companyInfo.cif || "XXXX"}</li>
+      <li><strong>DIRECCIÓN:</strong> ${
+        recommendation.companyInfo.address || "XXXX"
+      }</li>
+      <li><strong>CNAE:</strong> ${
+        recommendation.companyInfo.cnae_code || "XXXXXX"
+      }</li>
+      <li><strong>ACTIVIDAD:</strong> ${
+        recommendation.companyInfo.activity || "XXXXXX"
+      }</li>
+      <li><strong>FACTURACIÓN:</strong> ${formatCurrency(
         recommendation.companyInfo.billing
       )}</li>
       ${
         recommendation.companyInfo.owner_name
-          ? `<li>ASEGURADO ADICIONAL: INCLUIR COMO ASEGURADO ADICIONAL AL PROPIETARIO DE LA NAVE, SR./EMPRESA ${recommendation.companyInfo.owner_name}</li>`
+          ? `<li><strong>ASEGURADO ADICIONAL:</strong> INCLUIR COMO ASEGURADO ADICIONAL AL PROPIETARIO DE LA NAVE, SR./EMPRESA ${recommendation.companyInfo.owner_name}</li>`
           : ""
       }
     </ul>
     
-    <p>Garantías y límites</p>
+    ${coveragesHTML}
     
-    <p style="color: #FF0000; font-weight: bold;">ACA METEMOS TODO TAL CUAL EL CLIENTE NOS LO DIO Y QUE QUEDO EN LA WEB</p>
+    <h3 style="color: #062A5A;">Ámbito Geográfico</h3>
+    <ul>
+      <li><strong>Ámbito geográfico general:</strong> ${
+        recommendation.ambitoTerritorial || "IDEM"
+      }</li>
+      <li><strong>Ámbito geográfico productos:</strong> ${
+        recommendation.ambitoProductos || "IDEM"
+      }</li>
+    </ul>
     
-    <p>Ámbito geográfico general: ${
-      recommendation.ambitoTerritorial || "IDEM"
-    }</p>
-    
-    <p>Ámbito geográfico productos: ${
-      recommendation.ambitoProductos || "IDEM"
-    }</p>
-    
-    <p>Siniestralidad últimos 3 años: ${
-      recommendation.siniestralidad?.siniestros_ultimos_3_anos ? "SÍ" : "NO"
-    }</p>
-    ${
-      recommendation.siniestralidad?.siniestros_detalles
-        ? `<p>Detalles de siniestralidad: ${recommendation.siniestralidad.siniestros_detalles}</p>`
-        : ""
-    }
+    <h3 style="color: #062A5A;">Siniestralidad</h3>
+    <ul>
+      <li><strong>Siniestralidad últimos 3 años:</strong> ${
+        recommendation.siniestralidad?.siniestros_ultimos_3_anos ? "SÍ" : "NO"
+      }</li>
+      ${
+        recommendation.siniestralidad?.siniestros_detalles
+          ? `<li><strong>Detalles de siniestralidad:</strong> ${recommendation.siniestralidad.siniestros_detalles}</li>`
+          : ""
+      }
+    </ul>
     
     <p>Quedamos a la espera de respuesta.</p>
     
     <p>Saludos cordiales,</p>
     
-    <p><strong>SMART ADVICE</strong></p>
+    <p style="color: #062A5A; font-weight: bold;">SMART ADVICE</p>
   `;
 }
 

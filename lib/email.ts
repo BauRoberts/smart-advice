@@ -18,12 +18,6 @@ if (typeof window === "undefined") {
   );
 }
 
-/**
- * Envía una solicitud de cotización basada en las recomendaciones
- */
-/**
- * Envía una solicitud de cotización basada en las recomendaciones
- */
 export async function sendQuotationRequest({
   email,
   name,
@@ -57,49 +51,20 @@ export async function sendQuotationRequest({
     // Recopilar la información necesaria para el correo
     const tomador = companyInfo.name || "XXXX (QUE PONGA EL TOMADOR)";
 
-    // Para el CIF, usar un valor real basado en lo que tenemos
-    // En este caso, parece que no está disponible, así que ponemos el valor real
-    const cif = "12345678X"; // Valor real para el ejemplo
+    // Usar CIF/NIF desde el objeto companyInfo si existe
 
     const direccion =
-      companyInfo.address ||
-      companyInfo.localizacion_nave ||
-      "XXXX (ASI SUCESIVAMENTE)";
+      companyInfo.address || companyInfo.localizacion_nave || "XXXX";
+    const cnae = companyInfo.cnae_code || "XXXX";
 
-    // Para el CNAE, sabemos que es "4321" basados en los logs
-    const cnae = companyInfo.cnae_code || "4321";
-
-    // Construir la descripción de actividad
-    let actividad = "";
-    if (companyInfo.activityDescription) {
-      actividad = companyInfo.activityDescription;
-    } else {
-      let actividadArr = [];
-      if (companyInfo.manufactures) actividadArr.push("Fabricación");
-      if (companyInfo.markets) actividadArr.push("Comercialización");
-      if (companyInfo.diseno) actividadArr.push("Diseño");
-      if (companyInfo.almacenamiento) actividadArr.push("Almacenamiento");
-      if (companyInfo.provides_services)
-        actividadArr.push("Prestación de servicios");
-
-      actividad = actividadArr.join(" y/o ");
-
-      if (actividad && companyInfo.product_service_types) {
-        actividad += ` de ${companyInfo.product_service_types}`;
-      }
-
-      if (actividad && companyInfo.industry_types) {
-        actividad += ` para el sector de ${companyInfo.industry_types}`;
-      }
-    }
-
-    // Si no hay actividad definida, usar texto genérico con la actividad real (Instalaciones eléctricas)
-    actividad = actividad || companyInfo.activity || "Instalaciones eléctricas";
+    // Actividad
+    const actividad =
+      companyInfo.activityDescription || companyInfo.activity || "XXXX";
 
     // Facturación
     const facturacion = companyInfo.billing
       ? new Intl.NumberFormat("es-ES").format(companyInfo.billing) + "€"
-      : "XXX";
+      : "XXXX";
 
     // Asegurado adicional (propietario de la nave)
     let aseguradoAdicional = "";
@@ -112,17 +77,29 @@ export async function sendQuotationRequest({
       aseguradoAdicional = "N/A";
     }
 
-    // Garantías y límites
-    const limites = recommendation.limits || {};
-    let garantias = "";
-
-    // Coberturas necesarias
+    // Generar lista de coberturas
+    let garantiasLista = "";
     if (recommendation.coverages && recommendation.coverages.length > 0) {
-      const coberturasNecesarias = recommendation.coverages
-        .filter((cov: any) => cov.required)
-        .map((cov: any) => cov.name);
+      const coberturasRequeridas = recommendation.coverages.filter(
+        (cov: any) => cov.required
+      );
 
-      garantias = coberturasNecesarias.join(", ");
+      coberturasRequeridas.forEach((cov: any) => {
+        let coberturaTxt = cov.name;
+
+        // Añadir los límites o condiciones si existen
+        if (cov.limit) {
+          coberturaTxt += ` - ${cov.limit}`;
+        }
+        if (cov.sublimit) {
+          coberturaTxt += ` - Sublímite: ${cov.sublimit}`;
+        }
+        if (cov.condition && !cov.limit && !cov.sublimit) {
+          coberturaTxt += ` - ${cov.condition}`;
+        }
+
+        garantiasLista += `• ${coberturaTxt}<br>`;
+      });
     }
 
     // Ámbitos geográficos
@@ -132,10 +109,10 @@ export async function sendQuotationRequest({
       recommendation.ambitoProductos || "España y Andorra";
 
     // Siniestralidad
-    const siniestralidad =
-      companyInfo.has_claims === true
-        ? `${companyInfo.claims_count || 0} siniestros en los últimos 3 años`
-        : "Ningún siniestro en los últimos 3 años";
+    const siniestralidad = recommendation.siniestralidad
+      ?.siniestros_ultimos_3_anos
+      ? `SÍ - ${recommendation.siniestralidad.siniestros_detalles || ""}`
+      : "Ningún siniestro en los últimos 3 años";
 
     // First, check if we're in a test environment
     if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
@@ -172,7 +149,7 @@ export async function sendQuotationRequest({
           : "Daños Materiales"
       } - ${tomador}`,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; text-align: left;">
           <p>Estimados colaboradores,</p>
           
           <p>Sirva el presente correo para solicitar cotización de seguro de ${
@@ -181,18 +158,21 @@ export async function sendQuotationRequest({
               : "Daños Materiales"
           } de acuerdo con la siguiente información:</p>
           
-          <ul style="list-style-type: disc; padding-left: 20px;">
-            <li>TOMADOR ${tomador}</li>
-            <li>CIF ${cif}</li>
-            <li>DIRECCION ${direccion}</li>
-            <li>CNAE: ${cnae}</li>
-            <li>ACTIVIDAD: ${actividad}</li>
-            <li>FACTURACION ${facturacion}</li>
-            <li>${aseguradoAdicional}</li>
-          </ul>
+          <p><strong>TOMADOR:</strong> ${tomador}</p>
+          <p><strong>DIRECCIÓN:</strong> ${direccion}</p>
+          <p><strong>CNAE:</strong> ${cnae}</p>
+          <p><strong>ACTIVIDAD:</strong> ${actividad}</p>
+          <p><strong>FACTURACIÓN:</strong> ${facturacion}</p>
+          ${
+            aseguradoAdicional !== "N/A"
+              ? `<p><strong>ASEGURADO ADICIONAL:</strong> ${aseguradoAdicional}</p>`
+              : ""
+          }
           
-          <p><strong>Garantías y límites</strong><br>
-          ${garantias}</p>
+          <p><strong>Garantías y límites</strong></p>
+          <div style="text-align: center; margin: 10px 0;">
+            ${garantiasLista}
+          </div>
           
           <p><strong>Ámbito geográfico general:</strong> ${ambitoGeneral}</p>
           
@@ -204,7 +184,7 @@ export async function sendQuotationRequest({
           
           <p>Saludos cordiales,</p>
           
-          <p style="font-weight: bold;">SMART ADVICE</p>
+          <p><strong>SMART ADVICE</strong></p>
         </div>
       `,
     });

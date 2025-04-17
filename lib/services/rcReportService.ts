@@ -318,26 +318,40 @@ export const generateRCInsuranceReport = async (
     };
 
     const addImportantNote = (text: string) => {
-      checkPageBreak(20);
+      checkPageBreak(25);
+
+      // Calcular dimensiones del recuadro
+      const maxWidth = pageWidth - 40;
+      // Reducir el ancho disponible para el texto para aumentar márgenes internos
+      const textWidth = maxWidth - 30; // 30 unidades totales de margen (15 a cada lado)
+      const splitText = doc.splitTextToSize(`Importante: ${text}`, textWidth);
+      const boxHeight = splitText.length * 6 + 16; // Aumentamos aún más el margen vertical
+
+      // Dibujar el recuadro amarillo
+      doc.setFillColor(...COLORS.warningBg);
+      doc.setDrawColor(...COLORS.warningText);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(
+        leftMargin,
+        currentY - 4,
+        maxWidth,
+        boxHeight,
+        3,
+        3,
+        "FD"
+      );
 
       // Configurar el estilo del texto
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
-      doc.setTextColor(...COLORS.primary);
+      doc.setTextColor(...COLORS.warningText);
 
-      // Texto "Importante:" con sangría
-      const noteIndent = 7;
-      const maxWidth = pageWidth - 40 - noteIndent;
-      doc.text("Importante:", leftMargin, currentY);
+      // Añadir el texto con mayor margen a la izquierda
+      currentY += 6; // Más espacio para centrar verticalmente
+      doc.text(splitText, leftMargin + 15, currentY); // 15 unidades de margen izquierdo
 
-      // Cambiar a texto normal para el contenido
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(...COLORS.text);
-
-      const splitText = doc.splitTextToSize(text, maxWidth);
-      currentY += 6; // Espacio después de "Importante:"
-      doc.text(splitText, leftMargin, currentY);
-      currentY += splitText.length * 6 + 4; // Añadir espacio después de la nota
+      // Actualizar la posición Y después del recuadro
+      currentY += splitText.length * 6 + 12; // Más espacio después del recuadro
     };
 
     const checkPageBreak = async (requiredSpace: number) => {
@@ -403,6 +417,10 @@ export const generateRCInsuranceReport = async (
     // Añadir datos de la empresa
     addText(`Tomador: ${companyName}`);
     addText(`Dirección: ${companyAddress}`);
+    // Añadir el código CNAE aquí
+    addText(
+      `CNAE: ${recommendation.companyInfo.cnae_code || "No especificado"}`
+    );
     addText(`Actividad cubierta: ${actividadDescripcion}`);
 
     // Añadir nota importante sobre actividad

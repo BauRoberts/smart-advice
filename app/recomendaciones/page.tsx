@@ -27,6 +27,7 @@ interface CompanyInfo {
   address?: string;
   activity?: string;
   activityDescription?: string;
+  cnae_code?: string; // Añadir esta propiedad
   billing?: number;
   employees?: number;
   m2?: number;
@@ -417,6 +418,17 @@ function RecomendacionesContent() {
                         </p>
                       </div>
 
+                      {/* Añadir CNAE */}
+                      <div className="mb-4">
+                        <h3 className="text-sm font-medium text-gray-700">
+                          CNAE:
+                        </h3>
+                        <p className="text-base">
+                          {recommendation.companyInfo.cnae_code ||
+                            "No especificado"}
+                        </p>
+                      </div>
+
                       <div className="mb-4">
                         <h3 className="text-sm font-medium text-gray-700">
                           Actividad cubierta:
@@ -486,9 +498,7 @@ function RecomendacionesContent() {
                               coverage.sublimit ||
                               coverage.condition) && (
                               <span className="block text-sm text-gray-600 mt-1">
-                                {coverage.limit
-                                  ? `Límite: ${coverage.limit}`
-                                  : ""}
+                                {coverage.limit ? ` ${coverage.limit}` : ""}
                                 {coverage.sublimit
                                   ? ` - Sublímite: ${coverage.sublimit}`
                                   : ""}

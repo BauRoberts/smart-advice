@@ -227,6 +227,7 @@ function generateRCCoverages(
     address: formData?.company?.localizacion_nave || "",
     activity: formData?.company?.activity || "",
     activityDescription: buildActivityDescription(formData),
+    cnae_code: formData?.company?.cnae_code || "", // Añadir esta línea
     billing: formData?.company?.billing,
     employees: formData?.company?.employees_number,
     m2: formData?.company?.m2_installations,
@@ -701,6 +702,7 @@ function generateDMCoverages(
     address: formData?.company?.localizacion_nave || "",
     activity: formData?.company?.activity || "",
     activityDescription: buildActivityDescription(formData),
+    cnae_code: formData?.company?.cnae_code || "", // Añadir esta línea
     billing: formData?.company?.billing,
     employees: formData?.company?.employees_number,
     m2: formData?.company?.m2_installations,

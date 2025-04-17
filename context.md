@@ -343,4 +343,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-Vamos a hacer las ultima correcciones sobre el formulario RC! Para eso te voy a pasar solametne el form que no tiene cada step para ver que tenemos que corregir en cada caso! Me ayudas?
+Vamos a hacer correcciones sobre el formulario de danos! Para eso vamos a ir analizando cada una de las cuestiones y haciendo los cambios necesarios! Me ayudas?

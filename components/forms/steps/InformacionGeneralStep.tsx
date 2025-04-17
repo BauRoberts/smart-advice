@@ -234,19 +234,22 @@ export default function InformacionGeneralStep({
                 <FormItem className="mb-4">
                   <FormLabel>Número de Empleados</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Número de empleados"
-                      value={field.value || ""}
-                      onChange={(e) =>
-                        field.onChange(
-                          e.target.value ? parseInt(e.target.value) : ""
-                        )
-                      }
-                      onBlur={field.onBlur}
-                      name={field.name}
-                      ref={field.ref}
-                    />
+                    <div className="relative">
+                      <Input
+                        type="text" // Cambiado de "number" a "text" para permitir el formato
+                        formatNumber={true}
+                        placeholder="Número de empleados"
+                        value={field.value || ""}
+                        onChange={(e) => {
+                          // Extraer solo los dígitos para el procesamiento
+                          const rawValue = e.target.value.replace(/\D/g, "");
+                          field.onChange(rawValue ? parseInt(rawValue) : "");
+                        }}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    </div>
                   </FormControl>
                   <FormDescription>
                     Solo se consideran empleados en nómina
@@ -319,11 +322,16 @@ export default function InformacionGeneralStep({
                       <FormControl>
                         <div className="relative">
                           <Input
-                            type="number"
+                            type="text" // Cambiado de "number" a "text"
+                            formatNumber={true}
                             placeholder="Porcentaje"
                             value={field.value?.toString() || ""}
                             onChange={(e) => {
-                              const value = parseInt(e.target.value);
+                              const rawValue = e.target.value.replace(
+                                /\D/g,
+                                ""
+                              );
+                              const value = parseInt(rawValue);
                               if (isNaN(value)) {
                                 field.onChange(0);
                               } else if (value > 100) {
@@ -334,8 +342,6 @@ export default function InformacionGeneralStep({
                                 field.onChange(value);
                               }
                             }}
-                            min={0}
-                            max={100}
                           />
                           <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
                             %
@@ -424,14 +430,15 @@ export default function InformacionGeneralStep({
                   <FormControl>
                     <div className="relative">
                       <Input
-                        type="number"
+                        type="text" // Cambiado de "number" a "text" para permitir el formato
+                        formatNumber={true}
                         placeholder="Metros cuadrados"
                         value={field.value || ""}
-                        onChange={(e) =>
-                          field.onChange(
-                            e.target.value ? parseFloat(e.target.value) : ""
-                          )
-                        }
+                        onChange={(e) => {
+                          // Extraer solo los dígitos para el procesamiento
+                          const rawValue = e.target.value.replace(/\D/g, "");
+                          field.onChange(rawValue ? parseFloat(rawValue) : "");
+                        }}
                         onBlur={field.onBlur}
                         name={field.name}
                         ref={field.ref}

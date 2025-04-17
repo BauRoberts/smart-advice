@@ -1209,7 +1209,7 @@ export default function CapitalesYCoberturasStep({
                             </FormLabel>
                             <FormDescription>
                               Cubre los daños causados a terceros durante el
-                              desarrollo de la actividad. Límite: 600.000€
+                              desarrollo de la actividad.
                             </FormDescription>
                           </div>
                         </FormItem>
@@ -1234,8 +1234,7 @@ export default function CapitalesYCoberturasStep({
                             </FormLabel>
                             <FormDescription>
                               Cubre los daños personales sufridos por empleados
-                              por accidentes laborales. Límite: 600.000€.
-                              Sublímite por víctima: 450.000€
+                              por accidentes laborales. Sublímite por víctima:
                             </FormDescription>
                           </div>
                         </FormItem>
@@ -1260,7 +1259,7 @@ export default function CapitalesYCoberturasStep({
                             </FormLabel>
                             <FormDescription>
                               Cubre los daños causados por los productos
-                              fabricados o suministrados. Límite: 600.000€
+                              fabricados o suministrados.
                             </FormDescription>
                           </div>
                         </FormItem>

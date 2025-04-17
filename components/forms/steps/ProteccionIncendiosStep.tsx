@@ -1,4 +1,3 @@
-// components/forms/steps/ProteccionIncendiosStep.tsx
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -41,7 +40,10 @@ const proteccionIncendiosSchema = z.object({
   // Columnas hidrantes
   columnas_hidrantes: z.boolean().default(false),
   columnas_hidrantes_numero: z.number().optional(),
-  columnas_hidrantes_tipo: z.enum(["publico", "privado"]).optional(),
+  columnas_hidrantes_tipo: z
+    .array(z.enum(["publico", "privado"]))
+    .optional()
+    .default([]),
 
   // Detección automática
   deteccion_automatica: z.boolean().default(false),
@@ -86,6 +88,7 @@ export default function ProteccionIncendiosStep({
       extintores: false,
       bocas_incendio: false,
       columnas_hidrantes: false,
+      columnas_hidrantes_tipo: [], // Inicializar como array vacío
       deteccion_automatica: false,
       rociadores: false,
       suministro_agua: "",
@@ -110,7 +113,7 @@ export default function ProteccionIncendiosStep({
       deposito_bombeo: data.bocas_deposito_propio || false,
       cobertura_total: data.bocas_cobertura_total || false,
       columnas_hidrantes: data.columnas_hidrantes,
-      columnas_hidrantes_tipo: data.columnas_hidrantes_tipo,
+      columnas_hidrantes_tipo: data.columnas_hidrantes_tipo || [],
       deteccion_automatica: data.deteccion_automatica,
       deteccion_zona:
         data.deteccion_cobertura === "parcial"
@@ -283,30 +286,42 @@ export default function ProteccionIncendiosStep({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tipo de sistema</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="flex flex-col space-y-1"
-                        >
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="publico" />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              Público
-                            </FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="privado" />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              Privado
-                            </FormLabel>
-                          </FormItem>
-                        </RadioGroup>
-                      </FormControl>
+                      <div className="space-y-2">
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value?.includes("publico")}
+                              onCheckedChange={(checked) => {
+                                // Actualizar el array según la selección
+                                const updatedValue = checked
+                                  ? [...(field.value || []), "publico"]
+                                  : (field.value || []).filter(
+                                      (value) => value !== "publico"
+                                    );
+                                field.onChange(updatedValue);
+                              }}
+                            />
+                          </FormControl>
+                          <FormLabel className="font-normal">Público</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value?.includes("privado")}
+                              onCheckedChange={(checked) => {
+                                // Actualizar el array según la selección
+                                const updatedValue = checked
+                                  ? [...(field.value || []), "privado"]
+                                  : (field.value || []).filter(
+                                      (value) => value !== "privado"
+                                    );
+                                field.onChange(updatedValue);
+                              }}
+                            />
+                          </FormControl>
+                          <FormLabel className="font-normal">Privado</FormLabel>
+                        </FormItem>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}

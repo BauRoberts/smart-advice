@@ -19,56 +19,12 @@ export default function FormSummaryStep({
   formData,
   isSubmitting,
   formType,
-  currentStep = 5,
-  totalSteps = 5,
+  currentStep = 8,
+  totalSteps = 8,
 }: FormSummaryStepProps) {
-  // Mover la función getTitle dentro del componente
-  const title =
-    formType === "rc"
-      ? "Resumen de Responsabilidad Civil"
-      : "Resumen de Daños Materiales";
-
-  // Crear una lista de regiones de distribución para mostrar
-  const getDistribucionLabels = () => {
-    const distribucion = formData.actividad.manufactura?.distribucion || [];
-    const labels: Record<string, string> = {
-      espana: "España + Andorra",
-      ue: "Unión Europea",
-      "mundial-sin-usa": "Todo el mundo excepto USA y Canadá",
-      "mundial-con-usa": "Todo el mundo incluido USA y Canadá",
-    };
-
-    return distribucion.map((id: string) => labels[id] || id).join(", ");
-  };
-
-  // Crear una lista de filiales para mostrar
-  const getFilialesLabels = () => {
-    const filiales = formData.actividad.manufactura?.filiales || [];
-    const labels: Record<string, string> = {
-      ue: "Unión Europea",
-      "resto-mundo": "Resto del mundo",
-      "usa-canada": "USA y Canadá",
-    };
-
-    return filiales.length > 0
-      ? filiales.map((id: string) => labels[id] || id).join(", ")
-      : "No tiene filiales";
-  };
-
-  // Obtener las coberturas seleccionadas
-  const getCoberturasSeleccionadas = () => {
-    const coberturas = formData.coberturas_solicitadas;
-    const labels: Record<string, string> = {
-      exploitation: "RC Explotación",
-      patronal: "RC Patronal",
-      productos: "RC Productos",
-      trabajos: "RC Trabajos",
-      profesional: "RC Profesional",
-    };
-
-    return Object.entries(coberturas)
-      .filter(([_, value]) => value)
-      .map(([key, _]) => labels[key] || key);
+  // Get the title
+  const getTitle = () => {
+    return "Resumen Daños Materiales";
   };
 
   // Función para obtener las coberturas RC de Daños Materiales
@@ -89,9 +45,35 @@ export default function FormSummaryStep({
       .map(([key, _]) => labels[key] || key);
   };
 
-  // Get the title based on form type
-  const getTitle = () => {
-    return formType === "danos" ? "Resumen Daños Materiales" : "Resumen RC";
+  // Función para formatear valores monetarios
+  const formatCurrency = (value: number | undefined | null) => {
+    if (value === undefined || value === null || value === 0) return "0 €";
+    return `${value.toLocaleString()} €`;
+  };
+
+  // Función para formatear materiales de construcción
+  const formatMaterial = (material: string | undefined) => {
+    if (!material) return "-";
+
+    // Mapping de códigos a nombres legibles
+    const materialLabels: Record<string, string> = {
+      // Materiales de cubierta
+      hormigon: "Hormigón",
+      chapa_metalica: "Chapa metálica simple",
+      panel_sandwich_lana: "Panel sándwich con lana de roca o fibra de vidrio",
+      panel_sandwich_pir: "Panel sándwich PIR/PUR",
+      madera: "Madera",
+      // Materiales de cerramientos
+      ladrillo: "Ladrillo",
+      metalico: "Metálico",
+      panel_sandwich: "Panel Sandwich",
+      // Materiales de estructura
+      metalica: "Metálica",
+      mixta: "Mixta",
+      otros: "Otros materiales",
+    };
+
+    return materialLabels[material] || material.replace(/_/g, " ");
   };
 
   return (
@@ -106,26 +88,26 @@ export default function FormSummaryStep({
       isLastStep={true}
     >
       <div className="space-y-6">
-        {/* Datos de contacto - común para ambos formularios */}
+        {/* Datos de contacto */}
         <div className="border-b pb-4">
           <h3 className="text-lg font-medium mb-2">Datos de contacto</h3>
           <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
             <div>
               <dt className="text-sm font-medium text-gray-500">Nombre</dt>
-              <dd>{formData.contact.name}</dd>
+              <dd>{formData.contact?.name || "-"}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">Email</dt>
-              <dd>{formData.contact.email}</dd>
+              <dd>{formData.contact?.email || "-"}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">Teléfono</dt>
-              <dd>{formData.contact.phone}</dd>
+              <dd>{formData.contact?.phone || "-"}</dd>
             </div>
           </dl>
         </div>
 
-        {/* Información General - común para ambos formularios */}
+        {/* Información General */}
         <div className="border-b pb-4">
           <h3 className="text-lg font-medium mb-2">Información General</h3>
           <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
@@ -133,9 +115,7 @@ export default function FormSummaryStep({
               <dt className="text-sm font-medium text-gray-500">
                 Nombre de la empresa
               </dt>
-              <dd>
-                {formData.informacion_general?.name || formData.company.name}
-              </dd>
+              <dd>{formData.informacion_general?.name || "-"}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">CIF</dt>
@@ -150,11 +130,10 @@ export default function FormSummaryStep({
                 Actividad (CNAE)
               </dt>
               <dd>
-                {formData.informacion_general?.cnae_code ||
-                  formData.company.cnae_code}{" "}
-                -{" "}
-                {formData.informacion_general?.activity ||
-                  formData.company.activity}
+                {formData.informacion_general?.cnae_code || "-"}{" "}
+                {formData.informacion_general?.activity
+                  ? `- ${formData.informacion_general.activity}`
+                  : ""}
               </dd>
             </div>
             <div>
@@ -167,10 +146,7 @@ export default function FormSummaryStep({
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">Empleados</dt>
-              <dd>
-                {formData.informacion_general?.employees_number ||
-                  formData.company.employees_number}
-              </dd>
+              <dd>{formData.informacion_general?.employees_number || "-"}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">
@@ -178,10 +154,8 @@ export default function FormSummaryStep({
               </dt>
               <dd>
                 {formData.informacion_general?.billing
-                  ? `${formData.informacion_general.billing.toLocaleString()} €`
-                  : formData.company.billing
-                  ? `${formData.company.billing.toLocaleString()} €`
-                  : "No especificada"}
+                  ? formatCurrency(formData.informacion_general.billing)
+                  : "-"}
               </dd>
             </div>
             <div>
@@ -191,48 +165,38 @@ export default function FormSummaryStep({
               <dd>
                 {formData.informacion_general?.online_invoice
                   ? `Sí (${formData.informacion_general.online_invoice_percentage}%)`
-                  : formData.company.online_invoice
-                  ? `Sí (${formData.company.online_invoice_percentage}%)`
                   : "No"}
               </dd>
             </div>
-            {/* Solo mostrar para el formulario de daños materiales */}
-            {formType === "danos" && (
-              <div>
-                <dt className="text-sm font-medium text-gray-500">
-                  Propiedad de instalaciones
-                </dt>
-                <dd>
-                  {formData.informacion_general?.es_propietario === "si"
-                    ? "Propietario"
-                    : formData.informacion_general?.es_propietario === "no"
-                    ? `Arrendatario (Propietario: ${
-                        formData.informacion_general?.propietario_nombre || "-"
-                      })`
-                    : "-"}
-                </dd>
-              </div>
-            )}
-            {/* Solo mostrar para el formulario de daños materiales */}
-            {formType === "danos" && (
-              <div>
-                <dt className="text-sm font-medium text-gray-500">
-                  M² de instalaciones
-                </dt>
-                <dd>
-                  {formData.informacion_general?.m2_installations
-                    ? `${formData.informacion_general.m2_installations} m²`
-                    : formData.company.m2_installations
-                    ? `${formData.company.m2_installations} m²`
-                    : "-"}
-                </dd>
-              </div>
-            )}
+            <div>
+              <dt className="text-sm font-medium text-gray-500">
+                Propiedad de instalaciones
+              </dt>
+              <dd>
+                {formData.informacion_general?.es_propietario === "si"
+                  ? "Propietario"
+                  : formData.informacion_general?.es_propietario === "no"
+                  ? `Arrendatario (Propietario: ${
+                      formData.informacion_general?.propietario_nombre || "-"
+                    })`
+                  : "-"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-500">
+                M² de instalaciones
+              </dt>
+              <dd>
+                {formData.informacion_general?.m2_installations
+                  ? `${formData.informacion_general.m2_installations.toLocaleString()} m²`
+                  : "-"}
+              </dd>
+            </div>
           </dl>
         </div>
 
-        {/* Información de instalaciones (antes Características constructivas) - Solo para Daños Materiales */}
-        {formType === "danos" && formData.construccion && (
+        {/* Información de instalaciones (Características constructivas) */}
+        {formData.construccion && (
           <div className="border-b pb-4">
             <h3 className="text-lg font-medium mb-2">
               Información de las Instalaciones
@@ -240,50 +204,42 @@ export default function FormSummaryStep({
             <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
               <div>
                 <dt className="text-sm font-medium text-gray-500">
-                  Tipo de construcción
+                  Material de cubierta
                 </dt>
-                <dd>{formData.construccion.tipo_construccion || "-"}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">
-                  Material de estructuras
-                </dt>
-                <dd>{formData.construccion.material_estructuras || "-"}</dd>
+                <dd>{formatMaterial(formData.construccion.cubierta)}</dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">
                   Material de cerramientos exteriores
                 </dt>
+                <dd>{formatMaterial(formData.construccion.cerramientos)}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-gray-500">
+                  Material de estructura
+                </dt>
+                <dd>{formatMaterial(formData.construccion.estructura)}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-gray-500">
+                  Cámaras frigoríficas
+                </dt>
                 <dd>
-                  {formData.construccion.material_cerramientos_ext || "-"}
+                  {formData.construccion.camaras_frigorificas ? "Sí" : "No"}
                 </dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">
-                  Material de cubierta
+                  Placas solares en cubierta
                 </dt>
-                <dd>{formData.construccion.material_cubierta || "-"}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">
-                  Falsos techos
-                </dt>
-                <dd>{formData.construccion.falsos_techos ? "Sí" : "No"}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">
-                  Material de falsos techos
-                </dt>
-                <dd>
-                  {formData.construccion.material_falsos_techos || "No aplica"}
-                </dd>
+                <dd>{formData.construccion.placas_solares ? "Sí" : "No"}</dd>
               </div>
             </dl>
           </div>
         )}
 
-        {/* Protecciones contra incendios - Solo para Daños Materiales */}
-        {formType === "danos" && formData.proteccion_incendios && (
+        {/* Protecciones contra incendios */}
+        {formData.proteccion_incendios && (
           <div className="border-b pb-4">
             <h3 className="text-lg font-medium mb-2">
               Protecciones contra Incendio
@@ -345,8 +301,22 @@ export default function FormSummaryStep({
                     Tipo de hidrantes
                   </dt>
                   <dd>
-                    {formData.proteccion_incendios.columnas_hidrantes_tipo ===
-                    "publico"
+                    {Array.isArray(
+                      formData.proteccion_incendios.columnas_hidrantes_tipo
+                    ) &&
+                    formData.proteccion_incendios.columnas_hidrantes_tipo
+                      .length > 0
+                      ? formData.proteccion_incendios.columnas_hidrantes_tipo
+                          .map((tipo: string) =>
+                            tipo === "publico"
+                              ? "Público"
+                              : tipo === "privado"
+                              ? "Privado"
+                              : tipo
+                          )
+                          .join(", ")
+                      : formData.proteccion_incendios
+                          .columnas_hidrantes_tipo === "publico"
                       ? "Público"
                       : formData.proteccion_incendios
                           .columnas_hidrantes_tipo === "privado"
@@ -371,11 +341,17 @@ export default function FormSummaryStep({
                     Cobertura de detección
                   </dt>
                   <dd>
-                    {formData.proteccion_incendios.deteccion_zona?.includes(
+                    {Array.isArray(
+                      formData.proteccion_incendios.deteccion_zona
+                    ) &&
+                    formData.proteccion_incendios.deteccion_zona.includes(
                       "totalidad"
                     )
                       ? "Totalidad del riesgo"
-                      : formData.proteccion_incendios.deteccion_zona?.length
+                      : Array.isArray(
+                          formData.proteccion_incendios.deteccion_zona
+                        ) &&
+                        formData.proteccion_incendios.deteccion_zona.length > 0
                       ? formData.proteccion_incendios.deteccion_zona.join(", ")
                       : "-"}
                   </dd>
@@ -395,11 +371,17 @@ export default function FormSummaryStep({
                     Cobertura de rociadores
                   </dt>
                   <dd>
-                    {formData.proteccion_incendios.rociadores_zona?.includes(
+                    {Array.isArray(
+                      formData.proteccion_incendios.rociadores_zona
+                    ) &&
+                    formData.proteccion_incendios.rociadores_zona.includes(
                       "totalidad"
                     )
                       ? "Totalidad del riesgo"
-                      : formData.proteccion_incendios.rociadores_zona?.length
+                      : Array.isArray(
+                          formData.proteccion_incendios.rociadores_zona
+                        ) &&
+                        formData.proteccion_incendios.rociadores_zona.length > 0
                       ? formData.proteccion_incendios.rociadores_zona.join(", ")
                       : "-"}
                   </dd>
@@ -409,14 +391,25 @@ export default function FormSummaryStep({
                 <dt className="text-sm font-medium text-gray-500">
                   Suministro de agua
                 </dt>
-                <dd>{formData.proteccion_incendios.suministro_agua || "-"}</dd>
+                <dd>
+                  {formData.proteccion_incendios.suministro_agua ===
+                  "red_publica"
+                    ? "Red pública"
+                    : formData.proteccion_incendios.suministro_agua ===
+                      "sistema_privado"
+                    ? "Sistema privado con grupo de bombeo y depósito propio"
+                    : formData.proteccion_incendios.suministro_agua ===
+                      "no_tiene"
+                    ? "No tiene"
+                    : "-"}
+                </dd>
               </div>
             </dl>
           </div>
         )}
 
-        {/* Protecciones contra robo - Solo para Daños Materiales */}
-        {formType === "danos" && formData.proteccion_robo && (
+        {/* Protecciones contra robo */}
+        {formData.proteccion_robo && (
           <div className="border-b pb-4">
             <h3 className="text-lg font-medium mb-2">
               Protecciones contra Robo
@@ -458,8 +451,8 @@ export default function FormSummaryStep({
           </div>
         )}
 
-        {/* Capitales y Coberturas - Solo para Daños Materiales */}
-        {formType === "danos" && formData.capitales_y_coberturas && (
+        {/* Capitales y Coberturas */}
+        {formData.capitales_y_coberturas && (
           <div className="border-b pb-4">
             <h3 className="text-lg font-medium mb-2">
               Capitales a asegurar y Coberturas
@@ -475,9 +468,9 @@ export default function FormSummaryStep({
                   Valor del edificio
                 </dt>
                 <dd>
-                  {formData.capitales_y_coberturas.valor_edificio
-                    ? `${formData.capitales_y_coberturas.valor_edificio.toLocaleString()} €`
-                    : "0 €"}
+                  {formatCurrency(
+                    formData.capitales_y_coberturas.valor_edificio
+                  )}
                 </dd>
               </div>
               <div>
@@ -485,9 +478,7 @@ export default function FormSummaryStep({
                   Valor del ajuar industrial
                 </dt>
                 <dd>
-                  {formData.capitales_y_coberturas.valor_ajuar
-                    ? `${formData.capitales_y_coberturas.valor_ajuar.toLocaleString()} €`
-                    : "0 €"}
+                  {formatCurrency(formData.capitales_y_coberturas.valor_ajuar)}
                 </dd>
               </div>
               <div>
@@ -495,9 +486,9 @@ export default function FormSummaryStep({
                   Valor de existencias propias
                 </dt>
                 <dd>
-                  {formData.capitales_y_coberturas.valor_existencias
-                    ? `${formData.capitales_y_coberturas.valor_existencias.toLocaleString()} €`
-                    : "0 €"}
+                  {formatCurrency(
+                    formData.capitales_y_coberturas.valor_existencias
+                  )}
                 </dd>
               </div>
               <div>
@@ -505,9 +496,9 @@ export default function FormSummaryStep({
                   Valor del equipo electrónico
                 </dt>
                 <dd>
-                  {formData.capitales_y_coberturas.valor_equipo_electronico
-                    ? `${formData.capitales_y_coberturas.valor_equipo_electronico.toLocaleString()} €`
-                    : "0 €"}
+                  {formatCurrency(
+                    formData.capitales_y_coberturas.valor_equipo_electronico
+                  )}
                 </dd>
               </div>
             </dl>
@@ -530,10 +521,10 @@ export default function FormSummaryStep({
                         Bienes de terceros
                       </dt>
                       <dd>
-                        {formData.capitales_y_coberturas
-                          .valor_existencias_terceros
-                          ? `${formData.capitales_y_coberturas.valor_existencias_terceros.toLocaleString()} €`
-                          : "0 €"}
+                        {formatCurrency(
+                          formData.capitales_y_coberturas
+                            .valor_existencias_terceros
+                        )}
                       </dd>
                     </div>
                   )}
@@ -544,10 +535,10 @@ export default function FormSummaryStep({
                         Bienes propios en instalaciones de terceros
                       </dt>
                       <dd>
-                        {formData.capitales_y_coberturas
-                          .valor_existencias_propias_terceros
-                          ? `${formData.capitales_y_coberturas.valor_existencias_propias_terceros.toLocaleString()} €`
-                          : "0 €"}
+                        {formatCurrency(
+                          formData.capitales_y_coberturas
+                            .valor_existencias_propias_terceros
+                        )}
                       </dd>
                     </div>
                   )}
@@ -557,10 +548,10 @@ export default function FormSummaryStep({
                         Bienes a la intemperie
                       </dt>
                       <dd>
-                        {formData.capitales_y_coberturas
-                          .valor_existencias_intemperie
-                          ? `${formData.capitales_y_coberturas.valor_existencias_intemperie.toLocaleString()} €`
-                          : "0 €"}
+                        {formatCurrency(
+                          formData.capitales_y_coberturas
+                            .valor_existencias_intemperie
+                        )}
                       </dd>
                     </div>
                   )}
@@ -571,10 +562,10 @@ export default function FormSummaryStep({
                         Vehículos de terceros
                       </dt>
                       <dd>
-                        {formData.capitales_y_coberturas
-                          .valor_vehiculos_terceros
-                          ? `${formData.capitales_y_coberturas.valor_vehiculos_terceros.toLocaleString()} €`
-                          : "0 €"}
+                        {formatCurrency(
+                          formData.capitales_y_coberturas
+                            .valor_vehiculos_terceros
+                        )}
                       </dd>
                     </div>
                   )}
@@ -584,9 +575,9 @@ export default function FormSummaryStep({
                         Bienes de empleados
                       </dt>
                       <dd>
-                        {formData.capitales_y_coberturas.valor_bienes_empleados
-                          ? `${formData.capitales_y_coberturas.valor_bienes_empleados.toLocaleString()} €`
-                          : "0 €"}
+                        {formatCurrency(
+                          formData.capitales_y_coberturas.valor_bienes_empleados
+                        )}
                       </dd>
                     </div>
                   )}
@@ -597,10 +588,10 @@ export default function FormSummaryStep({
                         Bienes en cámaras frigoríficas
                       </dt>
                       <dd>
-                        {formData.capitales_y_coberturas
-                          .valor_bienes_camaras_frigorificas
-                          ? `${formData.capitales_y_coberturas.valor_bienes_camaras_frigorificas.toLocaleString()} €`
-                          : "0 €"}
+                        {formatCurrency(
+                          formData.capitales_y_coberturas
+                            .valor_bienes_camaras_frigorificas
+                        )}
                       </dd>
                     </div>
                   )}
@@ -620,9 +611,9 @@ export default function FormSummaryStep({
                       Margen bruto anual
                     </dt>
                     <dd>
-                      {formData.capitales_y_coberturas.margen_bruto_anual
-                        ? `${formData.capitales_y_coberturas.margen_bruto_anual.toLocaleString()} €`
-                        : "0 €"}
+                      {formatCurrency(
+                        formData.capitales_y_coberturas.margen_bruto_anual
+                      )}
                     </dd>
                   </div>
                   <div>
@@ -669,9 +660,9 @@ export default function FormSummaryStep({
                     Dinero en caja fuerte
                   </dt>
                   <dd>
-                    {formData.capitales_y_coberturas.valor_dinero_caja_fuerte
-                      ? `${formData.capitales_y_coberturas.valor_dinero_caja_fuerte.toLocaleString()} €`
-                      : "0 €"}
+                    {formatCurrency(
+                      formData.capitales_y_coberturas.valor_dinero_caja_fuerte
+                    )}
                   </dd>
                 </div>
               )}
@@ -681,9 +672,9 @@ export default function FormSummaryStep({
                     Dinero fuera de caja fuerte
                   </dt>
                   <dd>
-                    {formData.capitales_y_coberturas.valor_dinero_fuera_caja
-                      ? `${formData.capitales_y_coberturas.valor_dinero_fuera_caja.toLocaleString()} €`
-                      : "0 €"}
+                    {formatCurrency(
+                      formData.capitales_y_coberturas.valor_dinero_fuera_caja
+                    )}
                   </dd>
                 </div>
               )}
@@ -693,9 +684,9 @@ export default function FormSummaryStep({
                     Avería de maquinaria
                   </dt>
                   <dd>
-                    {formData.capitales_y_coberturas.valor_averia_maquinaria
-                      ? `${formData.capitales_y_coberturas.valor_averia_maquinaria.toLocaleString()} €`
-                      : "0 €"}
+                    {formatCurrency(
+                      formData.capitales_y_coberturas.valor_averia_maquinaria
+                    )}
                   </dd>
                 </div>
               )}
@@ -734,199 +725,35 @@ export default function FormSummaryStep({
           </div>
         )}
 
-        {/* Siniestralidad - Común para ambos formularios */}
+        {/* Siniestralidad */}
         {formData.siniestralidad && (
           <div className="border-b pb-4">
             <h3 className="text-lg font-medium mb-2">Siniestralidad</h3>
             <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
               <div>
                 <dt className="text-sm font-medium text-gray-500">
-                  ¿Has tenido siniestros en los últimos 5 años?
+                  ¿Has tenido siniestros en los últimos 3 años?
                 </dt>
-                <dd>{formData.siniestralidad.has_siniestros ? "Sí" : "No"}</dd>
+                <dd>
+                  {formData.siniestralidad.siniestros_ultimos_3_anos
+                    ? "Sí"
+                    : "No"}
+                </dd>
               </div>
-              {formData.siniestralidad.has_siniestros && (
-                <>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">
-                      Número de siniestros
-                    </dt>
-                    <dd>
-                      {formData.siniestralidad.numero_siniestros ||
-                        "No especificado"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">
-                      Importe total
-                    </dt>
-                    <dd>
-                      {formData.siniestralidad.importe_total
-                        ? `${formData.siniestralidad.importe_total.toLocaleString()} €`
-                        : "No especificado"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">
-                      Causa de los siniestros
-                    </dt>
-                    <dd>
-                      {formData.siniestralidad.causa_siniestros ||
-                        "No especificada"}
-                    </dd>
-                  </div>
-                </>
+              {formData.siniestralidad.siniestros_ultimos_3_anos && (
+                <div className="col-span-2">
+                  <dt className="text-sm font-medium text-gray-500">
+                    Detalles de los siniestros
+                  </dt>
+                  <dd className="whitespace-pre-line">
+                    {formData.siniestralidad.siniestros_detalles ||
+                      "No se proporcionaron detalles"}
+                  </dd>
+                </div>
               )}
             </dl>
           </div>
         )}
-
-        {/* Información específica de RC - Solo para formulario RC */}
-        {formType === "rc" && formData.empresaTipo && (
-          <div className="border-b pb-4">
-            <h3 className="text-lg font-medium mb-2">
-              Información de{" "}
-              {formData.empresaTipo === "manufactura"
-                ? "manufactura"
-                : "servicios"}
-            </h3>
-
-            {formData.empresaTipo === "manufactura" &&
-              formData.actividad.manufactura && (
-                <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">
-                      Producto para consumo humano
-                    </dt>
-                    <dd>
-                      {formData.actividad.manufactura.producto_consumo_humano
-                        ? "Sí"
-                        : "No"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">
-                      Empleados técnicos en plantilla
-                    </dt>
-                    <dd>
-                      {formData.actividad.manufactura.tiene_empleados_tecnicos
-                        ? "Sí"
-                        : "No"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">
-                      Tipo de producto
-                    </dt>
-                    <dd>
-                      {formData.actividad.manufactura
-                        .producto_final_o_intermedio === "final"
-                        ? "Producto Final"
-                        : "Producto Intermedio"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">
-                      Distribución
-                    </dt>
-                    <dd>{getDistribucionLabels()}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">
-                      Matriz en España
-                    </dt>
-                    <dd>
-                      {formData.actividad.manufactura.matriz_en_espana
-                        ? "Sí"
-                        : "No"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">
-                      Filiales
-                    </dt>
-                    <dd>{getFilialesLabels()}</dd>
-                  </div>
-                </dl>
-              )}
-
-            {formData.empresaTipo === "servicios" &&
-              formData.actividad.servicios && (
-                <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">
-                      Trabajos fuera de instalaciones
-                    </dt>
-                    <dd>
-                      {formData.actividad.servicios.trabajos_fuera_instalaciones
-                        ? "Sí"
-                        : "No"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">
-                      Trabajos de corte y soldadura
-                    </dt>
-                    <dd>
-                      {formData.actividad.servicios.corte_soldadura
-                        ? "Sí"
-                        : "No"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">
-                      Trabajo con equipos electrónicos
-                    </dt>
-                    <dd>
-                      {formData.actividad.servicios.trabajo_equipos_electronicos
-                        ? "Sí"
-                        : "No"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">
-                      Empleados técnicos/profesionales
-                    </dt>
-                    <dd>
-                      {formData.actividad.servicios.empleados_tecnicos
-                        ? "Sí"
-                        : "No"}
-                    </dd>
-                  </div>
-                </dl>
-              )}
-          </div>
-        )}
-
-        {/* Datos de coberturas para RC */}
-        {formType === "rc" &&
-          Object.keys(formData.coberturas_solicitadas || {}).length > 0 && (
-            <div>
-              <h3 className="text-lg font-medium mb-2">
-                Ámbito territorial y coberturas
-              </h3>
-              <dl className="grid grid-cols-1 gap-y-2">
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">
-                    Ámbito territorial
-                  </dt>
-                  <dd>{formData.ambito_territorial}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">
-                    Coberturas solicitadas
-                  </dt>
-                  <dd>
-                    <ul className="list-disc list-inside">
-                      {getCoberturasSeleccionadas().map((cobertura, index) => (
-                        <li key={index}>{cobertura}</li>
-                      ))}
-                    </ul>
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          )}
 
         <div className="pt-4 bg-blue-50 p-4 rounded-md">
           <p className="text-sm text-blue-800">

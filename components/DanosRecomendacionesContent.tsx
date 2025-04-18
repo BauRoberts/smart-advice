@@ -24,6 +24,31 @@ const formatNumber = (num?: number) => {
   return num.toLocaleString() + "€";
 };
 
+// Función para formatear materiales de construcción
+const formatMaterial = (material: string | undefined) => {
+  if (!material) return "No especificado";
+
+  // Mapping de códigos a nombres legibles
+  const materialLabels: Record<string, string> = {
+    // Materiales de cubierta
+    hormigon: "Hormigón",
+    chapa_metalica: "Chapa metálica simple",
+    panel_sandwich_lana: "Panel sándwich con lana de roca o fibra de vidrio",
+    panel_sandwich_pir: "Panel sándwich PIR/PUR",
+    madera: "Madera",
+    // Materiales de cerramientos
+    ladrillo: "Ladrillo",
+    metalico: "Metálico",
+    panel_sandwich: "Panel Sandwich",
+    // Materiales de estructura
+    metalica: "Metálica",
+    mixta: "Mixta",
+    otros: "Otros materiales",
+  };
+
+  return materialLabels[material] || material.replace(/_/g, " ");
+};
+
 export default function DanosRecomendacionesContent() {
   const [recommendation, setRecommendation] =
     useState<DanosInsuranceRecommendation | null>(null);
@@ -306,7 +331,9 @@ export default function DanosRecomendacionesContent() {
                       m² de las instalaciones:
                     </h3>
                     <p className="text-base">
-                      {recommendation.companyInfo.m2 || "No especificado"} m²
+                      {recommendation.companyInfo.m2
+                        ? `${recommendation.companyInfo.m2.toLocaleString()} m²`
+                        : "No especificado"}
                     </p>
                   </div>
 
@@ -340,8 +367,7 @@ export default function DanosRecomendacionesContent() {
                     Estructura:
                   </h3>
                   <p className="text-base">
-                    {recommendation.constructionInfo.estructura ||
-                      "No especificado"}
+                    {formatMaterial(recommendation.constructionInfo.estructura)}
                   </p>
                 </div>
 
@@ -350,8 +376,7 @@ export default function DanosRecomendacionesContent() {
                     Cubierta:
                   </h3>
                   <p className="text-base">
-                    {recommendation.constructionInfo.cubierta ||
-                      "No especificado"}
+                    {formatMaterial(recommendation.constructionInfo.cubierta)}
                   </p>
                 </div>
 
@@ -360,8 +385,9 @@ export default function DanosRecomendacionesContent() {
                     Cerramientos:
                   </h3>
                   <p className="text-base">
-                    {recommendation.constructionInfo.cerramientos ||
-                      "No especificado"}
+                    {formatMaterial(
+                      recommendation.constructionInfo.cerramientos
+                    )}
                   </p>
                 </div>
               </div>
@@ -388,7 +414,20 @@ export default function DanosRecomendacionesContent() {
                     <li>
                       Columnas hidrantes exteriores
                       {recommendation.protectionInfo.columnas_hidrantes_tipo &&
-                        ` - Sistema ${recommendation.protectionInfo.columnas_hidrantes_tipo}`}
+                        (Array.isArray(
+                          recommendation.protectionInfo.columnas_hidrantes_tipo
+                        )
+                          ? ` - Sistema ${recommendation.protectionInfo.columnas_hidrantes_tipo
+                              .map((tipo) =>
+                                tipo === "publico" ? "Público" : "Privado"
+                              )
+                              .join(", ")}`
+                          : ` - Sistema ${
+                              recommendation.protectionInfo
+                                .columnas_hidrantes_tipo === "publico"
+                                ? "Público"
+                                : "Privado"
+                            }`)}
                     </li>
                   )}
                   {recommendation.protectionInfo.deteccion_automatica && (
@@ -433,10 +472,19 @@ export default function DanosRecomendacionesContent() {
                   {recommendation.protectionInfo.suministro_agua && (
                     <li>
                       Suministro de agua:{" "}
-                      {recommendation.protectionInfo.suministro_agua.replace(
-                        "_",
-                        " "
-                      )}
+                      {recommendation.protectionInfo.suministro_agua ===
+                      "red_publica"
+                        ? "Red pública"
+                        : recommendation.protectionInfo.suministro_agua ===
+                          "sistema_privado"
+                        ? "Sistema privado con grupo de bombeo y depósito propio"
+                        : recommendation.protectionInfo.suministro_agua ===
+                          "no_tiene"
+                        ? "No tiene"
+                        : recommendation.protectionInfo.suministro_agua.replace(
+                            /_/g,
+                            " "
+                          )}
                     </li>
                   )}
                 </ul>

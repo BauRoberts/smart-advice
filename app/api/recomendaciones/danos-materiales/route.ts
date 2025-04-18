@@ -170,16 +170,21 @@ function generateDanosRecommendation(
   // Preparamos la información de la empresa
   const companyInfo: CompanyInfo = {
     name:
-      contactData?.name ||
-      formData?.informacion_general?.company_name ||
+      formData?.informacion_general?.name || // Nombre de la empresa del formulario
       formData?.company?.name ||
+      contactData?.name || // Mover contactData al último para priorizar el nombre de empresa
       "",
     cif: formData?.informacion_general?.cif || formData?.company?.cif || "",
+    // Corrección para dirección
     address:
-      formData?.informacion_general?.address ||
+      formData?.informacion_general?.direccion || // Usar "direccion" en lugar de "address"
       formData?.company?.localizacion_nave ||
       "",
-    cnae: formData?.informacion_general?.cnae || formData?.company?.cnae || "",
+    // Corrección para CNAE
+    cnae:
+      formData?.informacion_general?.cnae_code ||
+      formData?.company?.cnae_code ||
+      "",
     activity:
       formData?.informacion_general?.activity ||
       formData?.company?.activity ||

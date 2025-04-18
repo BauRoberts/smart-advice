@@ -14,44 +14,30 @@ declare module "jspdf" {
 // Definir tipos para colores como tuplas
 type RGB = [number, number, number];
 
-interface ExtendedRecommendation extends DanosInsuranceRecommendation {
-  // Información de construcción y protecciones
-  fireProtection?: string[];
-  theftProtection?: string[];
-  capitals?: {
-    edificio?: number;
-    ajuar?: number;
-    existencias?: number;
-    equiposInformaticos?: number;
-    margenBruto?: number;
-    periodoIndemnizacion?: string;
+// Función para formatear materiales de construcción
+const formatMaterial = (material: string | undefined) => {
+  if (!material) return "No especificado";
+
+  // Mapping de códigos a nombres legibles
+  const materialLabels: Record<string, string> = {
+    // Materiales de cubierta
+    hormigon: "Hormigón",
+    chapa_metalica: "Chapa metálica simple",
+    panel_sandwich_lana: "Panel sándwich con lana de roca o fibra de vidrio",
+    panel_sandwich_pir: "Panel sándwich PIR/PUR",
+    madera: "Madera",
+    // Materiales de cerramientos
+    ladrillo: "Ladrillo",
+    metalico: "Metálico",
+    panel_sandwich: "Panel Sandwich",
+    // Materiales de estructura
+    metalica: "Metálica",
+    mixta: "Mixta",
+    otros: "Otros materiales",
   };
 
-  // Coberturas adicionales
-  hasMachineryBreakdown?: boolean;
-  machineryBreakdownLimit?: string;
-  cashAmount?: {
-    inSafe?: number;
-    inFurniture?: number;
-    inTransit?: number;
-  };
-  thirdPartyGoods?: number;
-  ownGoodsInThirdParty?: number;
-  outdoorGoods?: number;
-  refrigeratedGoods?: number;
-  refrigerationProtection?: string;
-  photovoltaicPanels?: number;
-  parkedVehicles?: number;
-  employeeGoods?: number;
-  liabilityCoverages?: Array<{
-    name: string;
-    limit?: string;
-    sublimit?: string;
-  }>;
-  allRiskCoverage?: boolean;
-  leasingAssets?: boolean;
-  leasingCompany?: string;
-}
+  return materialLabels[material] || material.replace(/_/g, " ");
+};
 
 const formatNumber = (num?: number) => {
   if (num === undefined || num === null) return "N/A";
@@ -69,7 +55,7 @@ const COLORS = {
 };
 
 export const generateInsuranceReport = async (
-  recommendation: ExtendedRecommendation,
+  recommendation: DanosInsuranceRecommendation,
   downloadFile: boolean = false
 ) => {
   try {
@@ -228,11 +214,15 @@ export const generateInsuranceReport = async (
       ] as string[][],
     };
 
+    // Determinar si es propietario para añadir asegurado adicional
+    const isOwner =
+      recommendation.companyInfo.installations_type === "Propietario";
+
     // Agregar asegurado adicional si no es propietario
-    if (recommendation.companyInfo.is_owner === false) {
+    if (!isOwner && recommendation.companyInfo.owner_name) {
       infoTable.body.push([
         "ASEGURADO ADICIONAL:",
-        `Se hace constar que el Sr. O la empresa ${
+        `Se hace constar que el Sr. o la empresa ${
           recommendation.companyInfo.owner_name || "X"
         }, con NIF ${
           recommendation.companyInfo.owner_cif || "XXXX"
@@ -264,34 +254,38 @@ export const generateInsuranceReport = async (
       },
     });
 
-    currentY = (doc.lastAutoTable?.finalY || currentY) + 15; // Aumentado de 10 a 15 para más espacio
+    currentY = (doc.lastAutoTable?.finalY || currentY) + 15;
 
     // Agregar nota importante sobre el propietario si corresponde
-    if (recommendation.companyInfo.is_owner === false) {
+    if (!isOwner) {
       addImportantNote(
         "Si no eres el propietario de las instalaciones es probable que éste te haya solicitado en el contrato de arrendamiento que lo incluyas como asegurado adicional (esto es, como beneficiario). En caso de siniestro que afecte al inmueble, el propietario del inmueble tiene derecho a cobrar la indemnización del seguro que tu has contratado. Para demostrar que has cumplido con esta obligación contractual, puedes solicitarle a la compañía de seguros que te emita un certificado de seguro haciendo constar como beneficiario al propietario del inmueble."
       );
     }
 
     // CARACTERÍSTICAS CONSTRUCTIVAS
-    addTitle("CATACTERISTICAS CONSTRUCTIVAS DEL INMUEBLE");
+    addTitle("CARACTERÍSTICAS CONSTRUCTIVAS DEL INMUEBLE");
 
     const constructionTable = {
       head: [] as string[][],
       body: [
         [
           "Estructura:",
-          recommendation.constructionInfo.estructura || "No especificado",
+          formatMaterial(recommendation.constructionInfo.estructura),
         ],
-        [
-          "Cubierta:",
-          recommendation.constructionInfo.cubierta || "No especificado",
-        ],
+        ["Cubierta:", formatMaterial(recommendation.constructionInfo.cubierta)],
         [
           "Cerramientos:",
-          recommendation.constructionInfo.cerramientos || "No especificado",
+          formatMaterial(recommendation.constructionInfo.cerramientos),
         ],
-        ["M2:", `${recommendation.companyInfo.m2 || "No especificado"} m²`],
+        [
+          "M2:",
+          `${
+            recommendation.companyInfo.m2
+              ? recommendation.companyInfo.m2.toLocaleString()
+              : "No especificado"
+          } m²`,
+        ],
       ] as string[][],
     };
 
@@ -319,7 +313,7 @@ export const generateInsuranceReport = async (
       },
     });
 
-    currentY = (doc.lastAutoTable?.finalY || currentY) + 10; // Aumentado de 5 a 10 para más espacio
+    currentY = (doc.lastAutoTable?.finalY || currentY) + 10;
 
     addText(
       "Debes ser preciso a la hora de indicar los materiales de construcción de la nave o instalación. Además, debes comprobar que esta información haya quedado constancia en la póliza."
@@ -332,11 +326,98 @@ export const generateInsuranceReport = async (
     // PROTECCIONES CONTRA INCENDIO
     addTitle("PROTECCIONES CONTRA INCENDIO");
 
-    const fireProtectionText = recommendation.fireProtection
-      ? recommendation.fireProtection.join(", ")
-      : "No especificado";
+    // Preparar lista de protecciones contra incendio
+    const fireProtections = [];
+    if (recommendation.protectionInfo.extintores) {
+      fireProtections.push("Extintores");
+    }
+    if (recommendation.protectionInfo.bocas_incendio) {
+      let bocasText = "Bocas de incendio equipadas (BIE)";
+      if (recommendation.protectionInfo.cobertura_total) {
+        bocasText += " - Cobertura total";
+      }
+      if (recommendation.protectionInfo.deposito_bombeo) {
+        bocasText += " - Con depósito propio y grupo de bombeo";
+      }
+      fireProtections.push(bocasText);
+    }
+    if (recommendation.protectionInfo.columnas_hidrantes) {
+      let hidrantesText = "Columnas hidrantes exteriores";
+      if (recommendation.protectionInfo.columnas_hidrantes_tipo) {
+        if (
+          Array.isArray(recommendation.protectionInfo.columnas_hidrantes_tipo)
+        ) {
+          hidrantesText += ` - Sistema ${recommendation.protectionInfo.columnas_hidrantes_tipo
+            .map((tipo) => (tipo === "publico" ? "Público" : "Privado"))
+            .join(", ")}`;
+        } else {
+          hidrantesText += ` - Sistema ${
+            recommendation.protectionInfo.columnas_hidrantes_tipo === "publico"
+              ? "Público"
+              : "Privado"
+          }`;
+        }
+      }
+      fireProtections.push(hidrantesText);
+    }
+    if (recommendation.protectionInfo.deteccion_automatica) {
+      let deteccionText = "Detección automática de incendios";
+      if (
+        Array.isArray(recommendation.protectionInfo.deteccion_zona) &&
+        recommendation.protectionInfo.deteccion_zona.length > 0
+      ) {
+        if (recommendation.protectionInfo.deteccion_zona[0] === "totalidad") {
+          deteccionText += " - Cobertura total";
+        } else {
+          deteccionText += ` - ${recommendation.protectionInfo.deteccion_zona.join(
+            ", "
+          )}`;
+        }
+      }
+      fireProtections.push(deteccionText);
+    }
+    if (recommendation.protectionInfo.rociadores) {
+      let rociadoresText = "Rociadores automáticos";
+      if (
+        Array.isArray(recommendation.protectionInfo.rociadores_zona) &&
+        recommendation.protectionInfo.rociadores_zona.length > 0
+      ) {
+        if (recommendation.protectionInfo.rociadores_zona[0] === "totalidad") {
+          rociadoresText += " - Cobertura total";
+        } else {
+          rociadoresText += ` - ${recommendation.protectionInfo.rociadores_zona.join(
+            ", "
+          )}`;
+        }
+      }
+      fireProtections.push(rociadoresText);
+    }
+    if (recommendation.protectionInfo.suministro_agua) {
+      let suministroText = "Suministro de agua: ";
+      if (recommendation.protectionInfo.suministro_agua === "red_publica") {
+        suministroText += "Red pública";
+      } else if (
+        recommendation.protectionInfo.suministro_agua === "sistema_privado"
+      ) {
+        suministroText +=
+          "Sistema privado con grupo de bombeo y depósito propio";
+      } else if (recommendation.protectionInfo.suministro_agua === "no_tiene") {
+        suministroText += "No tiene";
+      } else {
+        suministroText += recommendation.protectionInfo.suministro_agua.replace(
+          /_/g,
+          " "
+        );
+      }
+      fireProtections.push(suministroText);
+    }
 
-    addText(fireProtectionText);
+    // Si no hay protecciones, mostrar mensaje apropiado
+    if (fireProtections.length === 0) {
+      addText("No se han indicado protecciones contra incendio");
+    } else {
+      addBulletList(fireProtections);
+    }
 
     addText(
       "Debes ser preciso a la hora de indicar las medidas de protección que cuenta la nave o instalación. Además, debes comprobar que esta información haya quedado constancia en la póliza."
@@ -349,11 +430,27 @@ export const generateInsuranceReport = async (
     // PROTECCIONES CONTRA ROBO
     addTitle("PROTECCIONES CONTRA ROBO");
 
-    const theftProtectionText = recommendation.theftProtection
-      ? recommendation.theftProtection.join(", ")
-      : "No especificado";
+    // Preparar lista de protecciones contra robo
+    const theftProtections = [];
+    if (recommendation.protectionInfo.protecciones_fisicas) {
+      theftProtections.push("Protecciones físicas (rejas, cerraduras...)");
+    }
+    if (recommendation.protectionInfo.vigilancia_propia) {
+      theftProtections.push("El polígono cuenta con vigilancia propia");
+    }
+    if (recommendation.protectionInfo.alarma_conectada) {
+      theftProtections.push("Alarma de robo conectada a central de alarma");
+    }
+    if (recommendation.protectionInfo.camaras_circuito) {
+      theftProtections.push("Circuito Cerrado de Televisión/Cámaras");
+    }
 
-    addText(theftProtectionText);
+    // Si no hay protecciones, mostrar mensaje apropiado
+    if (theftProtections.length === 0) {
+      addText("No se han indicado protecciones contra robo");
+    } else {
+      addBulletList(theftProtections);
+    }
 
     addText(
       "Debes ser preciso a la hora de indicar las medidas de protección que cuenta la nave o instalación. Además, debes comprobar que esta información haya quedado constancia en la póliza."
@@ -369,27 +466,40 @@ export const generateInsuranceReport = async (
     const capitalTable = {
       head: [] as string[][],
       body: [
-        ["Edificio:", formatNumber(recommendation.capitals?.edificio)],
-        ["Ajuar industrial:", formatNumber(recommendation.capitals?.ajuar)],
-        ["Existencias:", formatNumber(recommendation.capitals?.existencias)],
+        [
+          "Edificio:",
+          formatNumber(recommendation.capitalesInfo.valor_edificio),
+        ],
+        [
+          "Ajuar industrial:",
+          formatNumber(recommendation.capitalesInfo.valor_ajuar),
+        ],
+        [
+          "Existencias:",
+          formatNumber(recommendation.capitalesInfo.valor_existencias),
+        ],
         [
           "Equipos informáticos:",
-          formatNumber(recommendation.capitals?.equiposInformaticos),
+          formatNumber(recommendation.capitalesInfo.valor_equipo_electronico),
         ],
       ] as string[][],
     };
 
     // Agregar pérdida de beneficios si tiene margen bruto
-    if (recommendation.capitals?.margenBruto) {
+    if (
+      recommendation.capitalesInfo.margen_bruto_anual &&
+      recommendation.capitalesInfo.margen_bruto_anual > 0
+    ) {
       capitalTable.body.push(
         [
           "Margen bruto anual:",
-          formatNumber(recommendation.capitals.margenBruto),
+          formatNumber(recommendation.capitalesInfo.margen_bruto_anual),
         ],
         [
           "Periodo de indemnización:",
           `${
-            recommendation.capitals.periodoIndemnizacion || "No especificado"
+            recommendation.capitalesInfo.periodo_indemnizacion ||
+            "No especificado"
           } meses`,
         ]
       );
@@ -419,7 +529,7 @@ export const generateInsuranceReport = async (
       },
     });
 
-    currentY = (doc.lastAutoTable?.finalY || currentY) + 15; // Aumentado de 5 a 15 para más espacio
+    currentY = (doc.lastAutoTable?.finalY || currentY) + 15;
 
     addText(
       "Al dar el valor de tus bienes es aconsejable valorar los bienes como si fueran nuevos, es decir: el coste de reconstrucción o reemplazo del bien dañado, utilizando materiales de calidad y funcionalidad equivalentes, en el estado inmediatamente anterior al siniestro."
@@ -434,7 +544,10 @@ export const generateInsuranceReport = async (
     );
 
     // Si tiene margen bruto, agregar texto sobre pérdida de beneficios
-    if (recommendation.capitals?.margenBruto) {
+    if (
+      recommendation.capitalesInfo.margen_bruto_anual &&
+      recommendation.capitalesInfo.margen_bruto_anual > 0
+    ) {
       addText(
         "La Pérdida de Beneficios es una cobertura que se aplica si la interrupción de la actividad es consecuencia de un siniestro cubierto por la póliza principal (por ejemplo, incendio, explosión, daños por agua, etc.)."
       );
@@ -466,13 +579,13 @@ export const generateInsuranceReport = async (
 
     // Calcular daños eléctricos según el valor del edificio
     let danosElectricosLimit = "30.000€";
-    if (recommendation.capitals?.edificio) {
+    if (recommendation.capitalesInfo.valor_edificio) {
       if (
-        recommendation.capitals.edificio >= 500000 &&
-        recommendation.capitals.edificio < 1000000
+        recommendation.capitalesInfo.valor_edificio >= 500000 &&
+        recommendation.capitalesInfo.valor_edificio < 1000000
       ) {
         danosElectricosLimit = "60.000€";
-      } else if (recommendation.capitals.edificio >= 1000000) {
+      } else if (recommendation.capitalesInfo.valor_edificio >= 1000000) {
         danosElectricosLimit = "100.000€";
       }
     }
@@ -483,23 +596,25 @@ export const generateInsuranceReport = async (
     ]);
 
     // Avería de maquinaria si está contratada
-    if (recommendation.hasMachineryBreakdown) {
+    if (
+      recommendation.coverages.some((cov) =>
+        cov.name.includes("Avería de maquinaria")
+      )
+    ) {
+      const averiaMaquinaria = recommendation.coverages.find((cov) =>
+        cov.name.includes("Avería de maquinaria")
+      );
       coberturasBasicas.push([
         "• Avería de maquinaria",
-        recommendation.machineryBreakdownLimit || "Límite según póliza",
+        averiaMaquinaria?.limit || "Límite según póliza",
       ]);
-
-      // Agregar nota sobre avería de maquinaria
-      addImportantNote(
-        "La garantía de avería de maquinaria tiene un coste marcadamente más elevado que otras garantías. En consecuencia, sé prudente a la hora de indicar el importe que quieres asegurar para no incrementar innecesariamente el coste de la prima. Además, muchas compañías tienen límites máximos para esta cobertura, y pueden no ofrecerte el límite que necesites. Para estos casos, puedes contratar una póliza específica de avería de maquinaria."
-      );
     }
 
     // Calcular porcentaje de robo según el valor total
     const valorTotal =
-      (recommendation.capitals?.edificio || 0) +
-      (recommendation.capitals?.ajuar || 0) +
-      (recommendation.capitals?.existencias || 0);
+      (recommendation.capitalesInfo.valor_edificio || 0) +
+      (recommendation.capitalesInfo.valor_ajuar || 0) +
+      (recommendation.capitalesInfo.valor_existencias || 0);
 
     const roboPercentage = valorTotal > 1000000 ? "50%" : "25%";
     coberturasBasicas.push([
@@ -507,96 +622,114 @@ export const generateInsuranceReport = async (
       `${roboPercentage} de los capitales asegurados`,
     ]);
 
-    // Coberturas adicionales según las respuestas
+    // Recopilar coberturas adicionales de los coverages
     const coveragesExtra = [] as string[][];
 
-    // Dinero en efectivo
-    if (recommendation.cashAmount) {
+    // Dinero en caja fuerte y fuera de caja
+    const dineroCajaFuerte = recommendation.coverages.find((cov) =>
+      cov.name.includes("Robo de metálico en caja fuerte")
+    );
+    if (dineroCajaFuerte) {
       coveragesExtra.push([
         "• Robo de metálico en caja fuerte",
-        formatNumber(recommendation.cashAmount.inSafe),
+        dineroCajaFuerte.limit || "Según póliza",
       ]);
+    }
+
+    const dineroFueraCaja = recommendation.coverages.find((cov) =>
+      cov.name.includes("Robo de metálico en mueble cerrado")
+    );
+    if (dineroFueraCaja) {
       coveragesExtra.push([
         "• Robo de metálico en mueble cerrado",
-        formatNumber(recommendation.cashAmount.inFurniture),
+        dineroFueraCaja.limit || "Según póliza",
       ]);
+    }
+
+    const transportadorFondos = recommendation.coverages.find((cov) =>
+      cov.name.includes("Robo al transportador de fondos")
+    );
+    if (transportadorFondos) {
       coveragesExtra.push([
         "• Robo al transportador de fondos",
-        formatNumber(recommendation.cashAmount.inTransit),
+        transportadorFondos.limit || "Según póliza",
       ]);
     }
 
     // Bienes de terceros
-    if (recommendation.thirdPartyGoods) {
+    const bienesTerceros = recommendation.coverages.find((cov) =>
+      cov.name.includes("Bienes de terceros depositados")
+    );
+    if (bienesTerceros) {
       coveragesExtra.push([
         "• Bienes de terceros depositados en las instalaciones",
-        formatNumber(recommendation.thirdPartyGoods),
+        bienesTerceros.limit || "Según póliza",
       ]);
     }
 
     // Bienes propios en terceros
-    if (recommendation.ownGoodsInThirdParty) {
+    const bienesPropiosTerceros = recommendation.coverages.find((cov) =>
+      cov.name.includes("Bienes propios depositados en casa de terceros")
+    );
+    if (bienesPropiosTerceros) {
       coveragesExtra.push([
         "• Bienes propios depositados en casa de terceros",
-        formatNumber(recommendation.ownGoodsInThirdParty),
+        bienesPropiosTerceros.limit || "Según póliza",
       ]);
     }
 
     // Bienes a la intemperie
-    if (recommendation.outdoorGoods) {
+    const bienesIntemperie = recommendation.coverages.find((cov) =>
+      cov.name.includes("Bienes depositados a la intemperie")
+    );
+    if (bienesIntemperie) {
       coveragesExtra.push([
         "• Bienes depositados a la intemperie o aire libre",
-        formatNumber(recommendation.outdoorGoods),
+        bienesIntemperie.limit || "Según póliza",
       ]);
-
-      addImportantNote(
-        "Por los riesgos de exposición que tienen estos bienes a inclemencias meteorológicas, normalmente no se cubren estos bienes. Asegúrate que la compañía expresamente los cubra."
-      );
     }
 
     // Bienes refrigerados
-    if (recommendation.refrigeratedGoods) {
+    const bienesRefrigerados = recommendation.coverages.find((cov) =>
+      cov.name.includes("Bienes refrigerados")
+    );
+    if (bienesRefrigerados) {
       coveragesExtra.push([
         "• Bienes refrigerados",
-        formatNumber(recommendation.refrigeratedGoods),
+        bienesRefrigerados.limit || "Según póliza",
       ]);
-
-      if (recommendation.refrigerationProtection) {
-        addText(
-          `Medidas de protección para cámaras frigoríficas: ${recommendation.refrigerationProtection}`
-        );
-      }
-
-      addImportantNote(
-        "Muchas compañías te preguntarán por las medidas de protección a los bienes que tienes instaladas en las cámaras de frío, asegúrate de ser preciso en dar la información para evitar el infraseguro."
-      );
     }
 
-    // Placas fotovoltaicas
-    if (recommendation.photovoltaicPanels) {
+    // Placas solares
+    const placasSolares = recommendation.coverages.find((cov) =>
+      cov.name.includes("Placas fotovoltaicas")
+    );
+    if (placasSolares) {
       coveragesExtra.push([
         "• Placas fotovoltaicas",
-        formatNumber(recommendation.photovoltaicPanels),
+        placasSolares.limit || "Según póliza",
       ]);
-
-      addImportantNote(
-        "Si has instalado placas fotovoltaicas debes informarlo a la compañía. La instalación de estas placas en cubierta constituye una agravación del riesgo, especialmente si están ubicadas sobre cubierta combustible. Es probable que muchas compañías no te den cobertura si las tienes instaladas en una cubierta combustible tipo PIR/PUR."
-      );
     }
 
     // Vehículos aparcados
-    if (recommendation.parkedVehicles) {
+    const vehiculosAparcados = recommendation.coverages.find((cov) =>
+      cov.name.includes("Vehículos aparcados")
+    );
+    if (vehiculosAparcados) {
       coveragesExtra.push([
         "• Vehículos aparcados en instalaciones",
-        formatNumber(recommendation.parkedVehicles),
+        vehiculosAparcados.limit || "Según póliza",
       ]);
     }
 
     // Bienes de empleados
-    if (recommendation.employeeGoods) {
+    const bienesEmpleados = recommendation.coverages.find((cov) =>
+      cov.name.includes("Bienes de empleados")
+    );
+    if (bienesEmpleados) {
       coveragesExtra.push([
         "• Bienes de empleados",
-        formatNumber(recommendation.employeeGoods),
+        bienesEmpleados.limit || "Según póliza",
       ]);
     }
 
@@ -604,64 +737,66 @@ export const generateInsuranceReport = async (
     coveragesExtra.push(["• Rotura de cristales", "6.000€"]);
 
     // Responsabilidad civil
-    if (
-      recommendation.liabilityCoverages &&
-      recommendation.liabilityCoverages.length > 0
-    ) {
-      recommendation.liabilityCoverages.forEach(
-        (coverage: { name: string; limit?: string; sublimit?: string }) => {
-          coveragesExtra.push([
-            `• ${coverage.name}`,
-            coverage.limit || "600.000€",
-          ]);
-          if (
-            coverage.name === "Responsabilidad civil patronal" &&
-            coverage.sublimit
-          ) {
-            coveragesExtra.push([
-              "• Sublímite víctima patronal",
-              coverage.sublimit,
-            ]);
-          }
+    const rcCoverages = recommendation.coverages.filter((cov) =>
+      cov.name.includes("Responsabilidad civil")
+    );
+
+    if (rcCoverages.length > 0) {
+      rcCoverages.forEach((cov) => {
+        coveragesExtra.push([`• ${cov.name}`, cov.limit || "600.000€"]);
+        if (cov.name.includes("patronal") && cov.sublimit) {
+          coveragesExtra.push(["• Sublímite víctima patronal", cov.sublimit]);
         }
-      );
-
-      addImportantNote(
-        "Puedes incluir en un seguro de daños coberturas de responsabilidad civil general. No obstante ello, ten en cuenta que las coberturas que tendrás serán muy básicas y con límites francamente inferiores a los que necesitas. Tratándose de cubrir la responsabilidad civil, lo más conveniente es contratar una póliza independiente con el mayor límite que puedas afrontar de prima, ya que nunca puedes saber antes del hecho el importe de daños que ocasionarás a terceros por un siniestro."
-      );
+      });
     }
 
-    // Cláusulas especiales
-    coveragesExtra.push([
-      "• Cobertura automática para Daños materiales",
-      "20%",
-    ]);
-
-    if (recommendation.capitals?.margenBruto) {
+    // Cláusulas especiales del specialClauses
+    if (
+      recommendation.specialClauses &&
+      recommendation.specialClauses.length > 0
+    ) {
+      recommendation.specialClauses.forEach((clause) => {
+        if (clause.name.includes("Cobertura automática para Daños")) {
+          coveragesExtra.push([
+            "• Cobertura automática para Daños materiales",
+            clause.limit || "20%",
+          ]);
+        } else if (clause.name.includes("Cobertura automática para Pérdida")) {
+          coveragesExtra.push([
+            "• Cobertura automática para Pérdida de beneficios",
+            clause.limit || "30%",
+          ]);
+        } else if (clause.name.includes("Valor de reposición")) {
+          coveragesExtra.push([
+            "• Cláusula de Valor de reposición a nuevo",
+            "",
+          ]);
+        } else if (clause.name.includes("todo riesgo")) {
+          coveragesExtra.push(["• Cláusula todo riesgo accidental", ""]);
+        } else if (clause.name.includes("Leasing")) {
+          coveragesExtra.push([
+            `• Cláusula de Leasing`,
+            clause.condition || "",
+          ]);
+        } else {
+          coveragesExtra.push([`• ${clause.name}`, clause.limit || ""]);
+        }
+      });
+    } else {
+      // Añadir cláusulas estándar si no hay cláusulas especiales
       coveragesExtra.push([
-        "• Cobertura automática para Pérdida de beneficios",
-        "30%",
+        "• Cobertura automática para Daños materiales",
+        "20%",
       ]);
 
-      addImportantNote(
-        "La cobertura automática de capitales sirve para evitar que el asegurado quede infrasegurado por pequeños incrementos no declarados en el valor de los bienes asegurados (como nuevas compras, mejoras o ampliaciones). Ten en cuenta lo que se dijo respecto de la actualización de capitales y las modificaciones sustanciales de capital."
-      );
-    }
+      if (recommendation.capitalesInfo.margen_bruto_anual) {
+        coveragesExtra.push([
+          "• Cobertura automática para Pérdida de beneficios",
+          "30%",
+        ]);
+      }
 
-    // Valor de reposición a nuevo (siempre incluido)
-    coveragesExtra.push(["• Cláusula de Valor de reposición a nuevo", ""]);
-
-    // Todo riesgo si está contratado
-    if (recommendation.allRiskCoverage) {
-      coveragesExtra.push(["• Cláusula todo riesgo accidental", ""]);
-    }
-
-    // Cláusula de leasing si corresponde
-    if (recommendation.leasingAssets && recommendation.leasingCompany) {
-      coveragesExtra.push([
-        "• Cláusula de Leasing",
-        `Para ${recommendation.leasingCompany}`,
-      ]);
+      coveragesExtra.push(["• Cláusula de Valor de reposición a nuevo", ""]);
     }
 
     // Crear tabla de coberturas básicas
@@ -692,6 +827,59 @@ export const generateInsuranceReport = async (
     });
 
     currentY = (doc.lastAutoTable?.finalY || currentY) + 10;
+
+    // Agregar notas específicas según las coberturas
+    // Avería de maquinaria
+    if (
+      recommendation.coverages.some((cov) =>
+        cov.name.includes("Avería de maquinaria")
+      )
+    ) {
+      addImportantNote(
+        "La garantía de avería de maquinaria tiene un coste marcadamente más elevado que otras garantías. En consecuencia, sé prudente a la hora de indicar el importe que quieres asegurar para no incrementar innecesariamente el coste de la prima. Además, muchas compañías tienen límites máximos para esta cobertura, y pueden no ofrecerte el límite que necesites. Para estos casos, puedes contratar una póliza específica de avería de maquinaria."
+      );
+    }
+
+    // Bienes a la intemperie
+    if (bienesIntemperie) {
+      addImportantNote(
+        "Por los riesgos de exposición que tienen estos bienes a inclemencias meteorológicas, normalmente no se cubren estos bienes. Asegúrate que la compañía expresamente los cubra."
+      );
+    }
+
+    // Bienes refrigerados
+    if (bienesRefrigerados) {
+      if (bienesRefrigerados.condition) {
+        addText(
+          `Medidas de protección para cámaras frigoríficas: ${bienesRefrigerados.condition}`
+        );
+      }
+
+      addImportantNote(
+        "Muchas compañías te preguntarán por las medidas de protección a los bienes que tienes instaladas en las cámaras de frío, asegúrate de ser preciso en dar la información para evitar el infraseguro."
+      );
+    }
+
+    // Placas fotovoltaicas
+    if (placasSolares) {
+      addImportantNote(
+        "Si has instalado placas fotovoltaicas debes informarlo a la compañía. La instalación de estas placas en cubierta constituye una agravación del riesgo, especialmente si están ubicadas sobre cubierta combustible. Es probable que muchas compañías no te den cobertura si las tienes instaladas en una cubierta combustible tipo PIR/PUR."
+      );
+    }
+
+    // Responsabilidad civil
+    if (rcCoverages.length > 0) {
+      addImportantNote(
+        "Puedes incluir en un seguro de daños coberturas de responsabilidad civil general. No obstante ello, ten en cuenta que las coberturas que tendrás serán muy básicas y con límites francamente inferiores a los que necesitas. Tratándose de cubrir la responsabilidad civil, lo más conveniente es contratar una póliza independiente con el mayor límite que puedas afrontar de prima, ya que nunca puedes saber antes del hecho el importe de daños que ocasionarás a terceros por un siniestro."
+      );
+    }
+
+    // Cobertura automática
+    if (recommendation.capitalesInfo.margen_bruto_anual) {
+      addImportantNote(
+        "La cobertura automática de capitales sirve para evitar que el asegurado quede infrasegurado por pequeños incrementos no declarados en el valor de los bienes asegurados (como nuevas compras, mejoras o ampliaciones). Ten en cuenta lo que se dijo respecto de la actualización de capitales y las modificaciones sustanciales de capital."
+      );
+    }
 
     // Agregar coberturas adicionales
     if (coveragesExtra.length > 0) {

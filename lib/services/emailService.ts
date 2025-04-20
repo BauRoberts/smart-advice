@@ -60,7 +60,8 @@ function formatCurrency(value?: number): string {
 export async function sendDanosRecommendationEmail(
   recommendation: DanosInsuranceRecommendation,
   contactEmail: string,
-  contactName: string
+  contactName: string,
+  pdfBlob: Blob
 ) {
   try {
     // Email interno con la solicitud de cotización

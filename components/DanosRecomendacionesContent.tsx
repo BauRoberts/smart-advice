@@ -1,4 +1,4 @@
-///Users/bautistaroberts/smart-advice/components/DanosRecomendacionesContent.tsx
+///Users/bautistaroberts/smart/components/DanosRecomendacionesContent.tsx
 
 "use client";
 

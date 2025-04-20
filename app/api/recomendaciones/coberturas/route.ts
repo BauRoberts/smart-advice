@@ -370,8 +370,8 @@ function generateRCCoverages(
     coverages.push({
       name: "Responsabilidad Civil por Unión y Mezcla",
       required: true,
-      // Eliminar la línea de limit:
-      // limit: "Límite sugerido: entre 100.000€ a 600.000€",
+
+      limit: "Límite sugerido: entre 100.000€ a 600.000€",
     });
   }
 

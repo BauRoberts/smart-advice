@@ -419,9 +419,12 @@ export const generateRCInsuranceReport = async (
     addText(`Dirección: ${companyAddress}`);
     // Añadir el código CNAE aquí
     addText(
-      `CNAE: ${recommendation.companyInfo.cnae_code || "No especificado"}`
+      `Actividad cubierta: ${
+        recommendation.companyInfo.cnae_code
+          ? `${recommendation.companyInfo.cnae_code} - ${actividadDescripcion}`
+          : actividadDescripcion
+      }`
     );
-    addText(`Actividad cubierta: ${actividadDescripcion}`);
 
     // Añadir nota importante sobre actividad
     addImportantNote(

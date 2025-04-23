@@ -112,16 +112,17 @@ export default function RCResumenStep({
                 {formData.company?.name || "-"}
               </dd>
             </div>
+
             <div>
-              <dt className="text-sm font-medium text-gray-500">CNAE</dt>
+              <dt className="text-sm font-medium text-gray-500">
+                Actividad (CNAE)
+              </dt>
               <dd className="mt-1 text-sm text-gray-900">
-                {formData.company?.cnae_code || "-"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Actividad</dt>
-              <dd className="mt-1 text-sm text-gray-900">
-                {formData.company?.activity || "-"}
+                {formData.company?.cnae_code
+                  ? `${formData.company.cnae_code} - ${
+                      formData.company?.activity || ""
+                    }`
+                  : "-"}
               </dd>
             </div>
             <div>

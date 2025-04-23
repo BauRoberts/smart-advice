@@ -418,25 +418,21 @@ function RecomendacionesContent() {
                         </p>
                       </div>
 
-                      {/* Añadir CNAE */}
-                      <div className="mb-4">
-                        <h3 className="text-sm font-medium text-gray-700">
-                          CNAE:
-                        </h3>
-                        <p className="text-base">
-                          {recommendation.companyInfo.cnae_code ||
-                            "No especificado"}
-                        </p>
-                      </div>
-
                       <div className="mb-4">
                         <h3 className="text-sm font-medium text-gray-700">
                           Actividad cubierta:
                         </h3>
                         <p className="text-base">
-                          {recommendation.companyInfo.activityDescription ||
-                            recommendation.companyInfo.activity ||
-                            "No especificada"}
+                          {recommendation.companyInfo.cnae_code
+                            ? `${recommendation.companyInfo.cnae_code} - ${
+                                recommendation.companyInfo
+                                  .activityDescription ||
+                                recommendation.companyInfo.activity ||
+                                "No especificada"
+                              }`
+                            : recommendation.companyInfo.activityDescription ||
+                              recommendation.companyInfo.activity ||
+                              "No especificada"}
                         </p>
                       </div>
                     </div>

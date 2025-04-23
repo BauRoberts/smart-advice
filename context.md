@@ -342,5 +342,3 @@ Limpiar sesiones antiguas con expires_at (cron job).
 No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
-
-Tenemos un error cuando hacemos submit de un formulario probando desde incognito!

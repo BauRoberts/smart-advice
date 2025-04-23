@@ -36,8 +36,9 @@ interface ProtectionInfo {
   bocas_incendio?: boolean;
   deposito_bombeo?: boolean;
   cobertura_total?: boolean;
+  bocas_areas?: string; // Añadir este campo
   columnas_hidrantes?: boolean;
-  columnas_hidrantes_tipo?: string;
+  columnas_hidrantes_tipo?: string | string[];
   deteccion_automatica?: boolean;
   deteccion_zona?: string[];
   rociadores?: boolean;
@@ -224,6 +225,7 @@ function generateDanosRecommendation(
     bocas_incendio: formData?.proteccion_incendios?.bocas_incendio || false,
     deposito_bombeo: formData?.proteccion_incendios?.deposito_bombeo || false,
     cobertura_total: formData?.proteccion_incendios?.cobertura_total || false,
+    bocas_areas: formData?.proteccion_incendios?.bocas_areas || "",
     columnas_hidrantes:
       formData?.proteccion_incendios?.columnas_hidrantes || false,
     columnas_hidrantes_tipo:

@@ -130,10 +130,11 @@ export default function FormSummaryStep({
                 Actividad (CNAE)
               </dt>
               <dd>
-                {formData.informacion_general?.cnae_code || "-"}{" "}
-                {formData.informacion_general?.activity
-                  ? `- ${formData.informacion_general.activity}`
-                  : ""}
+                {formData.informacion_general?.cnae_code
+                  ? `${formData.informacion_general.cnae_code} - ${
+                      formData.informacion_general.activity || "Sin descripción"
+                    }`
+                  : "-"}
               </dd>
             </div>
             <div>
@@ -234,6 +235,19 @@ export default function FormSummaryStep({
                 </dt>
                 <dd>{formData.construccion.placas_solares ? "Sí" : "No"}</dd>
               </div>
+              {formData.construccion.placas_solares &&
+                formData.construccion.valor_placas_solares > 0 && (
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">
+                      Valor de las placas solares
+                    </dt>
+                    <dd>
+                      {formatCurrency(
+                        formData.construccion.valor_placas_solares
+                      )}
+                    </dd>
+                  </div>
+                )}
             </dl>
           </div>
         )}
@@ -265,14 +279,23 @@ export default function FormSummaryStep({
                 <>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">
-                      Cobertura total BIE
+                      Cobertura BIE
                     </dt>
                     <dd>
                       {formData.proteccion_incendios.cobertura_total
-                        ? "Sí"
-                        : "No"}
+                        ? "Total"
+                        : "Parcial"}
                     </dd>
                   </div>
+                  {!formData.proteccion_incendios.cobertura_total &&
+                    formData.proteccion_incendios.bocas_areas && (
+                      <div>
+                        <dt className="text-sm font-medium text-gray-500">
+                          Áreas cubiertas
+                        </dt>
+                        <dd>{formData.proteccion_incendios.bocas_areas}</dd>
+                      </div>
+                    )}
                   <div>
                     <dt className="text-sm font-medium text-gray-500">
                       Depósito y bombeo propio

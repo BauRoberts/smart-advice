@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import FormLayout from "@/components/layout/FormLayout";
 import { useFormContext } from "@/contexts/FormContext";
+import { Input } from "@/components/ui/input";
 
 // Schema para validar los datos de información de instalaciones
 const construccionSchema = z.object({
@@ -71,6 +72,7 @@ export default function ConstruccionStep({
       ...defaultValues,
     },
   });
+  const placasSolares = form.watch("placas_solares");
 
   // Manejar el envío del formulario
   function onSubmit(data: ConstruccionFormData) {
@@ -228,6 +230,32 @@ export default function ConstruccionStep({
                 </FormItem>
               )}
             />
+
+            {/* Agrégalo aquí */}
+            {placasSolares && (
+              <FormField
+                control={form.control}
+                name="valor_placas_solares"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Valor de las placas solares (€)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Ej: 10000"
+                        value={field.value || ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value ? parseFloat(e.target.value) : 0
+                          )
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </div>
         </form>
       </Form>

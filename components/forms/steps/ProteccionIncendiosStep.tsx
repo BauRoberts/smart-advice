@@ -34,7 +34,8 @@ const proteccionIncendiosSchema = z.object({
 
   // Bocas de incendio
   bocas_incendio: z.boolean().default(false),
-  bocas_cobertura_total: z.boolean().optional(),
+  bocas_cobertura: z.enum(["total", "parcial"]).optional(),
+  bocas_areas: z.string().optional(),
   bocas_deposito_propio: z.boolean().optional(),
 
   // Columnas hidrantes
@@ -98,6 +99,7 @@ export default function ProteccionIncendiosStep({
 
   // Observar campos para lógica condicional
   const bocasIncendio = form.watch("bocas_incendio");
+  const bocasCobertura = form.watch("bocas_cobertura");
   const columnasHidrantes = form.watch("columnas_hidrantes");
   const deteccionAutomatica = form.watch("deteccion_automatica");
   const deteccionCobertura = form.watch("deteccion_cobertura");
@@ -111,7 +113,8 @@ export default function ProteccionIncendiosStep({
       extintores: data.extintores,
       bocas_incendio: data.bocas_incendio,
       deposito_bombeo: data.bocas_deposito_propio || false,
-      cobertura_total: data.bocas_cobertura_total || false,
+      cobertura_total: data.bocas_cobertura === "total",
+      bocas_areas: data.bocas_cobertura === "parcial" ? data.bocas_areas : "",
       columnas_hidrantes: data.columnas_hidrantes,
       columnas_hidrantes_tipo: data.columnas_hidrantes_tipo || [],
       deteccion_automatica: data.deteccion_automatica,
@@ -192,23 +195,58 @@ export default function ProteccionIncendiosStep({
               <div className="ml-7 space-y-3">
                 <FormField
                   control={form.control}
-                  name="bocas_cobertura_total"
+                  name="bocas_cobertura"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormItem>
+                      <FormLabel>Cobertura</FormLabel>
                       <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="total" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Totalidad del riesgo
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="parcial" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Cobertura parcial
+                            </FormLabel>
+                          </FormItem>
+                        </RadioGroup>
                       </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>
-                          ¿Cubren la totalidad de la Instalación?
-                        </FormLabel>
-                      </div>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
+
+                {bocasCobertura === "parcial" && (
+                  <FormField
+                    control={form.control}
+                    name="bocas_areas"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Especificar áreas cubiertas</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Ej: zona de almacén, oficinas, etc."
+                            className="resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <FormField
                   control={form.control}

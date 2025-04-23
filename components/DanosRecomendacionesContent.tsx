@@ -309,7 +309,10 @@ export default function DanosRecomendacionesContent() {
                   <div className="mb-4">
                     <h3 className="text-sm font-medium text-gray-700">CNAE:</h3>
                     <p className="text-base">
-                      {recommendation.companyInfo.cnae || "No especificado"}
+                      {recommendation.companyInfo.cnae &&
+                      recommendation.companyInfo.activity
+                        ? `${recommendation.companyInfo.cnae} - ${recommendation.companyInfo.activity}`
+                        : recommendation.companyInfo.cnae || "No especificado"}
                     </p>
                   </div>
 
@@ -390,6 +393,23 @@ export default function DanosRecomendacionesContent() {
                     )}
                   </p>
                 </div>
+
+                {/* Agregar aquí la información de placas solares */}
+                {recommendation.constructionInfo.placas_solares && (
+                  <div className="mb-4">
+                    <h3 className="text-sm font-medium text-gray-700">
+                      Placas solares en cubierta:
+                    </h3>
+                    <p className="text-base">
+                      Sí{" "}
+                      {recommendation.constructionInfo.valor_placas_solares
+                        ? `(Valor: ${formatNumber(
+                            recommendation.constructionInfo.valor_placas_solares
+                          )})`
+                        : ""}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Protecciones contra incendio */}
@@ -401,11 +421,16 @@ export default function DanosRecomendacionesContent() {
                   {recommendation.protectionInfo.extintores && (
                     <li>Extintores</li>
                   )}
+
                   {recommendation.protectionInfo.bocas_incendio && (
                     <li>
                       Bocas de incendio equipadas (BIE)
-                      {recommendation.protectionInfo.cobertura_total &&
-                        " - Cobertura total"}
+                      {recommendation.protectionInfo.cobertura_total
+                        ? " - Cobertura total"
+                        : " - Cobertura parcial"}
+                      {!recommendation.protectionInfo.cobertura_total &&
+                        recommendation.protectionInfo.bocas_areas &&
+                        ` - Áreas cubiertas: ${recommendation.protectionInfo.bocas_areas}`}
                       {recommendation.protectionInfo.deposito_bombeo &&
                         " - Con depósito propio y grupo de bombeo"}
                     </li>

@@ -394,7 +394,13 @@ export const generateInsuranceReport = async (
     addText(`Tomador: ${companyName}`, 10, true);
     addText(`CIF: ${recommendation.companyInfo.cif || "No especificado"}`);
     addText(`Dirección: ${companyAddress}`);
-    addText(`CNAE: ${recommendation.companyInfo.cnae || "No especificado"}`);
+    addText(
+      `CNAE: ${
+        recommendation.companyInfo.cnae && recommendation.companyInfo.activity
+          ? `${recommendation.companyInfo.cnae} - ${recommendation.companyInfo.activity}`
+          : recommendation.companyInfo.cnae || "No especificado"
+      }`
+    );
     addText(`Actividad: ${actividadDescripcion}`);
 
     // Determinar si es propietario para añadir asegurado adicional
@@ -435,6 +441,16 @@ export const generateInsuranceReport = async (
         recommendation.constructionInfo.cerramientos
       )}`
     );
+    // Después de los datos sobre cerramientos y antes de los metros cuadrados
+    if (recommendation.constructionInfo.placas_solares) {
+      let placasText = "Placas solares en cubierta: Sí";
+      if (recommendation.constructionInfo.valor_placas_solares) {
+        placasText += ` (Valor: ${formatCurrency(
+          recommendation.constructionInfo.valor_placas_solares
+        )})`;
+      }
+      addText(placasText);
+    }
     addText(
       `M²: ${
         recommendation.companyInfo.m2
@@ -750,6 +766,15 @@ export const generateInsuranceReport = async (
 
         // Añadir el título con el límite o condición si está disponible
         let clauseTitle = clause.name;
+
+        // Corregir el nombre de la cláusula de leasing
+        if (clauseTitle.includes("Cláusula de Leasing")) {
+          clauseTitle = clauseTitle.replace(
+            "Cláusula de Leasing",
+            "Cláusula beneficiario de leasing"
+          );
+        }
+
         if (clause.limit) {
           clauseTitle += ` con límite de ${clause.limit}`;
         } else if (clause.condition) {
@@ -766,7 +791,6 @@ export const generateInsuranceReport = async (
         }
       }
     }
-
     // Información de contacto al final
     currentY += 10;
     doc.setDrawColor(...COLORS.primary);

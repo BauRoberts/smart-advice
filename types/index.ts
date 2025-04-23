@@ -157,6 +157,8 @@ export interface ConstructionInfo {
   estructura?: string;
   cubierta?: string;
   cerramientos?: string;
+  placas_solares?: boolean; // Agregar este campo
+  valor_placas_solares?: number; // Agregar este campo
 }
 
 export interface ProtectionInfo {
@@ -164,6 +166,7 @@ export interface ProtectionInfo {
   bocas_incendio?: boolean;
   deposito_bombeo?: boolean;
   cobertura_total?: boolean;
+  bocas_areas?: string; // Agregar este campo
   columnas_hidrantes?: boolean;
   columnas_hidrantes_tipo?: string;
   deteccion_automatica?: boolean;

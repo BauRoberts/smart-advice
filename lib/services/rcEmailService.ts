@@ -9,17 +9,34 @@ export async function sendRCRecommendationEmail(
 ) {
   try {
     console.log("Enviando solicitud de cotización de RC a:", contactEmail);
+    console.log("Datos de contacto:", { contactEmail, contactName });
+    console.log("Datos de recomendación:", recommendation);
 
-    // Preparar los datos necesarios para la solicitud
-    const emailData = {
-      email: contactEmail,
-      name: contactName || recommendation.companyInfo.name || "",
-      recommendations: [recommendation],
-      tipo: "responsabilidad_civil",
-    };
+    // Asegurar que tengamos un nombre, incluso si es vacío
+    const name = contactName || recommendation.companyInfo?.name || "Cliente";
 
-    // Hacer una solicitud a nuestra API interna en lugar de importar directamente
-    // la función sendQuotationRequest para evitar errores de hidratación
+    // Obtener session_id del localStorage, con manejo adecuado para SSR
+    let session_id = "";
+    if (typeof window !== "undefined" && window.localStorage) {
+      // Intentar obtener de diferentes fuentes, por orden de prioridad
+      session_id =
+        localStorage.getItem("smart_advice_session_id") ||
+        localStorage.getItem("last_used_session_id") ||
+        localStorage.getItem("last_used_form_session_id") ||
+        "";
+
+      console.log("Session ID para solicitud de email:", session_id);
+    }
+
+    if (!session_id) {
+      console.warn("No se encontró session_id en localStorage");
+    }
+
+    if (!contactEmail) {
+      throw new Error("Email de contacto es obligatorio");
+    }
+
+    // Hacer una solicitud a nuestra API interna
     const response = await fetch("/api/recomendaciones/email", {
       method: "POST",
       headers: {
@@ -27,11 +44,8 @@ export async function sendRCRecommendationEmail(
       },
       body: JSON.stringify({
         email: contactEmail,
-        name: contactName,
-        session_id:
-          typeof localStorage !== "undefined"
-            ? localStorage.getItem("smart_advice_session_id") || ""
-            : "",
+        name: name, // Aseguramos que siempre tenemos un nombre
+        session_id: session_id,
         form_type: "responsabilidad_civil",
       }),
     });
@@ -165,32 +179,33 @@ export function generateRCClientEmailTemplate(data: any): string {
   <html>
     <head>
       <style>
+        * {
+          text-align: left !important;
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
         body { 
           font-family: Arial, sans-serif; 
           line-height: 1.6; 
           color: #333; 
-          margin: 0;
-          padding: 0;
           background-color: #f5f7fa;
         }
         .container { 
           max-width: 600px; 
           margin: 0 auto; 
-          padding: 0;
           background-color: #ffffff;
         }
         .header { 
           background-color: #062A5A; 
           color: white; 
           padding: 30px 20px; 
-          text-align: center; 
         }
         .content { 
           padding: 30px 20px; 
           background-color: #ffffff;
         }
         .footer { 
-          text-align: center; 
           margin-top: 20px; 
           font-size: 12px; 
           color: #666; 
@@ -199,17 +214,14 @@ export function generateRCClientEmailTemplate(data: any): string {
           border-top: 1px solid #eeeeee;
         }
         .btn { 
-          display: inline-block; 
+          display: inline-block;
           background-color: #FB2E25; 
-          color: white; 
+          color: white !important; 
           padding: 12px 24px; 
           text-decoration: none; 
           border-radius: 4px; 
           font-weight: bold;
           margin-top: 20px;
-        }
-        .btn:hover {
-          background-color: #d92720;
         }
         .info-box {
           background-color: #f5f7fa;
@@ -222,9 +234,17 @@ export function generateRCClientEmailTemplate(data: any): string {
           font-size: 24px; 
           font-weight: bold;
         }
-        .logo {
-          margin-bottom: 20px;
-          width: 150px;
+        ul {
+          list-style-position: inside;
+          padding: 0;
+          margin: 10px 0;
+        }
+        li {
+          margin-bottom: 5px;
+          padding-left: 15px;
+        }
+        p {
+          margin: 10px 0;
         }
       </style>
     </head>

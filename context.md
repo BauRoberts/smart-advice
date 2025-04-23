@@ -343,4 +343,4 @@ No almacenar datos sensibles sin cifrar.
 
 Que vamos a hacer ahora?
 
-Vamos a hacer correcciones sobre el formulario de danos! Para eso vamos a ir analizando cada una de las cuestiones y haciendo los cambios necesarios! Me ayudas?
+Tenemos un error cuando hacemos submit de un formulario probando desde incognito!

@@ -16,10 +16,49 @@ export async function POST(request: Request) {
       siniestralidad,
     } = body;
 
+    console.log("===== API ROUTE DEBUG (DAÑOS MATERIALES) =====");
+    console.log("Session ID:", session_id);
+    console.log("Form Data:", JSON.stringify(form_data, null, 2));
+
     if (!session_id) {
       return NextResponse.json(
         { success: false, error: "Session ID is required" },
         { status: 400 }
+      );
+    }
+
+    // MODIFICACIÓN: Verificar si la sesión existe y, si no, crearla
+    const { data: existingSession } = await supabase
+      .from("sessions")
+      .select("id")
+      .eq("id", session_id)
+      .single();
+
+    if (!existingSession) {
+      console.log(
+        "Session ID not found in database. Creating a new session record."
+      );
+      // La sesión no existe, así que la creamos
+      const { data: newSession, error: sessionError } = await supabase
+        .from("sessions")
+        .insert({
+          id: session_id, // Usar el mismo ID que el cliente está enviando
+        })
+        .select()
+        .single();
+
+      if (sessionError) {
+        console.error("Error creating session record:", sessionError);
+        return NextResponse.json(
+          { success: false, error: "Failed to create session record" },
+          { status: 500 }
+        );
+      }
+
+      console.log("Created new session record:", newSession);
+    } else {
+      console.log(
+        "Session ID found in database, proceeding with form submission"
       );
     }
 

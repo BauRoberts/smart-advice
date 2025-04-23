@@ -1,4 +1,5 @@
 // app/api/forms/responsabilidad_civil/route.ts
+// app/api/forms/responsabilidad_civil/route.ts
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
@@ -15,6 +16,44 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { success: false, error: "Session ID is required" },
         { status: 400 }
+      );
+    }
+
+    // MODIFICACIÓN: Verificar si la sesión existe y, si no, crearla
+    const { data: existingSession } = await supabase
+      .from("sessions")
+      .select("id")
+      .eq("id", session_id)
+      .single();
+
+    if (!existingSession) {
+      console.log(
+        "Session ID not found in database. Creating a new session record."
+      );
+      // La sesión no existe, así que la creamos
+      // Verificar la estructura de la tabla sessions
+      // Según el error, parece que no existe la columna 'metadata'
+      const { data: newSession, error: sessionError } = await supabase
+        .from("sessions")
+        .insert({
+          id: session_id, // Usar el mismo ID que el cliente está enviando
+          // No incluimos metadata ya que no existe la columna
+        })
+        .select()
+        .single();
+
+      if (sessionError) {
+        console.error("Error creating session record:", sessionError);
+        return NextResponse.json(
+          { success: false, error: "Failed to create session record" },
+          { status: 500 }
+        );
+      }
+
+      console.log("Created new session record:", newSession);
+    } else {
+      console.log(
+        "Session ID found in database, proceeding with form submission"
       );
     }
 
